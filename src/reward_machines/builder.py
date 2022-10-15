@@ -1,7 +1,8 @@
 from expression import Expression, compile
 from parser import parse
 from reward_machines.reward_machine import RewardMachine
-from util import powerset
+from util import get_one, powerset
+import IPython
 
 
 def compute_terminal_states(transitions: dict) -> frozenset[int]:
@@ -42,17 +43,13 @@ class Builder:
             self.transitions[from_state] = dict()
         for intp in compiled:
             if intp in self.transitions[from_state]:
-                raise ValueError(f'{intp} already in state {to_state}')
+                raise ValueError(
+                    f'{intp} already in state {from_state} ({(from_state, to_state, expr, output)})')
             self.transitions[from_state][intp] = (to_state, output)
 
     def build(self):
         for c in self.commands:
             self._t(c[0], c[1], c[2], c[3])
-        for intp in powerset(frozenset(self.appears)):
-            for state in self.transitions.keys():
-                if intp not in self.transitions[state]:
-                    raise ValueError(
-                        f'intp {intp} missing from transitions out of {state}')
         assert self.terminal_states == compute_terminal_states(
             self.transitions)
         for terminal_state in self.terminal_states:

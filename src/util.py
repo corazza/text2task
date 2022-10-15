@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Any, Iterator
 
 
 def select(a: list, b: int) -> frozenset:
@@ -12,7 +12,11 @@ def select(a: list, b: int) -> frozenset:
     return frozenset(r)
 
 
-def powerset(a: frozenset) -> Iterator[frozenset]:
+def powerset(a: frozenset[Any]) -> Iterator[frozenset[Any]]:
     b = list(a)
     for i in range(2**len(a)):
         yield select(b, i)
+
+
+def get_one(a: frozenset[Any]) -> Any:
+    return list(a)[0]

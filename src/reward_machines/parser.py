@@ -65,10 +65,10 @@ def with_first(t: Token, lex: Iterator[Token]) -> Iterator:
     return itertools.chain([t], lex)
 
 # expression -> term
-# expression -> term | term
+# expression -> term | expression
 
 # term -> factor
-# term -> factor & factor
+# term -> factor & term
 
 # factor -> !factor
 # factor -> (expression)
@@ -90,7 +90,7 @@ def parse_term(lex: more_itertools.peekable) -> Expression:
     token = lex.peek()
     if isinstance(token, AndT):
         next(lex)
-        right = parse_factor(lex)
+        right = parse_term(lex)
         return And(left, right)
     return left
 
