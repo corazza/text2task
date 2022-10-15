@@ -1,5 +1,4 @@
 from curses.ascii import isalpha, islower, isspace
-from re import L
 from typing import Iterator
 import itertools
 import more_itertools
@@ -76,7 +75,7 @@ def with_first(t: Token, lex: Iterator[Token]) -> Iterator:
 # factor -> symbol
 
 
-def parse_expression(lex) -> Expression:
+def parse_expression(lex: more_itertools.peekable) -> Expression:
     left = parse_term(lex)
     token = lex.peek()
     if isinstance(token, OrT):
@@ -86,7 +85,7 @@ def parse_expression(lex) -> Expression:
     return left
 
 
-def parse_term(lex) -> Expression:
+def parse_term(lex: more_itertools.peekable) -> Expression:
     left = parse_factor(lex)
     token = lex.peek()
     if isinstance(token, AndT):
@@ -96,7 +95,7 @@ def parse_term(lex) -> Expression:
     return left
 
 
-def parse_factor(lex) -> Expression:
+def parse_factor(lex: more_itertools.peekable) -> Expression:
     token = lex.peek()
     if isinstance(token, OpenT):
         next(lex)
