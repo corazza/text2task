@@ -1,8 +1,8 @@
-from expression import Expression, compile
-from parser import parse
+from typing import Tuple
 from reward_machines.reward_machine import RewardMachine
-from util import get_one, powerset
-import IPython
+
+from .expression import Expression, compile
+from .parser import parse
 
 
 def compute_terminal_states(transitions: dict) -> frozenset[int]:
@@ -13,6 +13,10 @@ def compute_terminal_states(transitions: dict) -> frozenset[int]:
             if reaching not in transitions:
                 terminal_states.add(reaching)
     return frozenset(terminal_states)
+
+
+def describe_command(c: Tuple[int, int, Expression, int, str]):
+    return f'{c[0]}, {c[1]}, {c[4]}, {c[3]}'
 
 
 class Builder:
@@ -27,17 +31,29 @@ class Builder:
         self.terminal_states = frozenset(terminal_states)
         self.commands = list()
 
-    def t(self, from_state: int, to_state: int, expr_src: str, output: float):
+    def t(self, from_state: int, to_state: int, expr_src: str, output: int) -> 'Builder':
         expr = parse(expr_src)
         expr_appears = expr.appears()
         if not self.preset_appears:
             self.appears.update(expr_appears)
         else:
             assert expr_appears <= self.appears
-        self.commands.append((from_state, to_state, expr, output))
+        self.commands.append((from_state, to_state, expr, output, expr_src))
         return self
 
-    def _t(self, from_state: int, to_state: int, expr: Expression, output: float):
+    def build(self) -> RewardMachine:
+        for c in self.commands:
+            self._t(c[0], c[1], c[2], c[3])
+        assert self.terminal_states == compute_terminal_states(
+            self.transitions)
+        for terminal_state in self.terminal_states:
+            assert terminal_state not in self.transitions
+        return RewardMachine(self.transitions, frozenset(self.appears), self.terminal_states, self.describe())
+
+    def describe(self) -> list[str]:
+        return list(map(describe_command, self.commands))
+
+    def _t(self, from_state: int, to_state: int, expr: Expression, output: int) -> None:
         compiled = compile(expr, appears=self.appears)
         if from_state not in self.transitions:
             self.transitions[from_state] = dict()
@@ -46,12 +62,3 @@ class Builder:
                 raise ValueError(
                     f'{intp} already in state {from_state} ({(from_state, to_state, expr, output)})')
             self.transitions[from_state][intp] = (to_state, output)
-
-    def build(self):
-        for c in self.commands:
-            self._t(c[0], c[1], c[2], c[3])
-        assert self.terminal_states == compute_terminal_states(
-            self.transitions)
-        for terminal_state in self.terminal_states:
-            assert terminal_state not in self.transitions
-        return RewardMachine(self.transitions, self.appears, self.terminal_states)
