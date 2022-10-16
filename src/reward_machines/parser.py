@@ -3,7 +3,7 @@ from typing import Iterator
 import itertools
 import more_itertools
 
-from .expression import *
+from expression import *
 
 
 class Token:

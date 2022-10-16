@@ -19,11 +19,22 @@ class RewardMachine:
         self.desc = desc
 
     def transition(self, current_state: int, input_symbol: frozenset[str]) -> Tuple[int, int]:
+        if current_state in self.terminal_states:
+            return (current_state, 0)
         input_symbol = frozenset(self.appears.intersection(input_symbol))
         if input_symbol not in self.transitions[current_state]:
             return (get_one(self.terminal_states), 0)
         return self.transitions[current_state][input_symbol]
 
-    def __call__(self, current_state: int, input_symbol_str: str) -> Tuple[int, int]:
-        input_symbol = frozenset(input_symbol_str)
-        return self.transition(current_state, input_symbol)
+    def __call__(self, current_state: int, inputs: str | list[str]) -> Tuple[int, int] | list[int]:
+        if isinstance(inputs, str):
+            input_symbol = frozenset(inputs)
+            return self.transition(current_state, input_symbol)
+        else:
+            rs = list()
+            for i in inputs:
+                input_symbol = frozenset(i)
+                (current_state, r) = self.transition(
+                    current_state, input_symbol)
+                rs.append(r)
+            return rs

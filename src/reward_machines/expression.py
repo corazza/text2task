@@ -1,6 +1,3 @@
-import sys  # noqa
-sys.path.append('..')  # noqa
-
 from util import powerset
 
 

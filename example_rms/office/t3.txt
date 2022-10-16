@@ -9,3 +9,8 @@
 (3,4,'e&!n',ConstantRewardFunction(0))
 (4,1,'g&!n',ConstantRewardFunction(1))
 (4,4,'!g&!n',ConstantRewardFunction(0))
+
+# efg
+# feg
+
+# (ef|fe)g

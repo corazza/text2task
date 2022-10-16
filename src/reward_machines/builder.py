@@ -1,8 +1,8 @@
 from typing import Tuple
-from reward_machines.reward_machine import RewardMachine
 
-from .expression import Expression, compile
-from .parser import parse
+from reward_machine import RewardMachine
+from expression import Expression, compile
+from parser import parse
 
 
 def compute_terminal_states(transitions: dict) -> frozenset[int]:
