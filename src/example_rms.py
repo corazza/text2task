@@ -1,5 +1,5 @@
 from reward_machine import RewardMachine
-from builder import Builder
+from rm_builder import Builder
 
 
 def office_t3() -> RewardMachine:
@@ -51,6 +51,12 @@ def office_t4() -> RewardMachine:
 
 
 def office_e1() -> RewardMachine:
+    """
+    efg
+    feg
+    fnnneg
+    (f(n)*e|ef)g
+    """
     return Builder(terminal_states={1}) \
         .t(0, 0, '!e&!f&!n', 0) \
         .t(0, 2, 'e&!n', 0) \

@@ -1,4 +1,4 @@
-from reward_machines.reward_machine import RewardMachine
+from reward_machine import RewardMachine
 import IPython
 
 

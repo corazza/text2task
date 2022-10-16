@@ -3,7 +3,7 @@ from typing import Iterator
 import itertools
 import more_itertools
 
-from expression import *
+from transition_ast import *
 
 
 class Token:
@@ -60,9 +60,6 @@ def lex(src: str) -> Iterator[Token]:
             raise ValueError(f'unrecognized character {c}')
     yield EndT()
 
-
-def with_first(t: Token, lex: Iterator[Token]) -> Iterator:
-    return itertools.chain([t], lex)
 
 # expression -> term
 # expression -> term | expression

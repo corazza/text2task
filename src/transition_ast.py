@@ -1,4 +1,4 @@
-from util import powerset
+from rm_util import powerset
 
 
 class Expression:
