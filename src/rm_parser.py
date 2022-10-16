@@ -7,7 +7,11 @@ from rm_ast import *
 
 
 class Token:
-    pass
+    def __repr__(self):
+        raise NotImplementedError()
+
+    def __str__(self):
+        return repr(self)
 
 
 class SymbolT(Token):
@@ -15,47 +19,63 @@ class SymbolT(Token):
         super().__init__()
         self.symbol = symbol
 
+    def __repr__(self):
+        return f'S<{self.symbol}>'
+
 
 class RepeatT(Token):
-    pass
+    def __repr__(self):
+        return '*'
 
 
 class ThenT(Token):
-    pass
+    def __repr__(self):
+        return '->'
 
 
 class OrT(Token):
-    pass
+    def __repr__(self):
+        return '|'
 
 
 class OpenT(Token):
-    pass
+    def __repr__(self):
+        return '('
 
 
 class CloseT(Token):
-    pass
+    def __repr__(self):
+        return ')'
 
 
 class EndT(Token):
-    pass
+    def __repr__(self):
+        return 'End'
 
 
 def lex(src: str) -> Iterator[Token]:
-    nospaces = list(filter(lambda c: not isspace(c), src))
-    for c in nospaces:
+    symbol_buffer = []
+    for c in src:
         if isalpha(c):
-            assert islower(c), 'propositional variables must be lower-case'
-            yield SymbolT(c)
-        elif c == '|':
-            yield OrT()
-        elif c == '*':
-            yield RepeatT()
-        elif c == '(':
-            yield OpenT()
-        elif c == ')':
-            yield CloseT()
+            symbol_buffer.append(c)
         else:
-            raise ValueError(f'unrecognized character {c}')
+            if len(symbol_buffer) > 0:
+                yield SymbolT(''.join(symbol_buffer))
+                symbol_buffer = []
+            if c == ' ':
+                continue
+            elif c == '|':
+                yield OrT()
+            elif c == '*':
+                yield RepeatT()
+            elif c == '(':
+                yield OpenT()
+            elif c == ')':
+                yield CloseT()
+            else:
+                raise ValueError(f'unrecognized character {c}')
+    if len(symbol_buffer) != 0:
+        yield SymbolT(''.join(symbol_buffer))
     yield EndT()
 
 
@@ -76,7 +96,12 @@ def parse_expression(lex: more_itertools.peekable) -> RMExpr:
     if isinstance(token, OrT):
         next(lex)
         right = parse_expression(lex)
-        return Or(left, right)
+        or_terms = [left]
+        if isinstance(right, Or):
+            or_terms.extend(right.exprs)
+        else:
+            or_terms.append(right)
+        return Or(or_terms)
     return left
 
 
@@ -85,7 +110,12 @@ def parse_term(lex: more_itertools.peekable) -> RMExpr:
     token = lex.peek()
     if isinstance(token, SymbolT) or isinstance(token, OpenT):
         right = parse_term(lex)
-        return Then(left, right)
+        then_terms = [left]
+        if isinstance(right, Then):
+            then_terms.extend(right.exprs)
+        else:
+            then_terms.append(right)
+        return Then(then_terms)
     return left
 
 

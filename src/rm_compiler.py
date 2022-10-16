@@ -1,6 +1,8 @@
 import itertools
 from typing import Iterable, Tuple
 
+from reward_machine import RewardMachine
+
 
 class RMNode:
     def __init__(self, id: int, transitions: set[Tuple[str, 'RMNode']]):
@@ -220,9 +222,6 @@ def to_dfa(compiled: CompileState) -> CompileStateDFA:
         for i in appears_in:
             superstate = next_superstate(visiting, i)
             ids = to_ids(superstate)
-            print(current_ids, i, ids,
-                  "HERE" if compiled.terminal in superstate
-                  else "")
             if ids in state_dict:
                 state = state_dict[ids]
             else:
@@ -233,3 +232,7 @@ def to_dfa(compiled: CompileState) -> CompileStateDFA:
             current_state.t(i, state)
     assert isinstance(terminal, RMNodeDFA), type(terminal)
     return CompileStateDFA(initial, terminal)
+
+
+def dfa_to_rm(dfa: CompileStateDFA, appears: frozenset[str]) -> RewardMachine:
+    raise NotImplementedError()

@@ -39,55 +39,71 @@ class Var(RMExpr):
 
 
 class Or(RMExpr):
-    def __init__(self, left: RMExpr, right: RMExpr):
+    def __init__(self, exprs: list[RMExpr]):
         super().__init__()
-        self.left = left
-        self.right = right
+        self.exprs = exprs
 
     def appears(self) -> frozenset[str]:
-        return frozenset.union(self.left.appears(), self.right.appears())
+        r = set()
+        for expr in self.exprs:
+            r.update(expr.appears())
+        return frozenset(r)
 
     def compile(self, node_creator: RMNodeCreator) -> CompileState:
-        left = self.left.compile(node_creator)
-        right = self.right.compile(node_creator)
+        compiled = list(map(lambda e: e.compile(node_creator), self.exprs))
         initial = node_creator.new_node(set())
         terminal = node_creator.new_node(set())
-        initial.t('*', left.initial)
-        initial.t('*', right.initial)
-        left.terminal.t('*', terminal)
-        right.terminal.t('*', terminal)
+        for c in compiled:
+            initial.t('*', c.initial)
+            c.terminal.t('*', terminal)
         return CompileState(initial, terminal)
 
     def __str__(self):
-        return f'({self.left} | {self.right})'
+        r = ''
+        for i in range(len(self.exprs)-1):
+            r = f'{r}{self.exprs[i]} | '
+        return f'({r}{self.exprs[-1]})'
 
     def _internal_repr(self, level: int) -> str:
-        return f'Or:\n{"  " * level}left: {self.left._internal_repr(level+1)}\n{"  " * level}right: {self.right._internal_repr(level+1)}'
+        es = list(map(lambda e: e._internal_repr(level+1), self.exprs))
+        r = f'Or:'
+        for e in es:
+            r = f'{r}\n{"  " * level}{e}'
+        return r
 
     def __repr__(self) -> str:
         return self._internal_repr(1)
 
 
 class Then(RMExpr):
-    def __init__(self, left: RMExpr, right: RMExpr):
+    def __init__(self, exprs: list[RMExpr]):
         super().__init__()
-        self.left = left
-        self.right = right
+        self.exprs = exprs
 
     def appears(self) -> frozenset[str]:
-        return frozenset.union(self.left.appears(), self.right.appears())
+        r = set()
+        for expr in self.exprs:
+            r.update(expr.appears())
+        return frozenset(r)
 
     def compile(self, node_creator: RMNodeCreator) -> CompileState:
-        left = self.left.compile(node_creator)
-        right = self.right.compile(node_creator)
-        left.terminal.t('*', right.initial)
-        return CompileState(left.initial, right.terminal)
+        compiled = list(map(lambda e: e.compile(node_creator), self.exprs))
+        for i in range(len(compiled)-1):
+            compiled[i].terminal.t('*', compiled[i+1].initial)
+        return CompileState(compiled[0].initial, compiled[-1].terminal)
 
     def __str__(self):
-        return f'({self.left} -> {self.right})'
+        r = ''
+        for i in range(len(self.exprs)-1):
+            r = f'{r}{self.exprs[i]} -> '
+        return f'({r}{self.exprs[-1]})'
 
     def _internal_repr(self, level: int) -> str:
-        return f'Then:\n{"  " * level}left: {self.left._internal_repr(level+1)}\n{"  " * level}right: {self.right._internal_repr(level+1)}'
+        es = list(map(lambda e: e._internal_repr(level+1), self.exprs))
+        r = f'Then:'
+        for e in es:
+            r = f'{r}\n{"  " * level}{e}'
+        return r
 
     def __repr__(self) -> str:
         return self._internal_repr(1)

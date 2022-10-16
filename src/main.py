@@ -1,15 +1,5 @@
-import IPython
-
-from describe import describe, load_semantic_map
-from example_rms import office_t3
-import compiler_interface
-
+import data_loader
 
 if __name__ == "__main__":
-    semantic_map = load_semantic_map('../semantic_maps/t1.txt')
-    rm = office_t3()
-
-    rm_src = '(f(n)*e|ef)g'
-    compiler_interface.compile(rm_src, frozenset('efgn'))
-
-    # print(describe(semantic_map, rm))
+    data = data_loader.load_file('../training_data/in_context.txt')
+    data.format_pairs(data.count())
