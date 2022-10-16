@@ -72,7 +72,7 @@ def lex(src: str) -> Iterator[Token]:
 # factor -> symbol
 
 
-def parse_expression(lex: more_itertools.peekable) -> Expression:
+def parse_expression(lex: more_itertools.peekable) -> TExp:
     left = parse_term(lex)
     token = lex.peek()
     if isinstance(token, OrT):
@@ -82,7 +82,7 @@ def parse_expression(lex: more_itertools.peekable) -> Expression:
     return left
 
 
-def parse_term(lex: more_itertools.peekable) -> Expression:
+def parse_term(lex: more_itertools.peekable) -> TExp:
     left = parse_factor(lex)
     token = lex.peek()
     if isinstance(token, AndT):
@@ -92,7 +92,7 @@ def parse_term(lex: more_itertools.peekable) -> Expression:
     return left
 
 
-def parse_factor(lex: more_itertools.peekable) -> Expression:
+def parse_factor(lex: more_itertools.peekable) -> TExp:
     token = lex.peek()
     if isinstance(token, OpenT):
         next(lex)
@@ -108,11 +108,11 @@ def parse_factor(lex: more_itertools.peekable) -> Expression:
         return parse_symbol(lex)
 
 
-def parse_symbol(lex: Iterator[Token]) -> Expression:
+def parse_symbol(lex: Iterator[Token]) -> TExp:
     token = next(lex)
     assert isinstance(token, SymbolT), f'expected symbol, got {token}'
     return Var(token.symbol)
 
 
-def parse(src: str) -> Expression:
+def parse(src: str) -> TExp:
     return parse_expression(more_itertools.peekable(lex(src)))

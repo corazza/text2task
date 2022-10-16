@@ -1,7 +1,7 @@
 from typing import Tuple
 
 from reward_machine import RewardMachine
-from transition_ast import Expression, compile
+from transition_ast import TExp, compile
 from transition_parser import parse
 
 
@@ -15,7 +15,7 @@ def compute_terminal_states(transitions: dict) -> frozenset[int]:
     return frozenset(terminal_states)
 
 
-def describe_command(c: Tuple[int, int, Expression, int, str]):
+def describe_command(c: Tuple[int, int, TExp, int, str]):
     return f'{c[0]}, {c[1]}, {c[4]}, {c[3]}'
 
 
@@ -53,7 +53,7 @@ class Builder:
     def describe(self) -> list[str]:
         return list(map(describe_command, self.commands))
 
-    def _t(self, from_state: int, to_state: int, expr: Expression, output: int) -> None:
+    def _t(self, from_state: int, to_state: int, expr: TExp, output: int) -> None:
         compiled = compile(expr, appears=self.appears)
         if from_state not in self.transitions:
             self.transitions[from_state] = dict()

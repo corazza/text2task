@@ -1,7 +1,7 @@
 from rm_util import powerset
 
 
-class Expression:
+class TExp:
     def __init__(self):
         return
 
@@ -15,7 +15,7 @@ class Expression:
         return str(self)
 
 
-class Var(Expression):
+class Var(TExp):
     def __init__(self, symbol: str):
         super().__init__()
         self.symbol = symbol
@@ -30,8 +30,8 @@ class Var(Expression):
         return self.symbol
 
 
-class Not(Expression):
-    def __init__(self, expr: Expression):
+class Not(TExp):
+    def __init__(self, expr: TExp):
         super().__init__()
         self.child = expr
 
@@ -45,8 +45,8 @@ class Not(Expression):
         return f'!({self.child})'
 
 
-class Or(Expression):
-    def __init__(self, left: Expression, right: Expression):
+class Or(TExp):
+    def __init__(self, left: TExp, right: TExp):
         super().__init__()
         self.left = left
         self.right = right
@@ -61,8 +61,8 @@ class Or(Expression):
         return f'({self.left} | {self.right})'
 
 
-class And(Expression):
-    def __init__(self, left: Expression, right: Expression):
+class And(TExp):
+    def __init__(self, left: TExp, right: TExp):
         super().__init__()
         self.left = left
         self.right = right
@@ -77,7 +77,7 @@ class And(Expression):
         return f'({self.left} & {self.right})'
 
 
-def compile(expr: Expression, appears=None) -> frozenset[frozenset[str]]:
+def compile(expr: TExp, appears=None) -> frozenset[frozenset[str]]:
     r = set()
     if appears == None:
         appears = expr.appears()

@@ -2,15 +2,14 @@ import IPython
 
 from describe import describe, load_semantic_map
 from example_rms import office_t3
-import rm_parser
+import rm_compiler
 
 
 if __name__ == "__main__":
     semantic_map = load_semantic_map('../semantic_maps/t1.txt')
     rm = office_t3()
 
-    IPython.embed()
+    rm_src = '(f(n)*e|ef)g'
+    rm_compiler.compile(rm_src, frozenset('efgn'))
 
-    parsed = rm_parser.parse('')
-
-    print(describe(semantic_map, rm))
+    # print(describe(semantic_map, rm))
