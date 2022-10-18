@@ -2,6 +2,7 @@ from curses.ascii import isalpha, islower, isspace
 from typing import Iterator
 import itertools
 import more_itertools
+from torch import isin
 
 from rm_ast import *
 
@@ -38,6 +39,16 @@ class OrT(Token):
         return '|'
 
 
+class NotT(Token):
+    def __repr__(self):
+        return '!'
+
+
+class AndT(Token):
+    def __repr__(self):
+        return '&'
+
+
 class OpenT(Token):
     def __repr__(self):
         return '('
@@ -66,6 +77,10 @@ def lex(src: str) -> Iterator[Token]:
                 continue
             elif c == '|':
                 yield OrT()
+            elif c == '&':
+                yield AndT()
+            elif c == '!':
+                yield NotT()
             elif c == '*':
                 yield RepeatT()
             elif c == '(':
@@ -83,11 +98,16 @@ def lex(src: str) -> Iterator[Token]:
 # expression -> term | expression
 
 # term -> factor
-# term -> factor  term
+# term -> factor term
 
-# factor -> factor*
-# factor -> (expression)
-# factor -> symbol
+# factor -> (expression) | (expression)*
+# factor -> vars
+
+# vars -> symbol
+# vars -> symbol & vars
+
+# symbol -> var
+# symbol -> !var
 
 
 def parse_expression(lex: more_itertools.peekable) -> RMExpr:
@@ -123,23 +143,41 @@ def parse_factor(lex: more_itertools.peekable) -> RMExpr:
     token = lex.peek()
     if isinstance(token, OpenT):
         next(lex)
-        term = parse_expression(lex)
+        expression = parse_expression(lex)
         token = next(lex)
         assert isinstance(token, CloseT), 'expected )'
+        token = lex.peek()
+        if isinstance(token, RepeatT):
+            next(lex)
+            return Repeat(expression)
+        else:
+            return expression
     else:
-        term = parse_symbol(lex)
+        return parse_vars(lex)
+
+
+def parse_vars(lex: more_itertools.peekable) -> Vars:
+    symbol = parse_symbol(lex)
     token = lex.peek()
-    if isinstance(token, RepeatT):
+    if isinstance(token, AndT):
         next(lex)
-        return Repeat(term)
+        vars = parse_vars(lex)
+        vars.symbols.insert(0, symbol)
+        return vars
     else:
-        return term
+        return Vars([symbol])
 
 
-def parse_symbol(lex: Iterator[Token]) -> RMExpr:
+def parse_symbol(lex: Iterator[Token]) -> str:
     token = next(lex)
-    assert isinstance(token, SymbolT), f'expected symbol, got {token}'
-    return Var(token.symbol)
+    if isinstance(token, NotT):
+        symbol = next(lex)
+        r = '!'
+    else:
+        r = ''
+        symbol = token
+    assert isinstance(symbol, SymbolT), f'expected symbol, got {token}'
+    return f'{r}{symbol.symbol}'
 
 
 def parse(src: str) -> RMExpr:

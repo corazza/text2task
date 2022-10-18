@@ -26,7 +26,7 @@ def compute_max_level(expr: RMExpr) -> int:
         child = compute_max_level(expr.child)
         return 1 + child
     else:
-        assert isinstance(expr, rm_ast.Var)
+        assert isinstance(expr, rm_ast.Vars)
         return 0
 
 
@@ -43,7 +43,7 @@ def _describe(semantic_map: dict[str, str], current_level: int, max_level: int, 
         child = _describe(semantic_map, current_level+1, max_level, expr.child)
         return f'repeat {child}'
     else:
-        assert isinstance(expr, rm_ast.Var)
+        assert isinstance(expr, rm_ast.Vars)
         return semantic_map[expr.symbol]
 
 

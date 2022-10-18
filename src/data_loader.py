@@ -5,9 +5,9 @@ import more_itertools
 
 
 class Entry:
-    def __init__(self, appears: set[str], expr_src: str, descriptions: list[str]):
+    def __init__(self, appears: frozenset[str], expr_src: list[str], descriptions: list[str]):
         self.appears = appears
-        self.expr_src = expr_src
+        self.expr_sources = expr_src
         self.descriptions = descriptions
 
 
@@ -40,14 +40,32 @@ def parse_entries(lines: more_itertools.peekable) -> list[Entry]:
 
 
 def parse_entry(lines: more_itertools.peekable) -> Entry:
-    appears = next(lines).split(' ')
-    expr_src = next(lines)
+    appears = parse_appears(lines)
+    expr_src = parse_sources(lines)
+    descriptions = parse_descriptions(lines)
+    return Entry(appears, expr_src, descriptions)
+
+
+def parse_appears(lines: more_itertools.peekable) -> frozenset[str]:
+    return frozenset(next(lines).split(' '))
+
+
+def parse_sources(lines: more_itertools.peekable) -> list[str]:
+    sources = list()
+    while lines and not lines.peek() == '=':
+        sources.append(next(lines))
+    sep = next(lines)
+    assert sep == '='
+    return sources
+
+
+def parse_descriptions(lines: more_itertools.peekable) -> list[str]:
     descriptions = list()
     while lines and not lines.peek() == '':
         descriptions.append(next(lines))
     if lines and lines.peek() == '':
         next(lines)
-    return Entry(appears, expr_src, descriptions)
+    return descriptions
 
 
 def load_file(path: str) -> DataLoader:
@@ -59,4 +77,5 @@ def load_file(path: str) -> DataLoader:
 def pairs(data: list[Entry]) -> Iterator[Tuple[str, str]]:
     for entry in data:
         for description in entry.descriptions:
-            yield (entry.expr_src, description)
+            for src in entry.expr_sources:
+                yield (src, description)

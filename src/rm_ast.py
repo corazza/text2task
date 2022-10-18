@@ -15,27 +15,30 @@ class RMExpr:
         raise NotImplementedError()
 
 
-class Var(RMExpr):
-    def __init__(self, symbol: str):
+class Vars(RMExpr):
+    def __init__(self, symbols: list[str]):
         super().__init__()
-        self.symbol = symbol
+        self.symbols = symbols
 
     def appears(self) -> frozenset[str]:
-        return frozenset(self.symbol)
+        return frozenset(filter(lambda x: x != '!', ''.join(self.symbols)))
+
+    def transition(self) -> str:
+        return '&'.join(self.symbols)
 
     def compile(self, node_creator: RMNodeCreator) -> CompileState:
         terminal = node_creator.new_node(set())
-        initial = node_creator.new_node(set([(self.symbol, terminal)]))
+        initial = node_creator.new_node(set([(self.transition(), terminal)]))
         return CompileState(initial, terminal)
 
     def __str__(self) -> str:
-        return self.symbol
+        return self.transition()
 
     def __repr__(self) -> str:
         return self._internal_repr(0)
 
     def _internal_repr(self, level: int) -> str:
-        return self.symbol
+        return self.transition()
 
 
 class Or(RMExpr):
