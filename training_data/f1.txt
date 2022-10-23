@@ -1,8 +1,29 @@
-COFFEE MAIL OFFICE PLANT
 (COFFEE MAIL | MAIL COFFEE) OFFICE
+COFFEE MAIL OFFICE | MAIL COFFEE OFFICE 
+=
+before going to the OFFICE, get the COFFEE and the MAIL in any order
 get the COFFEE and MAIL to the OFFICE
-first get COFFE then get MAIL, or first get COFFE then get MAIL, then go to the OFFICE
+first get COFFEE then get MAIL, or first get COFFEE then get MAIL, then go to the OFFICE
+grab COFFEE then MAIL, or MAIL then COFFEE, and go to the OFFICE
+once you get the COFFEE and the MAIL visit the OFFICE
+bring COFFEE and MAIL to the OFFICE in any order
 
-COFFEE MAIL OFFICE PLANT
 COFFEE MAIL OFFICE
-get COFFE and MAIL then go to the OFFICE
+(COFFEE MAIL) OFFICE
+COFFEE (MAIL OFFICE)
+=
+do the following in order: COFFEE, MAIL, OFFICE
+get COFFEE and then MAIL and then go to the OFFICE
+get COFFEE and MAIL then go to the OFFICE
+first get COFFEE then get MAIL, then visit the OFFICE
+
+(SPOTA SPOTB SPOTC)* | (SPOTB SPOTC SPOTA) * | (SPOTC SPOTA SPOTB) *
+=
+Circle SPOTA SPOTB SPOTC
+Patrol SPOTA, SPOTB, and SPOTC
+Go to SPOTA then SPOTB then SPOTC and go back to SPOTA, repeat
+
+(COFFEE | MAIL | OFFICE)*
+=
+repeat in any order: COFFEE, MAIL, OFFICE
+get COFFEE or MAIL or go to the OFFICE, repeat

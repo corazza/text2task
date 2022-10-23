@@ -1,12 +1,14 @@
+from pathlib import Path
 from curses.ascii import isspace
 from typing import Iterator, Tuple
-
 import more_itertools
+import random
+import copy
+import IPython
 
 
 class Entry:
-    def __init__(self, appears: frozenset[str], expr_src: list[str], descriptions: list[str]):
-        self.appears = appears
+    def __init__(self, expr_src: list[str], descriptions: list[str]):
         self.expr_sources = expr_src
         self.descriptions = descriptions
 
@@ -16,17 +18,35 @@ class DataLoader:
         self.entries = entries
         self._count = len(list(pairs(self.entries)))
 
+    def get_prompts(self, count: int) -> list[str]:
+        return list(self._get_prompts(count))
+
+    def get_all_prompts(self) -> list[str]:
+        return self.get_prompts(len(self))
+
     def count(self) -> int:
         return self._count
 
-    def format_pairs(self, count: int):
+    def split(self, seed: int, r: float) -> Tuple[list[str], list[str]]:
+        r = 1 - r
+        prompts = self.get_all_prompts()
+        random.Random(seed).shuffle(prompts)
+        num_in_train = int(len(prompts)*r)
+        train = prompts[:num_in_train]
+        val = prompts[num_in_train:]
+        return train, val
+
+    def _get_prompts(self, count: int) -> Iterator[str]:
         p = pairs(self.entries)
         i = 0
         for (expr_src, desc) in p:
-            print(f'{desc} => {expr_src}')
+            yield f'{desc} => {expr_src}'
             i += 1
             if i >= count:
                 break
+
+    def __len__(self) -> int:
+        return self.count()
 
 
 def parse_entries(lines: more_itertools.peekable) -> list[Entry]:
@@ -40,14 +60,9 @@ def parse_entries(lines: more_itertools.peekable) -> list[Entry]:
 
 
 def parse_entry(lines: more_itertools.peekable) -> Entry:
-    appears = parse_appears(lines)
     expr_src = parse_sources(lines)
     descriptions = parse_descriptions(lines)
-    return Entry(appears, expr_src, descriptions)
-
-
-def parse_appears(lines: more_itertools.peekable) -> frozenset[str]:
-    return frozenset(next(lines).split(' '))
+    return Entry(expr_src, descriptions)
 
 
 def parse_sources(lines: more_itertools.peekable) -> list[str]:
@@ -68,10 +83,16 @@ def parse_descriptions(lines: more_itertools.peekable) -> list[str]:
     return descriptions
 
 
-def load_file(path: str) -> DataLoader:
+def load_file(path: str | Path) -> DataLoader:
+    path = Path(path)
     with open(path, 'r') as f:
         lines = f.read().splitlines()
         return DataLoader(parse_entries(more_itertools.peekable(iter(lines))))
+
+
+def load_lines(path: str | Path) -> list[str]:
+    with open(path, 'r') as f:
+        return f.read().splitlines()
 
 
 def pairs(data: list[Entry]) -> Iterator[Tuple[str, str]]:

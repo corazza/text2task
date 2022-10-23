@@ -1,5 +1,43 @@
+from transformers import pipeline, set_seed, GPT2Tokenizer
+import IPython
 import data_loader
 
+
+def main():
+    generator = pipeline('text-generation', model='distilgpt2')
+    set_seed(42)
+    demonstrations = data_loader.load_lines('../training_data_tmp/train.txt')
+    query = 'get COFFEE and MAIL then go to SPOTA'
+    demonstrations = demonstrations[0:10]
+    lines = demonstrations + [f'<|endoftext|>{query} =>']
+    lines = demonstrations + [f'{query} =>']
+    prompt = "\n".join(lines)
+    # output = generator(prompt, return_full_text=False,
+    #                    max_new_tokens=100, num_return_sequences=1)
+    # generated_text = list(output)[
+    #     0]['generated_text']
+    # final_output = generated_text.splitlines()[0].strip()
+    # print(prompt)
+    # print(f'{final_output}')
+
+    outputs = generator.tokenizer(  # type:ignore
+        prompt,
+        truncation=True,
+        max_length=100,
+        return_overflowing_tokens=True,
+        return_length=True,
+    )
+
+    print(f"Input IDs length: {len(outputs['input_ids'])}")  # type:ignore
+    print(f"Input chunk lengths: {(outputs['length'])}")
+    print(f"Chunk mapping: {outputs['overflow_to_sample_mapping']}")
+
+    for o in outputs['input_ids']:  # type:ignore
+        print(generator.tokenizer.decode(o))  # type:ignore
+        print()
+        print()
+    IPython.embed()
+
+
 if __name__ == "__main__":
-    data = data_loader.load_file('../training_data/in_context.txt')
-    data.format_pairs(data.count())
+    main()
