@@ -41,25 +41,31 @@ class EndT(Token):
 
 
 def lex(src: str) -> Iterator[Token]:
-    nospaces = list(filter(lambda c: not isspace(c), src))
-    for c in nospaces:
+    symbol_buffer = []
+    for c in src:
         if isalpha(c):
-            assert islower(c), 'propositional variables must be lower-case'
-            yield SymbolT(c)
-        elif c == '|':
-            yield OrT()
-        elif c == '&':
-            yield AndT()
-        elif c == '!':
-            yield NotT()
-        elif c == '(':
-            yield OpenT()
-        elif c == ')':
-            yield CloseT()
+            symbol_buffer.append(c)
         else:
-            raise ValueError(f'unrecognized character {c}')
+            if len(symbol_buffer) > 0:
+                yield SymbolT(''.join(symbol_buffer))
+                symbol_buffer = []
+            if c == ' ':
+                continue
+            elif c == '|':
+                yield OrT()
+            elif c == '&':
+                yield AndT()
+            elif c == '!':
+                yield NotT()
+            elif c == '(':
+                yield OpenT()
+            elif c == ')':
+                yield CloseT()
+            else:
+                raise ValueError(f'unrecognized character {c}')
+    if len(symbol_buffer) != 0:
+        yield SymbolT(''.join(symbol_buffer))
     yield EndT()
-
 
 # expression -> term
 # expression -> term | expression

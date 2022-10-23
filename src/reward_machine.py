@@ -26,14 +26,14 @@ class RewardMachine:
             return (get_one(self.terminal_states), 0)
         return self.transitions[current_state][input_symbol]
 
-    def __call__(self, current_state: int, inputs: str | list[str]) -> Tuple[int, int] | list[int]:
-        if isinstance(inputs, str):
-            input_symbol = frozenset(inputs)
-            return self.transition(current_state, input_symbol)
+    def __call__(self, current_state: int, inputs: frozenset[str] | list[frozenset[str] | str]) -> Tuple[int, int] | list[int]:
+        if not isinstance(inputs, list):
+            return self.transition(current_state, inputs)
         else:
             rs = list()
-            for i in inputs:
-                input_symbol = frozenset(i)
+            for input_symbol in inputs:
+                if isinstance(input_symbol, str):
+                    input_symbol = frozenset({input_symbol})
                 (current_state, r) = self.transition(
                     current_state, input_symbol)
                 rs.append(r)

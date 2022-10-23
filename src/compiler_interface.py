@@ -16,9 +16,9 @@ def get_dfa(src: str) -> CompileStateDFA:
     return dfa
 
 
-def compile(src: str, appears: frozenset[str]) -> RewardMachine:
+def compile(src: str) -> RewardMachine:
     dfa = get_dfa(src)
-    return dfa_to_rm(dfa, appears)
+    return dfa_to_rm(dfa)
 
 
 def test(src: str, appears: frozenset[str]) -> RewardMachine:

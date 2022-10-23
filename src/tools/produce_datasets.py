@@ -23,8 +23,8 @@ def save_split():
 
 
 def save_all():
-    f1 = load_file('../training_data/f1.txt')
-    save_to_file('../training_data_tmp/train.txt', f1.get_all_prompts())
+    f1 = load_file('../datasets/f1.txt')
+    save_to_file('../preprocessed_datasets/train.txt', f1.get_all_prompts())
 
 
 def main():

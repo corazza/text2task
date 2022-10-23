@@ -58,6 +58,8 @@ class Builder:
         if from_state not in self.transitions:
             self.transitions[from_state] = dict()
         for intp in compiled:
+            print(
+                f'{intp} {from_state} ({(from_state, to_state, expr, output)})')
             if intp in self.transitions[from_state]:
                 raise ValueError(
                     f'{intp} already in state {from_state} ({(from_state, to_state, expr, output)})')

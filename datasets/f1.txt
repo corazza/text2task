@@ -1,5 +1,5 @@
 (COFFEE MAIL | MAIL COFFEE) OFFICE
-COFFEE MAIL OFFICE | MAIL COFFEE OFFICE 
+COFFEE MAIL OFFICE | MAIL COFFEE OFFICE
 =
 before going to the OFFICE, get the COFFEE and the MAIL in any order
 get the COFFEE and MAIL to the OFFICE
@@ -30,3 +30,5 @@ Go to SPOTA then SPOTB then SPOTC and go back to SPOTA, repeat
 =
 repeat in any order: COFFEE, MAIL, OFFICE
 get COFFEE or MAIL or go to the OFFICE, repeat
+
+KEY&!

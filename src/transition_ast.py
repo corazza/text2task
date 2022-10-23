@@ -24,7 +24,7 @@ class Var(TExp):
         return self.symbol in input_symbol
 
     def appears(self) -> frozenset[str]:
-        return frozenset(self.symbol)
+        return frozenset({self.symbol})
 
     def __str__(self) -> str:
         return self.symbol

@@ -1,7 +1,9 @@
 import itertools
 from typing import Iterable, Tuple
+import IPython
 
 from reward_machine import RewardMachine
+from rm_builder import Builder
 
 
 class RMNode:
@@ -132,7 +134,7 @@ def next_superstate(states: frozenset[RMNode], input_symbol: str) -> frozenset[R
 
 
 class RMNodeDFA:
-    def __init__(self, id: frozenset[int] | int, transitions: dict[str, 'RMNodeDFA']):
+    def __init__(self, id: int, transitions: dict[str, 'RMNodeDFA']):
         self.transitions = transitions
         self.id = id
 
@@ -205,7 +207,9 @@ def to_dfa(compiled: CompileState) -> CompileStateDFA:
     first_epsilon = epsilon(frozenset({compiled.initial}))
     first_ids = to_ids(first_epsilon)
     to_visit = set([first_epsilon])
-    initial = RMNodeDFA(first_ids, dict())
+    id_counter = 0
+    initial = RMNodeDFA(id_counter, dict())
+    id_counter += 1
     state_dict = {to_ids(first_epsilon): initial}
     visited = set({first_ids})
     terminal = None
@@ -225,7 +229,8 @@ def to_dfa(compiled: CompileState) -> CompileStateDFA:
             if ids in state_dict:
                 state = state_dict[ids]
             else:
-                state = RMNodeDFA(ids, dict())
+                state = RMNodeDFA(id_counter, dict())
+                id_counter += 1
                 state_dict[ids] = state
             if ids not in visited and superstate not in to_visit:
                 to_visit.add(superstate)
@@ -234,5 +239,34 @@ def to_dfa(compiled: CompileState) -> CompileStateDFA:
     return CompileStateDFA(initial, terminal)
 
 
-def dfa_to_rm(dfa: CompileStateDFA, appears: frozenset[str]) -> RewardMachine:
-    raise NotImplementedError()
+def negate_previous(previous: list[str]) -> str:
+    assert len(previous) > 0
+    r = f'!('
+    for i in range(len(previous) - 1):
+        r = f'{r}{previous[i]}|'
+    r = f'{r}{previous[-1]})'
+    return r
+
+
+def dfa_to_rm(dfa: CompileStateDFA) -> RewardMachine:
+    terminal_id = dfa.terminal.id
+    builder = Builder(terminal_states={terminal_id})
+    to_visit = set([dfa.initial])
+    visited = set()
+    while len(to_visit) > 0:
+        visiting = to_visit.pop()
+        visited.add(visiting)
+        previous = list()
+        for (transition, next) in visiting.transitions.items():
+            r = 1 if next == dfa.terminal else 0
+            if len(previous) > 0:
+                negated_previous = negate_previous(previous)
+                new_transition = f'({negated_previous})&({transition})'
+            else:
+                new_transition = transition
+            previous.append(transition)
+            builder = builder.t(visiting.id, next.id, new_transition, r)
+            print(visiting.id, next.id, new_transition, r)
+            if next not in visited:
+                to_visit.add(next)
+    return builder.build()

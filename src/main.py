@@ -1,8 +1,11 @@
 from transformers import pipeline, set_seed, GPT2Tokenizer
 import IPython
+
 import data_loader
 import compiler_interface
+import example_rms
 import describe
+import rm_compiler
 
 
 def models_test():
@@ -49,8 +52,18 @@ def describe_test():
     IPython.embed()
 
 
+def compiler_test():
+    src = '(COFFEE&!DECORATION MAIL&!DECORATION | MAIL&!DECORATION COFFEE&!DECORATION)* OFFICE'
+    rm = compiler_interface.compile(src)
+    IPython.embed()
+
+
+def rm_test():
+    pass
+
+
 def main():
-    describe_test()
+    compiler_test()
 
 
 if __name__ == "__main__":
