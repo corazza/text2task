@@ -4,6 +4,7 @@ import IPython
 
 from reward_machine import RewardMachine
 from rm_builder import Builder
+from transition_parser import parse
 
 
 class RMNode:
@@ -159,6 +160,23 @@ class CompileStateDFA:
         self.initial = initial
         self.terminal = terminal
 
+    def appears(self) -> Tuple[frozenset[str], dict[int, frozenset[str]]]:
+        to_visit = set([self.initial])
+        visited = set()
+        appears_dfa = set()
+        appears_by_state = dict()
+        while len(to_visit) > 0:
+            visiting = to_visit.pop()
+            visited.add(visiting)
+            appears = set()
+            for (transition, next) in visiting.transitions.items():
+                appears.update(parse(transition).appears())
+                if next not in visited:
+                    to_visit.add(next)
+            appears_by_state[visiting.id] = frozenset(appears)
+            appears_dfa.update(appears)
+        return frozenset(appears_dfa), appears_by_state
+
     def state_ids(self, states: Iterable[RMNode]) -> list[int]:
         return list(map(lambda s: s.id, states))
 
@@ -248,16 +266,33 @@ def negate_previous(previous: list[str]) -> str:
     return r
 
 
+def negate_all(appears: list[str]) -> str:
+    assert len(appears) > 0
+    r = f'!('
+    for i in range(len(appears) - 1):
+        r = f'{r}{appears[i]}|'
+    r = f'{r}{appears[-1]})'
+    return r
+
+
 def dfa_to_rm(dfa: CompileStateDFA) -> RewardMachine:
     terminal_id = dfa.terminal.id
+    appears_dfa, appears_by_state = dfa.appears()
     builder = Builder(terminal_states={terminal_id})
     to_visit = set([dfa.initial])
     visited = set()
+    empty_transition = negate_all(list(appears_dfa))
     while len(to_visit) > 0:
         visiting = to_visit.pop()
         visited.add(visiting)
         previous = list()
-        for (transition, next) in visiting.transitions.items():
+        self_loops = set()
+        # if visiting != dfa.terminal:
+        # for prop in appears_dfa - appears_by_state[visiting.id]:
+        #     self_loops.add((prop, visiting))
+        # self_loops.add((empty_transition, visiting))
+        for (transition, next) in itertools.chain(visiting.transitions.items(), self_loops):
+            print(transition, next)
             r = 1 if next == dfa.terminal else 0
             if len(previous) > 0:
                 negated_previous = negate_previous(previous)
@@ -266,7 +301,6 @@ def dfa_to_rm(dfa: CompileStateDFA) -> RewardMachine:
                 new_transition = transition
             previous.append(transition)
             builder = builder.t(visiting.id, next.id, new_transition, r)
-            print(visiting.id, next.id, new_transition, r)
             if next not in visited:
                 to_visit.add(next)
     return builder.build()

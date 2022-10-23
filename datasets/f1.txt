@@ -31,4 +31,4 @@ Go to SPOTA then SPOTB then SPOTC and go back to SPOTA, repeat
 repeat in any order: COFFEE, MAIL, OFFICE
 get COFFEE or MAIL or go to the OFFICE, repeat
 
-KEY&!
+KEY
