@@ -1,9 +1,11 @@
 from transformers import pipeline, set_seed, GPT2Tokenizer
 import IPython
 import data_loader
+import compiler_interface
+import describe
 
 
-def main():
+def models_test():
     generator = pipeline('text-generation', model='distilgpt2')
     set_seed(42)
     demonstrations = data_loader.load_lines('../training_data_tmp/train.txt')
@@ -37,6 +39,18 @@ def main():
         print()
         print()
     IPython.embed()
+
+
+def describe_test():
+    data = data_loader.load_file('../datasets/f1.txt')
+    # src = data.entries[0].expr_sources[0]
+    src = '(COFFEE MAIL | MAIL COFFEE)* OFFICE'
+    parsed = compiler_interface.parse(src)
+    IPython.embed()
+
+
+def main():
+    describe_test()
 
 
 if __name__ == "__main__":

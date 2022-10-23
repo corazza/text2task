@@ -1,0 +1,9 @@
+actions
+LEFT RIGHT UP DOWN
+
+places
+OFFICE 
+SPOTA SPOTB SPOTC
+
+objects
+COFFEE MAIL PLANT

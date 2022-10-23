@@ -127,8 +127,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-# JAN
-
-training_data_tmp/*
-work_dir/*
