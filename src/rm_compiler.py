@@ -287,12 +287,11 @@ def dfa_to_rm(dfa: CompileStateDFA) -> RewardMachine:
         visited.add(visiting)
         previous = list()
         self_loops = set()
-        # if visiting != dfa.terminal:
-        # for prop in appears_dfa - appears_by_state[visiting.id]:
-        #     self_loops.add((prop, visiting))
-        # self_loops.add((empty_transition, visiting))
+        if visiting != dfa.terminal:
+            for prop in appears_dfa - appears_by_state[visiting.id]:
+                self_loops.add((prop, visiting))
+            self_loops.add((empty_transition, visiting))
         for (transition, next) in itertools.chain(visiting.transitions.items(), self_loops):
-            print(transition, next)
             r = 1 if next == dfa.terminal else 0
             if len(previous) > 0:
                 negated_previous = negate_previous(previous)

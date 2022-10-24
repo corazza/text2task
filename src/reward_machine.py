@@ -1,4 +1,5 @@
 from typing import Tuple
+import IPython
 
 from rm_util import get_one
 
@@ -26,9 +27,15 @@ class RewardMachine:
             return (get_one(self.terminal_states), 0)
         return self.transitions[current_state][input_symbol]
 
-    def __call__(self, current_state: int, inputs: frozenset[str] | list[frozenset[str] | str]) -> Tuple[int, int] | list[int]:
-        if not isinstance(inputs, list):
-            return self.transition(current_state, inputs)
+    def __call__(self, current_state: int, *inputs: str | frozenset[str]) -> Tuple[int, int] | list[int]:
+        if len(inputs) == 1:
+            first_input = inputs[0]
+            if isinstance(first_input, str):
+                input_symbol = frozenset({first_input})
+            else:
+                assert isinstance(first_input, frozenset)
+                input_symbol = first_input
+            return self.transition(current_state, input_symbol)
         else:
             rs = list()
             for input_symbol in inputs:

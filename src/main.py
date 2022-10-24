@@ -57,7 +57,7 @@ def compiler_test():
     # probably don't want to learn to specify these semantics
     # implicit self-loops are good
     # figure out the regex->rm semantics map
-    src = '(!DECORATION)* (COFFEE&!DECORATION (!DECORATION)* MAIL&!DECORATION | MAIL&!DECORATION (!DECORATION)* COFFEE&!DECORATION) (!DECORATION)* OFFICE'
+    src = '(COFFEE&!DECORATION MAIL&!DECORATION | MAIL&!DECORATION COFFEE&!DECORATION) OFFICE&!DECORATION'
     rm = compiler_interface.compile(src)
     IPython.embed()
 
