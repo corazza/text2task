@@ -1,9 +1,11 @@
+from genericpath import exists
 import sys  # noqa
 sys.path.append('.')  # noqa
-
+import os
 import IPython
-from data_loader import load_file
 from pathlib import Path
+
+from data_loader import load_file
 
 
 def save_to_file(path: str | Path, lines: list['str']):
@@ -23,8 +25,11 @@ def save_split():
 
 
 def save_all():
-    f1 = load_file('../datasets/f1.txt')
-    save_to_file('../preprocessed_datasets/train.txt', f1.get_all_prompts())
+    f1 = load_file('../datasets/text2task/f1.txt')
+    path = Path('../preprocessed_datasets/text2task')
+    path.mkdir(parents=True, exist_ok=True)
+    path = Path(path, 'train').with_suffix('.txt')
+    save_to_file(path, f1.get_all_prompts())
 
 
 def main():
