@@ -21,6 +21,7 @@ class Vars(RMExpr):
         self.symbols = symbols
 
     def appears(self) -> frozenset[str]:
+        raise NotImplementedError()
         return frozenset(filter(lambda x: x != '!', ''.join(self.symbols)))
 
     def transition(self) -> str:

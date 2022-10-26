@@ -1,0 +1,39 @@
+THEN 1
+A. afterwards, B
+first A. then B.
+A. afterwards, B. and in the end, C
+first A. then B. finally C
+
+THEN 2
+first A, then B
+after A, B
+before B, A
+A, but not before B
+first A, then B, finally C
+first A, then B, then C, then D
+
+THEN 3
+A then B
+A then B then C
+A then B then C then D
+
+OR 1
+first option: A. second option B.
+either A, or B
+
+OR 2
+either A or B
+A and B in any order
+
+OR 3
+A or B
+A, B, or C
+A or B or C
+A or B or C or D
+
+REPEAT 1
+A (repeat)
+repeat A
+
+REPEAT 2
+repeat A

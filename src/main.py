@@ -6,6 +6,8 @@ import compiler_interface
 import example_rms
 import describe
 import rm_compiler
+import describe_patterns
+from rm_generator import load_props
 
 
 def models_test():
@@ -45,10 +47,16 @@ def models_test():
 
 
 def describe_test():
-    data = data_loader.load_file('../datasets/f1.txt')
-    # src = data.entries[0].expr_sources[0]
+    var_describe_map = describe.load_var_describe_map(
+        '../datasets/text2task/var_describe_map.txt')
+    patterns = describe_patterns.load_patterns(
+        '../datasets/text2task/patterns.txt')
+    data = data_loader.load_file('../datasets/text2task/f1.txt')
     src = '(COFFEE MAIL | MAIL COFFEE)* OFFICE'
+    # src = '(COFFEE MAIL | MAIL COFFEE)* OFFICE'
+    # src = '(COFFEE&!DECORATION MAIL&!DECORATION | MAIL&!DECORATION COFFEE&!DECORATION) OFFICE&!DECORATION'
     parsed = compiler_interface.parse(src)
+    desc = describe.describe(patterns, var_describe_map, parsed)
     IPython.embed()
 
 
@@ -62,12 +70,13 @@ def compiler_test():
     IPython.embed()
 
 
-def rm_test():
-    pass
+def generator_test():
+    props = load_props('../datasets/text2task/prop.txt')
+    IPython.embed()
 
 
 def main():
-    compiler_test()
+    generator_test()
 
 
 if __name__ == "__main__":

@@ -1,0 +1,30 @@
+LEFT RIGHT UP DOWN
+go
+
+OFFICE
+get to the
+visit the
+
+SPOTA SPOTB SPOTC SPOTD
+go to
+visit
+
+COFFEE MAIL
+get the
+collect
+
+DECORATION
+
+
+KEY
+get the
+
+TRAP
+MINE
+ROCK
+
+GOLDMINE FOREST BUILDING
+go to the
+visit the
+visit a
+go to a

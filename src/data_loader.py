@@ -75,7 +75,7 @@ def parse_sources(lines: more_itertools.peekable) -> list[str]:
 
 
 def parse_descriptions(lines: more_itertools.peekable) -> list[str]:
-    descriptions = list()
+    descriptions = list()  # TODO check if this enforces at least one description
     while lines and not lines.peek() == '':
         descriptions.append(next(lines))
     if lines and lines.peek() == '':
