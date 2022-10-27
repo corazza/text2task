@@ -213,7 +213,7 @@ def to_rm_expr(node: GenerateNode) -> rm_ast.RMExpr:
         return rm_ast.Repeat(child)
 
 
-def generate(seed: int, dist_parameters: dict[str, float], props: dict[str, list[str]], complexity: int) -> rm_ast.RMExpr:
+def generate(dist_parameters: dict[str, float], props: dict[str, list[str]], complexity: int) -> rm_ast.RMExpr:
     node_creator = NodeCreator(dist_parameters, props, complexity)
     root = node_creator.speciate_stem([])
     to_visit = [root]

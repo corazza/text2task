@@ -15,39 +15,27 @@ import rm_generator
 import data_generator
 
 
-def models_test():
-    generator = pipeline('text-generation', model='distilgpt2')
+def synthesize(generator, desc: str) -> str:
+    prompt = f'{desc} =>'
+    output = generator(prompt,
+                       return_full_text=False,
+                       pad_token_id=-100,
+                       eos_token_id=-100,
+                       max_new_tokens=100,
+                       num_return_sequences=1)
+    generated_text = list(output)[
+        0]['generated_text']
+    final_output = generated_text.splitlines()[0].strip()
+    return final_output
+
+
+def model_test():
+    generator = pipeline(
+        'text-generation', model='/mnt/e/work_dirs/text2task_distilgpt2/')
     set_seed(42)
-    demonstrations = data_loader.load_lines('../training_data_tmp/train.txt')
-    query = 'get COFFEE and MAIL then go to SPOTA'
-    demonstrations = demonstrations[0:10]
-    lines = demonstrations + [f'<|endoftext|>{query} =>']
-    lines = demonstrations + [f'{query} =>']
-    prompt = "\n".join(lines)
-    # output = generator(prompt, return_full_text=False,
-    #                    max_new_tokens=100, num_return_sequences=1)
-    # generated_text = list(output)[
-    #     0]['generated_text']
-    # final_output = generated_text.splitlines()[0].strip()
-    # print(prompt)
-    # print(f'{final_output}')
-
-    outputs = generator.tokenizer(  # type:ignore
-        prompt,
-        truncation=True,
-        max_length=100,
-        return_overflowing_tokens=True,
-        return_length=True,
-    )
-
-    print(f"Input IDs length: {len(outputs['input_ids'])}")  # type:ignore
-    print(f"Input chunk lengths: {(outputs['length'])}")
-    print(f"Chunk mapping: {outputs['overflow_to_sample_mapping']}")
-
-    for o in outputs['input_ids']:  # type:ignore
-        print(generator.tokenizer.decode(o))  # type:ignore
-        print()
-        print()
+    desc = "repeat TRAP"
+    output = synthesize(generator, desc)
+    print(f'{desc} => {output}')
     IPython.embed()
 
 
@@ -95,12 +83,12 @@ def generator_test():
         'exp_props': 0.5,  # defines exponential distr. for # of propvars in transitions
         'bin_negate': 0.05,  # probability to negate a propvar in transitions
     }
-    prompts = data_generator.generate_synthetic(dist_parameters, 100)
+    # prompts = data_generator.generate_synthetic(dist_parameters, 5, 100)
     IPython.embed()
 
 
 def main():
-    generator_test()
+    model_test()
 
 
 if __name__ == "__main__":

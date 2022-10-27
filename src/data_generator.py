@@ -11,7 +11,7 @@ import describe_patterns
 import rm_generator
 
 
-def generate_synthetic(props_path: str | Path, var_path: str | Path, patterns_path: str | Path, dist_parameters: dict[str, float], n: int, seed: int) -> list[Tuple[str, str]]:
+def generate_synthetic(props_path: str | Path, var_path: str | Path, patterns_path: str | Path, dist_parameters: dict[str, float], complexity: int, n: int) -> list[Tuple[str, str]]:
     # happy_tt = HappyTextToText("T5", "prithivida/grammar_error_correcter_v1")
     # tool = language_tool_python.LanguageTool('en-US')
     props = rm_generator.load_props(props_path)
@@ -21,7 +21,7 @@ def generate_synthetic(props_path: str | Path, var_path: str | Path, patterns_pa
     prompts = []
 
     for i in range(n):
-        expr = rm_generator.generate(seed, dist_parameters, props, 4)
+        expr = rm_generator.generate(dist_parameters, props, complexity)
         desc = describe.describe(patterns, var_describe_map, expr)
         chosen = np.random.randint(0, len(desc))
         chosen_desc = desc[chosen]

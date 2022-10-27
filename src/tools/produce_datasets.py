@@ -47,7 +47,7 @@ def save_synthetic(path: Path):
         'bin_negate': 0.05,  # probability to negate a propvar in transitions
     }
     prompts = data_generator.generate_synthetic(
-        props, var_describe_map, patterns, dist_parameters, 100, 42)
+        props, var_describe_map, patterns, dist_parameters, 5, 10000)
 
     lines = ['{' + f'"text": "{desc} => {expr}"' +
              '}\n' for desc, expr in prompts]
@@ -57,6 +57,7 @@ def save_synthetic(path: Path):
 
 
 def main():
+    # TODO load from config/produce_datasets.json
     path = create_if_doesnt_exist(
         '../preprocessed_datasets/text2task', 'train', '.json')
     save_synthetic(path)
