@@ -5,6 +5,9 @@ OFFICE
 get to the
 visit the
 
+DOOR
+get to the
+
 SPOTA SPOTB SPOTC SPOTD
 go to
 visit
@@ -13,18 +16,14 @@ COFFEE MAIL
 get the
 collect
 
-DECORATION
+DECORATION TRAP MINE
 
 
-KEY
+KEY ROCK
 get the
 
-TRAP
-MINE
-ROCK
-
-GOLDMINE FOREST BUILDING
+GOLDMINE FOREST BUILDING BASE
 go to the
+go to a
 visit the
 visit a
-go to a

@@ -134,3 +134,26 @@ class Repeat(RMExpr):
 
     def __repr__(self) -> str:
         return self._internal_repr(1)
+
+
+class Plus(RMExpr):
+    def __init__(self, child: RMExpr):
+        super().__init__()
+        self.child = child
+
+    def appears(self) -> frozenset[str]:
+        return self.child.appears()
+
+    def compile(self, node_creator: RMNodeCreator) -> CompileState:
+        child = self.child.compile(node_creator)
+        child.terminal.t('*', child.initial)
+        return CompileState(child.initial, child.terminal)
+
+    def __str__(self):
+        return f'({self.child})+'
+
+    def _internal_repr(self, level: int) -> str:
+        return f'Plus:\n{"  " * level}{self.child._internal_repr(level)}'
+
+    def __repr__(self) -> str:
+        return self._internal_repr(1)

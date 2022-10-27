@@ -1,3 +1,4 @@
+import numpy as np
 import copy
 from pathlib import Path
 from typing import Iterator, Tuple
@@ -66,7 +67,7 @@ def compute_max_level(expr: RMExpr) -> int:
     elif isinstance(expr, rm_ast.Or):
         levels = map(compute_max_level, expr.exprs)
         return 1 + max(levels)
-    elif isinstance(expr, rm_ast.Repeat):
+    elif isinstance(expr, rm_ast.Repeat) or isinstance(expr, rm_ast.Plus):
         child = compute_max_level(expr.child)
         return 1 + child
     else:
@@ -82,7 +83,7 @@ def _apply_pattern(pattern: str, using: list[str]) -> str:
     r = pattern
     char = 'A'
     for to_use in using:
-        r = r.replace(char, to_use)
+        r = r.replace(f'${char}', to_use)
         char = chr(ord(char)+1)
     return r
 
@@ -106,6 +107,8 @@ def _pick_pattern(context: DescribeContext, current_level: int, patterns: list[l
     if current_level >= num_levels:
         return patterns[num_levels-1]
     else:
+        # chosen = np.random.randint(current_level, num_levels)
+        # print(chosen, current_level, num_levels)
         return patterns[current_level]
 
 
@@ -154,6 +157,8 @@ def _describe(context: DescribeContext, current_level: int, expr: RMExpr) -> lis
         return _describe_multiple(context, current_level, context.patterns['OR'], expr.exprs)
     elif isinstance(expr, rm_ast.Repeat):
         return _describe_multiple(context, current_level, context.patterns['REPEAT'], [expr.child])
+    elif isinstance(expr, rm_ast.Plus):
+        return _describe_multiple(context, current_level, context.patterns['PLUS'], [expr.child])
     else:
         assert isinstance(expr, rm_ast.Vars)
         return _describe_vars(context, current_level, expr.symbols)

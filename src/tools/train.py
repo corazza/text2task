@@ -15,6 +15,7 @@ import sys
 from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
+import IPython
 
 import datasets
 from datasets import load_dataset
@@ -213,10 +214,6 @@ def main():
             json_file=os.path.abspath(sys.argv[1]))
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-
-    # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
-    # information sent is the one passed as arguments along with your Python/PyTorch versions.
-    send_example_telemetry("run_clm", model_args, data_args)
 
     # Setup logging
     logging.basicConfig(
@@ -427,6 +424,9 @@ def main():
             load_from_cache_file=not data_args.overwrite_cache,
             desc="Running tokenizer on dataset",
         )
+
+    IPython.embed()
+    raise Exception
 
     if data_args.block_size is None:
         block_size = tokenizer.model_max_length

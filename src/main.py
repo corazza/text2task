@@ -1,5 +1,9 @@
+from happytransformer import HappyTextToText
+from happytransformer import TTSettings
+import language_tool_python
 from transformers import pipeline, set_seed, GPT2Tokenizer
 import IPython
+import numpy as np
 
 import data_loader
 import compiler_interface
@@ -7,7 +11,8 @@ import example_rms
 import describe
 import rm_compiler
 import describe_patterns
-from rm_generator import load_props
+import rm_generator
+import data_generator
 
 
 def models_test():
@@ -46,20 +51,6 @@ def models_test():
     IPython.embed()
 
 
-def describe_test():
-    var_describe_map = describe.load_var_describe_map(
-        '../datasets/text2task/var_describe_map.txt')
-    patterns = describe_patterns.load_patterns(
-        '../datasets/text2task/patterns.txt')
-    data = data_loader.load_file('../datasets/text2task/f1.txt')
-    src = '(COFFEE MAIL | MAIL COFFEE)* OFFICE'
-    # src = '(COFFEE MAIL | MAIL COFFEE)* OFFICE'
-    # src = '(COFFEE&!DECORATION MAIL&!DECORATION | MAIL&!DECORATION COFFEE&!DECORATION) OFFICE&!DECORATION'
-    parsed = compiler_interface.parse(src)
-    desc = describe.describe(patterns, var_describe_map, parsed)
-    IPython.embed()
-
-
 def compiler_test():
     # HERE
     # probably don't want to learn to specify these semantics
@@ -70,8 +61,41 @@ def compiler_test():
     IPython.embed()
 
 
+def improve_desc(happy_tt: HappyTextToText, settings: TTSettings, desc: str) -> str:
+    result = happy_tt.generate_text(desc, args=settings)
+    return result.text
+
+
+def improve_desc_lt(tool: language_tool_python.LanguageTool, props: list[str], desc: str) -> str:
+    ignore = [
+        'UPPERCASE_SENTENCE_START'
+    ]
+
+    def _filter_ignore(m):
+        return m.ruleId not in ignore
+
+    def _filter_props(m):
+        return desc[m.offset:m.offset+m.errorLength] not in props
+
+    matches = tool.check(desc)
+    matches = list(filter(_filter_ignore, matches))
+    matches = list(filter(_filter_props, matches))
+
+    if len(matches) == 0:
+        return desc
+
+    IPython.embed()
+    raise NotImplementedError()
+
+
 def generator_test():
-    props = load_props('../datasets/text2task/prop.txt')
+    dist_parameters = {
+        'exp_children': 1.2,  # defines exponential distr. for # of children
+        'clip_children': 3,
+        'exp_props': 0.5,  # defines exponential distr. for # of propvars in transitions
+        'bin_negate': 0.05,  # probability to negate a propvar in transitions
+    }
+    prompts = data_generator.generate_synthetic(dist_parameters, 100)
     IPython.embed()
 
 
