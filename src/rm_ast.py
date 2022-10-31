@@ -14,6 +14,9 @@ class RMExpr:
     def _internal_repr(self, level: int) -> str:
         raise NotImplementedError()
 
+    def __eq__(self, b) -> bool:
+        raise NotImplementedError()
+
 
 class Vars(RMExpr):
     def __init__(self, symbols: list[str]):
@@ -34,6 +37,11 @@ class Vars(RMExpr):
 
     def __str__(self) -> str:
         return self.transition()
+
+    def __eq__(self, b) -> bool:
+        if not isinstance(b, Vars):
+            return False
+        return self.symbols == b.symbols
 
     def __repr__(self) -> str:
         return self._internal_repr(0)
@@ -61,6 +69,14 @@ class Or(RMExpr):
             initial.t('*', c.initial)
             c.terminal.t('*', terminal)
         return CompileState(initial, terminal)
+
+    def __eq__(self, b) -> bool:
+        if not isinstance(b, Or):
+            return False
+        for e1, e2 in zip(self.exprs, b.exprs):
+            if e1 != e2:
+                return False
+        return True
 
     def __str__(self):
         r = ''
@@ -96,6 +112,14 @@ class Then(RMExpr):
             compiled[i].terminal.t('*', compiled[i+1].initial)
         return CompileState(compiled[0].initial, compiled[-1].terminal)
 
+    def __eq__(self, b) -> bool:
+        if not isinstance(b, Then):
+            return False
+        for e1, e2 in zip(self.exprs, b.exprs):
+            if e1 != e2:
+                return False
+        return True
+
     def __str__(self):
         r = ''
         for i in range(len(self.exprs)-1):
@@ -126,6 +150,11 @@ class Repeat(RMExpr):
         child.terminal.t('*', child.initial)
         return CompileState(child.terminal, child.initial)
 
+    def __eq__(self, b) -> bool:
+        if not isinstance(b, Repeat):
+            return False
+        return self.child == b.child
+
     def __str__(self):
         return f'({self.child})*'
 
@@ -148,6 +177,11 @@ class Plus(RMExpr):
         child = self.child.compile(node_creator)
         child.terminal.t('*', child.initial)
         return CompileState(child.initial, child.terminal)
+
+    def __eq__(self, b) -> bool:
+        if not isinstance(b, Plus):
+            return False
+        return self.child == b.child
 
     def __str__(self):
         return f'({self.child})+'

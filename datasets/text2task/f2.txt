@@ -45,7 +45,7 @@ repeat SPOTB, SPOTC, SPOTA, in any order, but never step on the TRAP
 SPOTA&!MINE&!TRAP SPOTD&!TRAP&!MINE SPOTC&!TRAP&!MINE BASE&!TRAP&!MINE
 =
 never step on the MINE and avoid the TRAP, visit SPOTA then SPOTD then SPOTC. return to BASE
-go to SPOTA, SPOTD, then SPOTC. finally return to the BASE. avoid the MINEs and TRAPs
+go to SPOTA, SPOTD, then SPOTC. finally return to the base. avoid the MINEs and TRAPs
 
 (COFFEE | MAIL | OFFICE)*
 =
@@ -56,7 +56,7 @@ KEY&!MINE DOOR&!MINE
 =
 before exiting through the DOOR, grab the KEY! never step on a MINE
 without stepping on a MINE: collect the KEY and get to the DOOR
-(in reverse order) DOOR (avoid MINE) then KEY (also avoid MINE)
+(in reverse order) DOOR (avoid mine) then KEY (also avoid mine)
 
 KEY&!TRAP DOOR&!TRAP
 =

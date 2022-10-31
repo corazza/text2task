@@ -6,10 +6,40 @@ import IPython
 import random
 import itertools
 import more_itertools
+from happytransformer import HappyTextToText
+from happytransformer import TTSettings
+import language_tool_python
 
 import rm_ast
 from rm_ast import RMExpr
 import describe_patterns
+
+
+def improve_desc(happy_tt: HappyTextToText, settings: TTSettings, desc: str) -> str:
+    result = happy_tt.generate_text(desc, args=settings)
+    return result.text
+
+
+def improve_desc_lt(tool: language_tool_python.LanguageTool, props: list[str], desc: str) -> str:
+    ignore = [
+        'UPPERCASE_SENTENCE_START'
+    ]
+
+    def _filter_ignore(m):
+        return m.ruleId not in ignore
+
+    def _filter_props(m):
+        return desc[m.offset:m.offset+m.errorLength] not in props
+
+    matches = tool.check(desc)
+    matches = list(filter(_filter_ignore, matches))
+    matches = list(filter(_filter_props, matches))
+
+    if len(matches) == 0:
+        return desc
+
+    IPython.embed()
+    raise NotImplementedError()
 
 
 class DescribeContext:
@@ -75,7 +105,7 @@ def compute_max_level(expr: RMExpr) -> int:
         return 0
 
 
-def _children_describe(context: DescribeContext, current_level: int, exprs: list[RMExpr]) -> list[list[str]]:
+def _children_describe(context: DescribeContext, current_level: int, exprs: list[RMExpr]) -> list[str]:
     return list(map(lambda c: _describe(context, current_level, c), exprs))
 
 
@@ -93,13 +123,13 @@ def _combinations(children: list[list[str]]) -> Iterator[list[str]]:
         yield list(c)
 
 
-def _apply_pattern_helper(patterns: list[str], children_descs: list[list[str]]) -> list[str]:
+def _apply_pattern_helper(patterns: list[str], children_descs: list[str]) -> str:
     r = []
     for pattern in patterns:
-        for children in _combinations(children_descs):
-            desc = _apply_pattern(pattern, children)
-            r.append(desc)
-    return r
+        desc = _apply_pattern(pattern, children_descs)
+        r.append(desc)
+    chosen = np.random.randint(0, len(r))
+    return r[chosen]
 
 
 def _pick_pattern(context: DescribeContext, current_level: int, patterns: list[list[list[str]]]) -> list[list[str]]:
@@ -107,12 +137,10 @@ def _pick_pattern(context: DescribeContext, current_level: int, patterns: list[l
     if current_level >= num_levels:
         return patterns[num_levels-1]
     else:
-        # chosen = np.random.randint(current_level, num_levels)
-        # print(chosen, current_level, num_levels)
         return patterns[current_level]
 
 
-def _describe_multiple(context: DescribeContext, current_level: int, patterns: list[list[list[str]]], exprs: list[RMExpr]) -> list[str]:
+def _describe_multiple(context: DescribeContext, current_level: int, patterns: list[list[list[str]]], exprs: list[RMExpr]) -> str:
     """
         - patterns: levels, number of children, pattern
     """
@@ -122,7 +150,7 @@ def _describe_multiple(context: DescribeContext, current_level: int, patterns: l
     return _apply_pattern_helper(picked_patterns[num_children - 1], descs)
 
 
-def _describe_vars(context: DescribeContext, current_level: int, symbols: list[str]) -> list[str]:
+def _describe_vars(context: DescribeContext, current_level: int, symbols: list[str]) -> str:
     num_symbols = len(symbols)
     phrases = list(map(lambda s: _describe_var(
         context, current_level, s), symbols))
@@ -133,7 +161,8 @@ def _describe_vars(context: DescribeContext, current_level: int, symbols: list[s
             r = f'{r}{c[i]} and '
         r = f'{r}{c[-1]}'
         desc.append(r)
-    return desc
+    chosen = np.random.randint(0, len(desc))
+    return desc[chosen]
 
 
 def _describe_var(context: DescribeContext, current_level: int, var: str) -> list[str]:
@@ -148,7 +177,7 @@ def _describe_var(context: DescribeContext, current_level: int, var: str) -> lis
     return list(r)
 
 
-def _describe(context: DescribeContext, current_level: int, expr: RMExpr) -> list[str]:
+def _describe(context: DescribeContext, current_level: int, expr: RMExpr) -> str:
     if isinstance(expr, rm_ast.Then):
         assert len(expr.exprs) >= 2
         return _describe_multiple(context, current_level, context.patterns['THEN'], expr.exprs)
@@ -164,7 +193,7 @@ def _describe(context: DescribeContext, current_level: int, expr: RMExpr) -> lis
         return _describe_vars(context, current_level, expr.symbols)
 
 
-def describe(patterns: dict[str, list[list[list[str]]]], var_describe_map: dict[str, list[str]], expr: RMExpr) -> list[str]:
+def describe(patterns: dict[str, list[list[list[str]]]], var_describe_map: dict[str, list[str]], expr: RMExpr) -> str:
     max_level = compute_max_level(expr)
     context = DescribeContext(patterns, var_describe_map, max_level)
     return _describe(context, 0, expr)

@@ -29,6 +29,11 @@ class RepeatT(Token):
         return '*'
 
 
+class PlusT(Token):
+    def __repr__(self):
+        return '+'
+
+
 class ThenT(Token):
     def __repr__(self):
         return '->'
@@ -83,6 +88,8 @@ def lex(src: str) -> Iterator[Token]:
                 yield NotT()
             elif c == '*':
                 yield RepeatT()
+            elif c == '+':
+                yield PlusT()
             elif c == '(':
                 yield OpenT()
             elif c == ')':
@@ -100,7 +107,9 @@ def lex(src: str) -> Iterator[Token]:
 # term -> factor
 # term -> factor term
 
-# factor -> (expression) | (expression)*
+# factor -> (expression)
+# factor -> (expression)*
+# factor -> (expression)+
 # factor -> vars
 
 # vars -> symbol
@@ -128,7 +137,7 @@ def parse_expression(lex: more_itertools.peekable) -> RMExpr:
 def parse_term(lex: more_itertools.peekable) -> RMExpr:
     left = parse_factor(lex)
     token = lex.peek()
-    if isinstance(token, SymbolT) or isinstance(token, OpenT):
+    if isinstance(token, NotT) or isinstance(token, SymbolT) or isinstance(token, OpenT):
         right = parse_term(lex)
         then_terms = [left]
         if isinstance(right, Then):
@@ -150,6 +159,9 @@ def parse_factor(lex: more_itertools.peekable) -> RMExpr:
         if isinstance(token, RepeatT):
             next(lex)
             return Repeat(expression)
+        elif isinstance(token, PlusT):
+            next(lex)
+            return Plus(expression)
         else:
             return expression
     else:

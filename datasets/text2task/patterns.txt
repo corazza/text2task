@@ -1,16 +1,18 @@
 THEN 1
 $A. afterwards, $B
-first $A. then $B.
 $A. afterwards, $B. and in the end, $C
+$A. afterwards, $B. then, $C, and in the end, $D
+first $A. then $B.
 first $A. then $B. finally $C
+first $A. then $B. then $C. finally $D
 
 THEN 2
 first $A, then $B
+first $A, then $B, finally $C
+first $A, then $B, then $C, finally $D
 after $A, $B
 before $B, $A
 $B, but not before $A
-first $A, then $B, finally $C
-first $A, then $B, then $C, then $D
 
 THEN 3
 $A then $B
@@ -31,14 +33,17 @@ one of: $A, or $B, or $C, or $D
 OR 2
 either $A or $B
 either $A or $B or $C
+either $A or $B or $C or $D
 $A, $B in any order
 $A, $B, $C in any order
+$A, $B, $C, $D in any order
 
 OR 3
 $A or $B
-$A, $B, or $C
 $A or $B or $C
 $A or $B or $C or $D
+$A, $B, or $C
+$A, $B, $C or $D
 
 REPEAT 1
 $A (repeat all)
