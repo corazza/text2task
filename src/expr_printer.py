@@ -33,9 +33,10 @@ def child_to_str(op: str, parent: RMExpr, child: RMExpr, randomize: bool) -> str
     return r
 
 
-def expr_to_str(expr: RMExpr, randomize: bool = False) -> str:
+def expr_to_str(expr: RMExpr, randomize: bool = False, connect_then: bool = False) -> str:
     if isinstance(expr, Then):
-        return children_to_str(' ', expr, expr.exprs, randomize)
+        connector = ' -> ' if connect_then else ' '
+        return children_to_str(connector, expr, expr.exprs, randomize)
     if isinstance(expr, Or):
         return children_to_str(' | ', expr, expr.exprs, randomize)
     elif isinstance(expr, Repeat):

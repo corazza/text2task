@@ -103,7 +103,7 @@ def prop_to_type(x: str, props: dict[str, list[str]]) -> dict[str, str]:
                 counters[type] += 1
     r = {}
     for object in objects:
-        r[object] = f'${types[object]}.{letters[object]}'
+        r[object] = f'${types[object]}/{letters[object]}'
     return r
 
 
@@ -134,8 +134,12 @@ def pairs(entry: Tuple[list[str], list[str]]) -> Iterator[Tuple[str, str]]:
 
 
 def extract_prop_types(x: str,  props: dict[str, list[str]]) -> frozenset[str]:
-    regex = '\$[a-z]+\.[a-zA-Z]'
-    return frozenset(re.findall(regex, x))
+    regex = '\$[a-z]+\/[a-z]'
+    full_spec = frozenset(re.findall(regex, x))
+    if len(full_spec) == 0:
+        regex = '\$[a-z]+\/'
+        return frozenset(re.findall(regex, x))
+    return full_spec
 
 
 def extract_prop_types_uppercase(x: str) -> frozenset[str]:
@@ -156,8 +160,12 @@ def extract_prop_types_uppercase(x: str) -> frozenset[str]:
 # TODO rename to categories
 
 
+def strip_prop(x: str) -> str:
+    return x[1:x.find('/')]
+
+
 def mappings(props: frozenset[str], all_props: dict[str, list[str]]) -> Iterator[dict[str, str]]:
-    types = {prop: prop[1:len(prop)-2] for prop in props}
+    types = {prop: strip_prop(prop) for prop in props}
     groups = {prop: all_props[t] for prop, t in types.items()}
     items = groups.items()
     props_ordered = list(map(lambda x: x[0], items))

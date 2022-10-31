@@ -22,8 +22,8 @@ COFFEE MAIL OFFICE
 COFFEE (MAIL OFFICE)
 =
 do the following in order: COFFEE, MAIL, OFFICE
-get COFFEE and then MAIL and then go to the OFFICE
-get COFFEE and MAIL then go to the OFFICE
+get the COFFEE and then MAIL and then go to the OFFICE
+get the COFFEE and MAIL then go to the OFFICE
 first get COFFEE then get MAIL, then visit the OFFICE
 
 
@@ -36,20 +36,20 @@ circle between the OFFICE, BASE, and DOOR
 patrol around the OFFICE, BASE, and DOOR
 go to OFFICE then BASE then DOOR and go back to OFFICE, repeat
 
-(OFFICE&!$avoid.a BASE&!$avoid.a DOOR&!$avoid.a)+ | (BASE&!$avoid.a DOOR&!$avoid.a OFFICE&!$avoid.a)+ | (DOOR&!$avoid.a OFFICE&!$avoid.a BASE&!$avoid.a)+
-(OFFICE&!$avoid.a BASE&!$avoid.a DOOR&!$avoid.a)+
-(BASE&!$avoid.a DOOR&!$avoid.a OFFICE&!$avoid.a)+
-(DOOR&!$avoid.a OFFICE&!$avoid.a BASE&!$avoid.a)+
+(OFFICE&!$avoid/a BASE&!$avoid/a DOOR&!$avoid/a)+ | (BASE&!$avoid/a DOOR&!$avoid/a OFFICE&!$avoid/a)+ | (DOOR&!$avoid/a OFFICE&!$avoid/a BASE&!$avoid/a)+
+(OFFICE&!$avoid/a BASE&!$avoid/a DOOR&!$avoid/a)+
+(BASE&!$avoid/a DOOR&!$avoid/a OFFICE&!$avoid/a)+
+(DOOR&!$avoid/a OFFICE&!$avoid/a BASE&!$avoid/a)+
 =
-while patrolling the OFFICE, BASE, and DOOR, avoid the $avoid.a
-circle OFFICE and BASE and DOOR but never hit the $avoid.a
-avoid the $avoid.a at all costs. go to the OFFICE, BASE, and DOOR in any order, repeat
-repeat BASE, DOOR, OFFICE, in any order, but never step on a $avoid.a
+while patrolling the OFFICE, BASE, and DOOR, avoid the $avoid/a
+circle OFFICE and BASE and DOOR but never hit the $avoid/a
+avoid the $avoid/a at all costs. go to the OFFICE, BASE, and DOOR in any order, repeat
+repeat BASE, DOOR, OFFICE, in any order, but never step on a $avoid/a
 
-OFFICE&!$avoid.a&!$avoid.b BASE&!$avoid.b&!$avoid.a DOOR&!$avoid.b&!$avoid.a BASE&!$avoid.b&!$avoid.a
+OFFICE&!$avoid/a&!$avoid/b BASE&!$avoid/b&!$avoid/a DOOR&!$avoid/b&!$avoid/a BASE&!$avoid/b&!$avoid/a
 =
-never step on a $avoid.a and avoid the $avoid.b, visit the OFFICE then BASE then DOOR. return to BASE
-go to OFFICE, BASE, then DOOR. finally return to the BASE. avoid the $avoid.as and $avoid.bs
+never step on a $avoid/a and avoid the $avoid/b, visit the OFFICE then BASE then DOOR. return to BASE
+go to OFFICE, BASE, then DOOR. finally return to the BASE. avoid the $avoid/as and $avoid/bs
 
 (COFFEE | MAIL | OFFICE)+
 =
@@ -69,10 +69,10 @@ without falling into a TRAP: collect the KEY and get to the DOOR
 do the following in reverse order: DOOR then KEY. avoid TRAPs though!
 
 
-$place.a KEY OFFICE DOOR
+$place/a KEY OFFICE DOOR
 =
-go to $place.a, then collect the KEY. afterwards run to OFFICE, and finally go to the DOOR
-in reverse order: DOOR, OFFICE, KEY, $place.a
+go to $place/a, then collect the KEY. afterwards run to OFFICE, and finally go to the DOOR
+in reverse order: DOOR, OFFICE, KEY, $place/a
 
 BASE FOREST FOREST&GOLDMINE BASE
 =
@@ -89,3 +89,8 @@ find the FOREST then find the GOLDMINE in the FOREST
 FOREST GOLDMINE
 =
 find the FOREST then find the GOLDMINE
+
+$object/ $place/
+=
+grab the $object/. bring it to the $place/
+collect the $object/. bring the collected object to $place/
