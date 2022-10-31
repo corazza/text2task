@@ -237,7 +237,9 @@ def to_dfa(compiled: CompileState) -> CompileStateDFA:
         visited.add(current_ids)
         current_state = state_dict[current_ids]
         if compiled.terminal in visiting:
-            assert len(visiting) == 1
+            # if len(visiting) != 1:
+            #     IPython.embed()
+            # assert len(visiting) == 1
             assert terminal == None
             terminal = current_state
         appears_in = appears(visiting)

@@ -10,22 +10,22 @@ def wrap(parent: RMExpr, child: RMExpr) -> bool:
         return isinstance(parent, Then) and isinstance(child, Or)
 
 
-def children_to_str(con: str, parent: RMExpr, children: list[RMExpr]) -> str:
+def children_to_str(con: str, parent: RMExpr, children: list[RMExpr], randomize: bool) -> str:
     r = ''
     for i in range(len(children)-1):
         if wrap(parent, children[i]):
-            r = f'{r}({expr_to_str(children[i])}){con}'
+            r = f'{r}({expr_to_str(children[i], randomize)}){con}'
         else:
-            r = f'{r}{expr_to_str(children[i])}{con}'
+            r = f'{r}{expr_to_str(children[i], randomize)}{con}'
     if wrap(parent, children[-1]):
-        r = f'{r}({expr_to_str(children[-1])})'
+        r = f'{r}({expr_to_str(children[-1], randomize)})'
     else:
-        r = f'{r}{expr_to_str(children[-1])}'
+        r = f'{r}{expr_to_str(children[-1], randomize)}'
     return r
 
 
-def child_to_str(op: str, parent: RMExpr, child: RMExpr) -> str:
-    r = expr_to_str(child)
+def child_to_str(op: str, parent: RMExpr, child: RMExpr, randomize: bool) -> str:
+    r = expr_to_str(child, randomize)
     if wrap(parent, child):
         r = f'({r}){op}'
     else:
@@ -33,15 +33,15 @@ def child_to_str(op: str, parent: RMExpr, child: RMExpr) -> str:
     return r
 
 
-def expr_to_str(expr: RMExpr) -> str:
+def expr_to_str(expr: RMExpr, randomize: bool = False) -> str:
     if isinstance(expr, Then):
-        return children_to_str(' ', expr, expr.exprs)
+        return children_to_str(' ', expr, expr.exprs, randomize)
     if isinstance(expr, Or):
-        return children_to_str(' | ', expr, expr.exprs)
+        return children_to_str(' | ', expr, expr.exprs, randomize)
     elif isinstance(expr, Repeat):
-        return child_to_str('*', expr, expr.child)
+        return child_to_str('*', expr, expr.child, randomize)
     elif isinstance(expr, Plus):
-        return child_to_str('+', expr, expr.child)
+        return child_to_str('+', expr, expr.child, randomize)
     else:
         assert isinstance(expr, Vars)
-        return expr.transition()
+        return expr.transition(randomize)

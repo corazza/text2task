@@ -1,4 +1,5 @@
 from typing import Tuple
+import IPython
 
 from reward_machine import RewardMachine
 from transition_ast import TExp, compile
@@ -44,10 +45,11 @@ class Builder:
     def build(self) -> RewardMachine:
         for c in self.commands:
             self._t(c[0], c[1], c[2], c[3])
-        assert self.terminal_states == compute_terminal_states(
-            self.transitions)
-        for terminal_state in self.terminal_states:
-            assert terminal_state not in self.transitions
+        # this no longer works in the presence of loops
+        # assert self.terminal_states == compute_terminal_states(
+        #     self.transitions)
+        # for terminal_state in self.terminal_states:
+        #     assert terminal_state not in self.transitions
         return RewardMachine(self.transitions, frozenset(self.appears), self.terminal_states, self.describe())
 
     def describe(self) -> list[str]:

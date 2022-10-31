@@ -26,9 +26,9 @@ first option: $A. second option: $B. third option: $C. fourth option: $D
 either: $A, or $B
 either: $A, or $B, or $C
 either: $A, or $B, or $C, or $D
-one of: $A, or $B
-one of: $A, or $B, or $C
-one of: $A, or $B, or $C, or $D
+one of: $A. or, $B
+one of: $A. or, $B. or $C
+one of: $A. or, $B. or, $C. or, $D
 
 OR 2
 either $A or $B

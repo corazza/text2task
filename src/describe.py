@@ -12,7 +12,7 @@ import language_tool_python
 
 import rm_ast
 from rm_ast import RMExpr
-import describe_patterns
+import util
 
 
 def improve_desc(happy_tt: HappyTextToText, settings: TTSettings, desc: str) -> str:
@@ -64,30 +64,19 @@ def parse_maps(lines: more_itertools.peekable) -> list[Tuple[list[str], list[str
 
 def parse_map(lines: more_itertools.peekable) -> Tuple[list[str], list[str]]:
     vars = next(lines).split()
-    phrases = parse_phrases(lines)
+    phrases = util.parse_lines(lines)
     return vars, phrases
 
 
-def parse_phrases(lines: more_itertools.peekable) -> list[str]:
-    phrases = [next(lines)]
-    while lines and not lines.peek() == '':
-        phrases.append(next(lines))
-    if lines and lines.peek() == '':
-        next(lines)
-    return phrases
-
-
 def load_var_describe_map(path: Path | str) -> dict[str, list[str]]:
-    path = Path(path)
-    with open(path, 'r') as f:
-        lines = f.read().splitlines()
-        maps = parse_maps(more_itertools.peekable(iter(lines)))
-        map = dict()
-        for vars, phrases in maps:
-            for var in vars:
-                assert var not in map
-                map[var] = phrases
-        return map
+    lines = util.line_iter(path)
+    maps = parse_maps(more_itertools.peekable(lines))
+    map = dict()
+    for vars, phrases in maps:
+        for var in vars:
+            assert var not in map
+            map[var] = phrases
+    return map
 
 
 def compute_max_level(expr: RMExpr) -> int:
@@ -167,12 +156,12 @@ def _describe_vars(context: DescribeContext, current_level: int, symbols: list[s
 
 def _describe_var(context: DescribeContext, current_level: int, var: str) -> list[str]:
     r = set()
-    if var[0] == '!':
-        return [f'no {var[1:]}']
     for phrase in context.var_describe_map[var]:
         if phrase == '':
             r.add(var)
         else:
+            if '!' in var:
+                var = var[1:]
             r.add(f'{phrase} {var}')
     return list(r)
 
@@ -187,7 +176,7 @@ def _describe(context: DescribeContext, current_level: int, expr: RMExpr) -> str
     elif isinstance(expr, rm_ast.Repeat):
         return _describe_multiple(context, current_level, context.patterns['REPEAT'], [expr.child])
     elif isinstance(expr, rm_ast.Plus):
-        return _describe_multiple(context, current_level, context.patterns['PLUS'], [expr.child])
+        return _describe_multiple(context, current_level, context.patterns['REPEAT'], [expr.child])
     else:
         assert isinstance(expr, rm_ast.Vars)
         return _describe_vars(context, current_level, expr.symbols)

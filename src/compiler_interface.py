@@ -1,3 +1,5 @@
+import IPython
+
 from reward_machine import RewardMachine
 from rm_ast import CompileStateDFA, RMExpr, RMNodeCreator, to_dfa
 from rm_compiler import dfa_to_rm

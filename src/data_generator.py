@@ -19,7 +19,8 @@ def generate_synthetic(props_path: str | Path, var_path: str | Path, patterns_pa
 
     for i in range(n):
         desc = describe.describe(patterns, var_describe_map, exprs[i])
-        prompts.append((desc, expr_printer.expr_to_str(exprs[i])))
+        prompts.append(
+            (desc.lower(), expr_printer.expr_to_str(exprs[i])))
 
     return prompts
 
@@ -30,7 +31,7 @@ def get_default_dist_params() -> dict[str, rm_generator.DistBase]:
         'children': rm_generator.ExpBasedDist(2, 2, 4),
         # defines distr. for # of propvars in transitions
         'props': rm_generator.ExpBasedDist(1, 0.5, 4),
-        'complexity': rm_generator.ExpBasedDist(0, 7, 15),
+        'complexity': rm_generator.ExpBasedDist(2, 7, 15),
         # probability to negate a propvar in transitions
         'negate': rm_generator.BinaryDist(0.05),
     }

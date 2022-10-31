@@ -5,6 +5,7 @@ import itertools
 from typing import Sequence, Tuple
 
 import rm_ast
+import util
 
 
 def parse_all_props(lines: more_itertools.peekable) -> list[Tuple[str, list[str]]]:
@@ -33,15 +34,12 @@ def parse_props(lines: more_itertools.peekable) -> list[str]:
 
 
 def load_props(path: Path | str) -> dict[str, list[str]]:
-    path = Path(path)
-    with open(path, 'r') as f:
-        lines = f.read().splitlines()
-        maps = parse_all_props(more_itertools.peekable(iter(lines)))
-        map = dict()
-        for name, props in maps:
-            assert name not in map
-            map[name] = props
-        return map
+    maps = parse_all_props(more_itertools.peekable(util.line_iter(path)))
+    map = dict()
+    for name, props in maps:
+        assert name not in map
+        map[name] = props
+    return map
 
 
 class GenerateNode:
@@ -190,7 +188,7 @@ class NodeCreator:
         return props
 
     def speciate_stem(self, banned: list[str]) -> GenerateNode:
-        types = ['THEN', 'OR', 'REPEAT', 'PLUS']
+        types = ['THEN', 'OR', 'PLUS']
         for ban in banned:
             if ban in types:
                 types.remove(ban)

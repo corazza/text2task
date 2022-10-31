@@ -1,29 +1,59 @@
 LEFT RIGHT UP DOWN
 go
 
+!LEFT !RIGHT !UP !DOWN
+don't go
+
 OFFICE
 get to the
 visit the
 
+!OFFICE
+don't get to the
+don't visit the
+don't be in
+
 DOOR
 get to the
 
-SPOTA SPOTB SPOTC SPOTD
-go to
-visit
+!DOOR
+don't get to the
 
-COFFEE MAIL
+COFFEE MAIL KEY ROCK
 get the
-collect
+collect the
+grab the
 
-DECORATION TRAP MINE
+!COFFEE !MAIL !KEY !ROCK
+don't get the
+don't collect the
+don't grab the
 
-
-KEY ROCK
+DECORATION
 get the
+
+!DECORATION
+don't knock over
+don't step on
+avoid the
+
+TRAP MINE
+find the
+
+!TRAP !MINE
+don't step on
+avoid the
 
 GOLDMINE FOREST BUILDING BASE
 go to the
 go to a
 visit the
 visit a
+be in
+
+!GOLDMINE !FOREST !BUILDING !BASE
+don't go to the
+don't go to a
+don't visit the
+don't visit a
+don't be in

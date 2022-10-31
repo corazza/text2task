@@ -1,3 +1,6 @@
+import copy
+import numpy as np
+
 from rm_compiler import *
 
 
@@ -27,16 +30,20 @@ class Vars(RMExpr):
         raise NotImplementedError()
         return frozenset(filter(lambda x: x != '!', ''.join(self.symbols)))
 
-    def transition(self) -> str:
-        return '&'.join(self.symbols)
+    def transition(self, randomize: bool) -> str:
+        symbols = copy.deepcopy(self.symbols)
+        if randomize:
+            np.random.shuffle(symbols)
+        return '&'.join(symbols)
 
     def compile(self, node_creator: RMNodeCreator) -> CompileState:
         terminal = node_creator.new_node(set())
-        initial = node_creator.new_node(set([(self.transition(), terminal)]))
+        initial = node_creator.new_node(
+            set([(self.transition(False), terminal)]))
         return CompileState(initial, terminal)
 
     def __str__(self) -> str:
-        return self.transition()
+        return self.transition(False)
 
     def __eq__(self, b) -> bool:
         if not isinstance(b, Vars):
@@ -47,7 +54,7 @@ class Vars(RMExpr):
         return self._internal_repr(0)
 
     def _internal_repr(self, level: int) -> str:
-        return self.transition()
+        return self.transition(False)
 
 
 class Or(RMExpr):

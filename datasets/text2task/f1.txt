@@ -26,28 +26,32 @@ get COFFEE and then MAIL and then go to the OFFICE
 get COFFEE and MAIL then go to the OFFICE
 first get COFFEE then get MAIL, then visit the OFFICE
 
-(SPOTA SPOTB SPOTC)* | (SPOTB SPOTC SPOTA)* | (SPOTC SPOTA SPOTB)*
-(SPOTA SPOTB SPOTC)*
-(SPOTB SPOTC SPOTA)*
-(SPOTC SPOTA SPOTB)*
-=
-circle SPOTA SPOTB SPOTC
-patrol SPOTA, SPOTB, and SPOTC
-go to SPOTA then SPOTB then SPOTC and go back to SPOTA, repeat
 
-(SPOTA&!TRAP SPOTB&!TRAP SPOTC&!TRAP)* | (SPOTB&!TRAP SPOTC&!TRAP SPOTA&!TRAP)* | (SPOTC&!TRAP SPOTA&!TRAP SPOTB&!TRAP)*
+(OFFICE BASE DOOR)+ | (BASE DOOR OFFICE)+ | (DOOR OFFICE BASE)+
+(OFFICE BASE DOOR)+
+(BASE DOOR OFFICE)+
+(DOOR OFFICE BASE)+
 =
-while patrolling SPOTA, SPOTB, and SPOTC, avoid TRAP
-circle SPOTA and SPOTB and SPOTC but never hit TRAP
-avoid the TRAP at all costs. go to SPOTA, SPOTB, and SPOTC in any order, repeat
-repeat SPOTB, SPOTC, SPOTA, in any order, but never step on the TRAP
+circle between the OFFICE, BASE, and DOOR
+patrol around the OFFICE, BASE, and DOOR
+go to OFFICE then BASE then DOOR and go back to OFFICE, repeat
 
-SPOTA&!MINE&!TRAP SPOTD&!TRAP&!MINE SPOTC&!TRAP&!MINE BASE&!TRAP&!MINE
+(OFFICE&!$avoid.a BASE&!$avoid.a DOOR&!$avoid.a)+ | (BASE&!$avoid.a DOOR&!$avoid.a OFFICE&!$avoid.a)+ | (DOOR&!$avoid.a OFFICE&!$avoid.a BASE&!$avoid.a)+
+(OFFICE&!$avoid.a BASE&!$avoid.a DOOR&!$avoid.a)+
+(BASE&!$avoid.a DOOR&!$avoid.a OFFICE&!$avoid.a)+
+(DOOR&!$avoid.a OFFICE&!$avoid.a BASE&!$avoid.a)+
 =
-never step on the MINE and avoid the TRAP, visit SPOTA then SPOTD then SPOTC. return to BASE
-go to SPOTA, SPOTD, then SPOTC. finally return to the BASE. avoid the MINEs and TRAPs
+while patrolling the OFFICE, BASE, and DOOR, avoid the $avoid.a
+circle OFFICE and BASE and DOOR but never hit the $avoid.a
+avoid the $avoid.a at all costs. go to the OFFICE, BASE, and DOOR in any order, repeat
+repeat BASE, DOOR, OFFICE, in any order, but never step on a $avoid.a
 
-(COFFEE | MAIL | OFFICE)*
+OFFICE&!$avoid.a&!$avoid.b BASE&!$avoid.b&!$avoid.a DOOR&!$avoid.b&!$avoid.a BASE&!$avoid.b&!$avoid.a
+=
+never step on a $avoid.a and avoid the $avoid.b, visit the OFFICE then BASE then DOOR. return to BASE
+go to OFFICE, BASE, then DOOR. finally return to the BASE. avoid the $avoid.as and $avoid.bs
+
+(COFFEE | MAIL | OFFICE)+
 =
 repeat in any order: COFFEE, MAIL, OFFICE
 get COFFEE or MAIL or go to the OFFICE, repeat
@@ -65,10 +69,10 @@ without falling into a TRAP: collect the KEY and get to the DOOR
 do the following in reverse order: DOOR then KEY. avoid TRAPs though!
 
 
-SPOTD KEY SPOTA DOOR
+$place.a KEY OFFICE DOOR
 =
-go to SPOTD, then collect the KEY. afterwards run to SPOTA, and finally go to the DOOR
-in reverse order: DOOR, SPOTA, KEY, SPOTD
+go to $place.a, then collect the KEY. afterwards run to OFFICE, and finally go to the DOOR
+in reverse order: DOOR, OFFICE, KEY, $place.a
 
 BASE FOREST FOREST&GOLDMINE BASE
 =

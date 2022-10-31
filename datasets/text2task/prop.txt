@@ -1,22 +1,31 @@
-actions
+direction
 LEFT RIGHT UP DOWN
 
-places
-OFFICE 
-SPOTA SPOTB SPOTC SPOTD
+# go to the
+# get to the
+place
+OFFICE
 BASE
 DOOR
+# covering single tile
 
-objects
+# collect the
+# pick up
+object
 COFFEE MAIL DECORATION
 KEY
 ROCK
 
+
+# avoid
+# never step on the
 avoid
 TRAP
 MINE
 
-areas
+# visit the
+area
 FOREST
 BUILDING
 GOLDMINE
+# covering multiple tiles
