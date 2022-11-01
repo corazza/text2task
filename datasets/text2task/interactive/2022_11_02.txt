@@ -1,0 +1,16 @@
+UP MINE !DOOR
+=
+first go UP once, then find a MINE, and finally don't go through the DOOR
+
+UP
+=
+go UP once
+
+GOLDMINE
+=
+enter the GOLDMINE
+
+MAIL RIGHT LEFT | OFFICE&DECORATION
+=
+either find the MAIL and then go RIGHT and LEFT, or find the DECORATION and the OFFICE at the same time
+

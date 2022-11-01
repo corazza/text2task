@@ -27,8 +27,13 @@ class Vars(RMExpr):
         self.symbols = symbols
 
     def appears(self) -> frozenset[str]:
-        raise NotImplementedError()
-        return frozenset(filter(lambda x: x != '!', ''.join(self.symbols)))
+        r = set()
+        for symbol in self.symbols:
+            if '!' not in symbol:
+                r.add(symbol)
+            else:
+                r.add(symbol[1:])
+        return frozenset(r)
 
     def transition(self, randomize: bool) -> str:
         symbols = copy.deepcopy(self.symbols)

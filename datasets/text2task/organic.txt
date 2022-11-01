@@ -34,7 +34,7 @@ first get COFFEE then get MAIL, then visit the OFFICE
 =
 circle between the OFFICE, BASE, and DOOR
 patrol around the OFFICE, BASE, and DOOR
-go to OFFICE then BASE then DOOR and go back to OFFICE, repeat
+go to the OFFICE then the BASE then the DOOR and go back to the OFFICE, repeat
 
 (OFFICE&!$avoid/a BASE&!$avoid/a DOOR&!$avoid/a)+ | (BASE&!$avoid/a DOOR&!$avoid/a OFFICE&!$avoid/a)+ | (DOOR&!$avoid/a OFFICE&!$avoid/a BASE&!$avoid/a)+
 (OFFICE&!$avoid/a BASE&!$avoid/a DOOR&!$avoid/a)+
@@ -71,7 +71,7 @@ do the following in reverse order: DOOR then KEY. avoid TRAPs though!
 
 $place/a KEY OFFICE DOOR
 =
-go to $place/a, then collect the KEY. afterwards run to OFFICE, and finally go to the DOOR
+go to the $place/a, then collect the KEY. afterwards run to OFFICE, and finally go to the DOOR
 in reverse order: DOOR, OFFICE, KEY, $place/a
 
 BASE FOREST FOREST&GOLDMINE BASE
@@ -94,3 +94,17 @@ $object/ $place/
 =
 grab the $object/. bring it to the $place/
 collect the $object/. bring the collected object to $place/
+
+$object/&$place/
+=
+find the $object/ in the $place/
+pick up the $object/ from the $place/
+go to the $place/ and pick up the $object/
+enter the $place/. in there, find the $object/
+
+$object/&$place/a $place/b
+=
+find the $object/ in the $place/a, then bring it to $place/b
+pick up the $object/ from the $place/a. leave it at $place/b
+go to the $place/a and pick up the $object/ to bring it to $place/b
+enter the $place/a. in there, find the $object/. carry it to $place/b

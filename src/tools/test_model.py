@@ -1,5 +1,10 @@
+import sys  # noqa
+sys.path.append('.')  # noqa
 from transformers import pipeline, set_seed, GPT2Tokenizer
 import IPython
+
+import compiler_interface
+import expr_printer
 
 
 def synthesize(generator, desc: str) -> str:
@@ -16,14 +21,30 @@ def synthesize(generator, desc: str) -> str:
     return final_output
 
 
+# def postprocess(output: str) -> str:  # TODO fix this in the model
+#     for i in range(len(output)):
+#         substr = output[0:i+1]
+#         try:
+#             parsed = compiler_interface.parse(substr)
+#         except:
+#             continue
+#         return expr_printer.expr_to_str(parsed)
+#     raise ValueError('couldn\'t find a valid substring')
+
+
+def answer_query(generator):
+    desc = input(': ')
+    output = synthesize(generator, desc)
+    print(output)
+    # print(postprocess(output))
+
+
 def test_model():
     generator = pipeline(
         'text-generation', model='/mnt/e/work_dirs/text2task_distilgpt2/')
     set_seed(42)
-    desc = "repeat TRAP"
-    output = synthesize(generator, desc)
-    print(f'{desc} => {output}')
-    IPython.embed()
+    while True:
+        answer_query(generator)
 
 
 def main():

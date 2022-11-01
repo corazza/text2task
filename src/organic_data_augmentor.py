@@ -134,12 +134,17 @@ def pairs(entry: Tuple[list[str], list[str]]) -> Iterator[Tuple[str, str]]:
 
 
 def extract_prop_types(x: str,  props: dict[str, list[str]]) -> frozenset[str]:
-    regex = '\$[a-z]+\/[a-z]'
-    full_spec = frozenset(re.findall(regex, x))
-    if len(full_spec) == 0:
-        regex = '\$[a-z]+\/'
-        return frozenset(re.findall(regex, x))
-    return full_spec
+    full_spec = set(re.findall('\$[a-z]+\/[a-z]', x))
+    half_spec = frozenset(re.findall('\$[a-z]+\/', x))
+    for subspec in half_spec:
+        found = False
+        for spec in full_spec:
+            if subspec in spec:
+                found = True
+                break
+        if not found:
+            full_spec.add(subspec)
+    return frozenset(full_spec)
 
 
 def extract_prop_types_uppercase(x: str) -> frozenset[str]:

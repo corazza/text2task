@@ -41,7 +41,7 @@ TRAP MINE
 find the
 
 !TRAP !MINE
-don't step on
+don't step on the
 avoid the
 
 GOLDMINE FOREST BUILDING BASE

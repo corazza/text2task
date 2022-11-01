@@ -23,6 +23,9 @@ def create_if_doesnt_exist(in_dir: str, filename: str, suffix: str) -> Path:
 def save_prompts(path: Path, prompts: list[Tuple[str, str]]):
     lines = [prompt_to_line(p) for p in prompts]
     for line in lines:
+        if len(line) >= 700:
+            print('line too long')
+            IPython.embed()
         assert len(line) < 700
     lines = list(filter(lambda l: len(l) < 700, lines))
     lines = list(map(line_to_json, lines))
@@ -51,7 +54,7 @@ def line_to_json(x: str) -> str:
 
 def randomize_conjuncts(x: str) -> str:
     parsed = compiler_interface.parse(x)
-    return expr_printer.expr_to_str(parsed, randomize=True)
+    return expr_printer.expr_to_str(parsed, randomize=True, connect_then=False)
 
 
 def load_augmented(path) -> list[Tuple[str, str]]:
@@ -76,15 +79,34 @@ def save_both():
     path_human = create_if_doesnt_exist(
         '../preprocessed_datasets/text2task', 'train', '.txt')
     rewrites = desc_rewriter.load_file('../datasets/text2task/rewrites.txt')
+    props = '../datasets/text2task/prop.txt'
+    var_describe_map = '../datasets/text2task/var_describe_map.txt'
+    patterns = '../datasets/text2task/patterns.txt'
+
     organic_prompts = load_augmented('../datasets/text2task/organic.txt')
-    synthetic_prompts = data_generator.get_default(len(organic_prompts))
+    organic_dist = data_generator.analyze_dist(organic_prompts)
     interactive_prompts = get_interactive_prompts()
+    n = len(organic_prompts) + len(interactive_prompts)
+    synthetic_prompts = data_generator.generate_synthetic(
+        props, var_describe_map, patterns, organic_dist, n)
+    synthetic_dist = data_generator.analyze_dist(synthetic_prompts)
+
     prompts = organic_prompts + synthetic_prompts + interactive_prompts
     prompts = [(desc_rewriter.apply_rewrites(p[0], rewrites),
                 randomize_conjuncts(p[1])) for p in prompts]
     np.random.shuffle(prompts)  # type: ignore
+
     save_prompts(path, prompts)
     save_prompts_human(path_human, prompts)
+
+    print('distribution of organic data:')
+    print(organic_dist)
+    print('distribution of synthetic data:')
+    print(synthetic_dist)
+
+    print(f'num. organic = {len(organic_prompts)}')
+    print(f'num. interactive = {len(interactive_prompts)}')
+    print(f'num. synthetic = {len(synthetic_prompts)}')
 
 
 def main():
