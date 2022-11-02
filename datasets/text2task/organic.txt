@@ -1,110 +1,110 @@
-(COFFEE MAIL | MAIL COFFEE) OFFICE
-COFFEE MAIL OFFICE | MAIL COFFEE OFFICE
+(OBJECT/a OBJECT/b | OBJECT/b OBJECT/a) PLACE%
+OBJECT/a OBJECT/b PLACE% | OBJECT/b OBJECT/a PLACE%
 =
-before going to the OFFICE, get the COFFEE and the MAIL in any order
-get the COFFEE and MAIL to the OFFICE
-first get COFFEE then get MAIL, or first get COFFEE then get MAIL, then go to the OFFICE
-grab COFFEE then MAIL, or MAIL then COFFEE, and go to the OFFICE
-once you get the COFFEE and the MAIL visit the OFFICE
-bring COFFEE and MAIL to the OFFICE in any order
+before going to the PLACE%, get the OBJECT/a and the OBJECT/b in any order
+get the OBJECT/a and OBJECT/b to the PLACE%
+first get OBJECT/a then get OBJECT/b, or first get OBJECT/b then get OBJECT/a, then go to the PLACE%
+grab OBJECT/a then OBJECT/b, or OBJECT/b then OBJECT/a, and go to the PLACE%
+once you get the OBJECT/a and the OBJECT/b visit the PLACE%
+bring OBJECT/a and OBJECT/b to the PLACE% in any order
 
-(COFFEE&!DECORATION MAIL&!DECORATION | MAIL&!DECORATION COFFEE&!DECORATION) OFFICE&!DECORATION
-COFFEE&!DECORATION MAIL&!DECORATION OFFICE&!DECORATION | MAIL&!DECORATION COFFEE&!DECORATION OFFICE&!DECORATION
+(OBJECT/a&!AVOID% OBJECT/b&!AVOID% | OBJECT/b&!AVOID% OBJECT/a&!AVOID%) PLACE%&!AVOID%
+OBJECT/a&!AVOID% OBJECT/b&!AVOID% PLACE%&!AVOID% | OBJECT/b&!AVOID% OBJECT/a&!AVOID% PLACE%&!AVOID%
 =
-never hit DECORATION. get the COFFEE and MAIL in any order to the OFFICE
-before going to the OFFICE, get COFFEE and MAIL in any order, but beware not to hit any DECORATION
-first get COFFEE and MAIL (avoid DECORATION), and then bring them both to the OFFICE
-while avoiding DECORATION, bring COFFEE and MAIL to the OFFICE
-first: get COFFEE. second: get MAIL. third: carry them to the OFFICE. but most most importantly never collide with DECORATION
+never hit AVOID%. get the OBJECT/a and OBJECT/b in any order to the PLACE%
+before going to the PLACE%, get OBJECT/a and OBJECT/b in any order, but beware not to hit any AVOID%
+first get OBJECT/a and OBJECT/b (avoid AVOID%), and then bring them both to the PLACE%
+while avoiding AVOID%, bring OBJECT/a and OBJECT/b to the PLACE%
+first: get OBJECT/a. second: get OBJECT/b. third: carry them to the PLACE%. but most most importantly never collide with AVOID%
 
-COFFEE MAIL OFFICE
-(COFFEE MAIL) OFFICE
-COFFEE (MAIL OFFICE)
+OBJECT/a OBJECT/b PLACE%
+(OBJECT/a OBJECT/b) PLACE%
+OBJECT/a (OBJECT/b PLACE%)
 =
-do the following in order: COFFEE, MAIL, OFFICE
-get the COFFEE and then MAIL and then go to the OFFICE
-get the COFFEE and MAIL then go to the OFFICE
-first get COFFEE then get MAIL, then visit the OFFICE
+do the following in order: OBJECT/a, OBJECT/b, PLACE%
+get the OBJECT/a and then OBJECT/b and then go to the PLACE%
+get the OBJECT/a and OBJECT/b then go to the PLACE%
+first get OBJECT/a then get OBJECT/b, then visit the PLACE%
 
 
-(OFFICE BASE DOOR)+ | (BASE DOOR OFFICE)+ | (DOOR OFFICE BASE)+
-(OFFICE BASE DOOR)+
-(BASE DOOR OFFICE)+
-(DOOR OFFICE BASE)+
+(PLACE/a PLACE/b PLACE/c)+ | (PLACE/b PLACE/c PLACE/a)+ | (PLACE/c PLACE/a PLACE/b)+
+(PLACE/a PLACE/b PLACE/c)+
+(PLACE/b PLACE/c PLACE/a)+
+(PLACE/c PLACE/a PLACE/b)+
 =
-circle between the OFFICE, BASE, and DOOR
-patrol around the OFFICE, BASE, and DOOR
-go to the OFFICE then the BASE then the DOOR and go back to the OFFICE, repeat
+circle between the PLACE/a, PLACE/b, and PLACE/c
+patrol around the PLACE/a, PLACE/b, and PLACE/c
+go to the PLACE/a then the PLACE/b then the PLACE/c and go back to the PLACE/a, repeat
 
-(OFFICE&!$avoid/a BASE&!$avoid/a DOOR&!$avoid/a)+ | (BASE&!$avoid/a DOOR&!$avoid/a OFFICE&!$avoid/a)+ | (DOOR&!$avoid/a OFFICE&!$avoid/a BASE&!$avoid/a)+
-(OFFICE&!$avoid/a BASE&!$avoid/a DOOR&!$avoid/a)+
-(BASE&!$avoid/a DOOR&!$avoid/a OFFICE&!$avoid/a)+
-(DOOR&!$avoid/a OFFICE&!$avoid/a BASE&!$avoid/a)+
+(PLACE/a&!AVOID/a PLACE/b&!AVOID/a PLACE/c&!AVOID/a)+ | (PLACE/b&!AVOID/a PLACE/c&!AVOID/a PLACE/a&!AVOID/a)+ | (PLACE/c&!AVOID/a PLACE/a&!AVOID/a PLACE/b&!AVOID/a)+
+(PLACE/a&!AVOID/a PLACE/b&!AVOID/a PLACE/c&!AVOID/a)+
+#(PLACE/b&!AVOID/a PLACE/c&!AVOID/a PLACE/a&!AVOID/a)+
+#(PLACE/c&!AVOID/a PLACE/a&!AVOID/a PLACE/b&!AVOID/a)+
 =
-while patrolling the OFFICE, BASE, and DOOR, avoid the $avoid/a
-circle OFFICE and BASE and DOOR but never hit the $avoid/a
-avoid the $avoid/a at all costs. go to the OFFICE, BASE, and DOOR in any order, repeat
-repeat BASE, DOOR, OFFICE, in any order, but never step on a $avoid/a
+while patrolling the PLACE/a, PLACE/b, and PLACE/c, avoid the AVOID/a
+circle PLACE/a and PLACE/b and PLACE/c but never hit the AVOID/a
+avoid the AVOID/a at all costs. go to the PLACE/a, PLACE/b, and PLACE/c in any order, repeat
+repeat PLACE/b, PLACE/c, PLACE/a, in any order, but never step on a AVOID/a
 
-OFFICE&!$avoid/a&!$avoid/b BASE&!$avoid/b&!$avoid/a DOOR&!$avoid/b&!$avoid/a BASE&!$avoid/b&!$avoid/a
+PLACE/a&!AVOID/a&!AVOID/b PLACE/b&!AVOID/b&!AVOID/a PLACE/c&!AVOID/b&!AVOID/a PLACE/b&!AVOID/b&!AVOID/a
 =
-never step on a $avoid/a and avoid the $avoid/b, visit the OFFICE then BASE then DOOR. return to BASE
-go to OFFICE, BASE, then DOOR. finally return to the BASE. avoid the $avoid/as and $avoid/bs
+never step on a AVOID/a and avoid the AVOID/b, visit the PLACE/a then PLACE/b then PLACE/c. return to PLACE/b
+go to PLACE/a, PLACE/b, then PLACE/c. finally return to the PLACE/b. avoid the AVOID/as and AVOID/bs
 
-(COFFEE | MAIL | OFFICE)+
+(OBJECT/a | OBJECT/b | PLACE%)+
 =
-repeat in any order: COFFEE, MAIL, OFFICE
-get COFFEE or MAIL or go to the OFFICE, repeat
+repeat in any order: OBJECT/a, OBJECT/b, PLACE%
+get OBJECT/a or OBJECT/b or go to the PLACE%, repeat
 
-KEY&!MINE DOOR&!MINE
+OBJECT%&!MINE PLACE%&!MINE
 =
-before exiting through the DOOR, grab the KEY! never step on a MINE
-without stepping on a MINE: collect the KEY and get to the DOOR
-(in reverse order) DOOR (avoid MINE) then KEY (also avoid MINE)
+before exiting through the PLACE%, grab the OBJECT%! never step on a MINE
+without stepping on a MINE: collect the OBJECT% and get to the PLACE%
+(in reverse order) PLACE% (avoid MINE) then OBJECT% (also avoid MINE)
 
-KEY&!TRAP DOOR&!TRAP
+OBJECT%&!TRAP PLACE%&!TRAP
 =
-before exiting through the DOOR, grab the KEY! never fall into a TRAP
-without falling into a TRAP: collect the KEY and get to the DOOR
-do the following in reverse order: DOOR then KEY. avoid TRAPs though!
+before exiting through the PLACE%, grab the OBJECT%! never fall into a TRAP
+without falling into a TRAP: collect the OBJECT% and get to the PLACE%
+do the following in reverse order: PLACE% then OBJECT%. avoid TRAPs though!
 
 
-$place/a KEY OFFICE DOOR
+PLACE/a OBJECT% PLACE/a PLACE/b
 =
-go to the $place/a, then collect the KEY. afterwards run to OFFICE, and finally go to the DOOR
-in reverse order: DOOR, OFFICE, KEY, $place/a
+go to the PLACE/a, then collect the OBJECT%. afterwards run to PLACE/a, and finally go to the PLACE/b
+in reverse order: PLACE/b, PLACE/a, OBJECT%, PLACE/a
 
-BASE FOREST FOREST&GOLDMINE BASE
+PLACE/a AREA/a AREA/a&AREA/b PLACE/a
 =
-start from the BASE and find the FOREST. then find the GOLDMINE in the FOREST. return to BASE
+start from the PLACE/a and find the AREA/a. then find the AREA/b in the AREA/a. return to PLACE/a
 
-FOREST&GOLDMINE
+AREA/a&AREA/b
 =
-find the GOLDMINE in the FOREST
+find the AREA/b in the AREA/a
 
-FOREST FOREST&GOLDMINE
+AREA/a AREA/a&AREA/b
 =
-find the FOREST then find the GOLDMINE in the FOREST
+find the AREA/a then find the AREA/b in the AREA/a
 
-FOREST GOLDMINE
+AREA/a AREA/b
 =
-find the FOREST then find the GOLDMINE
+find the AREA/a then find the AREA/b
 
-$object/ $place/
+OBJECT% PLACE%
 =
-grab the $object/. bring it to the $place/
-collect the $object/. bring the collected object to $place/
+grab the OBJECT%. bring it to the PLACE%
+collect the OBJECT%. bring the collected object to PLACE%
 
-$object/&$place/
+OBJECT%&PLACE%
 =
-find the $object/ in the $place/
-pick up the $object/ from the $place/
-go to the $place/ and pick up the $object/
-enter the $place/. in there, find the $object/
+find the OBJECT% in the PLACE%
+pick up the OBJECT% from the PLACE%
+go to the PLACE% and pick up the OBJECT%
+enter the PLACE%. in there, find the OBJECT%
 
-$object/&$place/a $place/b
+OBJECT%&PLACE/a PLACE/b
 =
-find the $object/ in the $place/a, then bring it to $place/b
-pick up the $object/ from the $place/a. leave it at $place/b
-go to the $place/a and pick up the $object/ to bring it to $place/b
-enter the $place/a. in there, find the $object/. carry it to $place/b
+find the OBJECT% in the PLACE/a, then bring it to PLACE/b
+pick up the OBJECT% from the PLACE/a. leave it at PLACE/b
+go to the PLACE/a and pick up the OBJECT% to bring it to PLACE/b
+enter the PLACE/a. in there, find the OBJECT%. carry it to PLACE/b

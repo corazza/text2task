@@ -24,7 +24,7 @@ def append_last(path: Path, prompt: Tuple[str, str]):
         f.write(prompt_to_lines(prompt) + '\n')
 
 
-def collect_one(dist_parameters: dict[str, rm_generator.DistBase], props: dict[str, list[str]]) -> Tuple[str, str]:
+def collect_one(dist_parameters: dict[str, data_generator.DistBase], props: dict[str, list[str]]) -> Tuple[str, str]:
     rm = rm_generator.generate(dist_parameters, props)
     desc = input(expr_printer.expr_to_str(
         rm, randomize=False, connect_then=True) + '\n: ')

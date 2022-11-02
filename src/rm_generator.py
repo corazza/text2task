@@ -7,6 +7,7 @@ from typing import Sequence, Tuple
 
 import rm_ast
 import util
+import data_generator
 
 
 def parse_all_props(lines: more_itertools.peekable) -> list[Tuple[str, list[str]]]:
@@ -131,71 +132,13 @@ def extract_props(props: dict[str, list[str]]) -> list[str]:
     return list(r)
 
 
-class DistBase:
-    def sample_int(self) -> int:
-        return int(self.sample())
-
-    def sample(self) -> float:
-        raise NotImplementedError()
-
-    def sample_bool(self) -> bool:
-        raise NotImplementedError()
-
-
-class ShiftedExpDist(DistBase):
-    def __init__(self, start: float, avg: float):
-        assert start < avg
-        self.start = start
-        self.avg = avg
-
-    def __repr__(self):
-        return f'ShiftedExp({self.start:.2f}, {self.avg:.2f})'
-
-    def __str__(self):
-        return repr(self)
-
-    def sample(self) -> float:
-        return self.start + np.round(np.random.exponential(self.avg - self.start))
-
-
-class ShiftedLimitedExpDist(DistBase):
-    def __init__(self, start: float, avg: float, limit: float):
-        assert limit > avg
-        self.limit = limit
-        self.underlying = ShiftedExpDist(start, avg)
-
-    def __repr__(self):
-        return f'ShiftedLimitedExp({self.underlying.start:.2f}, {self.underlying.avg:.2f}, {self.limit:.2f})'
-
-    def __str__(self):
-        return repr(self)
-
-    def sample(self) -> float:
-        while True:
-            x = self.underlying.sample()
-            if x <= self.limit:
-                return x
-
-
-class BinaryDist(DistBase):
-    def __init__(self, p):
-        assert 0 < p and p < 1
-        self.p = p
-
-    def __repr__(self):
-        return f'Binary({self.p:.2f})'
-
-    def __str__(self):
-        return repr(self)
-
-    def sample_bool(self) -> bool:
-        return np.random.random() < self.p
-
-
 class NodeCreator:
-    def __init__(self, dist_parameters: dict[str, DistBase], props: dict[str, list[str]]):
+    def __init__(self, max_level: int, dist_parameters: dict[str, data_generator.DistBase], props: dict[str, list[str]]):
         self.complexity = dist_parameters['complexity'].sample_int()
-        self.max_level = dist_parameters['max_level'].sample_int()
+        print(self.complexity)
+        # self.complexity = 10000
+        # self.max_level = dist_parameters['max_level'].sample_int()
+        self.max_level = max_level
         self.repeats = dist_parameters['repeats'].sample_int()
         self.dist_parameters = dist_parameters
         self.props = extract_props(props)
@@ -228,49 +171,37 @@ class NodeCreator:
             props.append(prop)
         return props
 
-    def speciate_stem(self, level: int, banned: list[str]) -> GenerateNode:
-        types = ['THEN', 'OR', 'PLUS']
-        for ban in banned:
-            if ban in types:
-                types.remove(ban)
-
+    def speciate_stem(self, level: int, banned: set[str]) -> GenerateNode:
+        # banned = set()
         if self.complexity < 2:
-            if 'THEN' in types:
-                types.remove('THEN')
-            if 'OR' in types:
-                types.remove('OR')
+            banned.add('THEN')
+            banned.add('OR')
 
-        if self.complexity < 1 or self.repeats < 1:
-            if 'REPEAT' in types:
-                types.remove('REPEAT')
-            if 'PLUS' in types:
-                types.remove('PLUS')
+        if self.complexity < 1:
+            banned.add('REPEAT')
+            banned.add('PLUS')
 
-        if level == self.max_level:
-            types = []
+        type = self.dist_parameters['node'].sample_string_banned(banned)
 
-        if len(types) == 0:
-            types = ['VAR']
+        if level > self.max_level:
+            type = 'VAR'
 
-        num_types = len(types)
-        chosen = np.random.randint(num_types)
-
-        if types[chosen] == 'THEN':
+        if type == 'THEN':
             children = self.two_or_more(level+1)
             return ThenNode(level, children)
-        elif types[chosen] == 'OR':
+        elif type == 'OR':
             children = self.two_or_more(level+1)
             return OrNode(level, children)
-        elif types[chosen] == 'REPEAT':
+        elif type == 'REPEAT':
             child = self.one_stem(level+1)
             self.repeats -= 1
             return RepeatNode(level, child)
-        elif types[chosen] == 'PLUS':
+        elif type == 'PLUS':
             child = self.one_stem(level+1)
             self.repeats -= 1
             return PlusNode(level, child)
         else:
-            assert types[chosen] == 'VAR'
+            assert type == 'VAR'
             return VarNode(level, self.generate_props())
 
 
@@ -292,16 +223,17 @@ def to_rm_expr(node: GenerateNode) -> rm_ast.RMExpr:
         return rm_ast.Repeat(child)
 
 
-def generate(dist_parameters: dict[str, DistBase], props: dict[str, list[str]]) -> rm_ast.RMExpr:
-    node_creator = NodeCreator(dist_parameters, props)
-    root = node_creator.speciate_stem(0, [])
+def generate(dist_parameters: dict[str, data_generator.DistBase], props: dict[str, list[str]]) -> rm_ast.RMExpr:
+    max_level = 4
+    node_creator = NodeCreator(max_level, dist_parameters, props)
+    root = node_creator.speciate_stem(0, set())
     to_visit = [root]
     while len(to_visit) > 0:
         assert len(to_visit) > 0
         visiting = to_visit.pop(0)
         if isinstance(visiting, RepeatNode) or isinstance(visiting, PlusNode):
             visiting.child = node_creator.speciate_stem(
-                visiting.child.level, banned=['REPEAT', 'PLUS'])
+                visiting.child.level, banned=set(['REPEAT', 'PLUS']))
             to_visit.append(visiting.child)
         elif isinstance(visiting, VarNode):
             pass
@@ -311,13 +243,15 @@ def generate(dist_parameters: dict[str, DistBase], props: dict[str, list[str]]) 
             else:
                 assert isinstance(visiting, OrNode)
                 banned = 'OR'
-            visiting.children = [node_creator.speciate_stem(child.level, banned=[banned])
+            visiting.children = [node_creator.speciate_stem(child.level, banned=set([banned]))
                                  for child in visiting.children]
             to_visit.extend(visiting.children)
+
+    # print(node_creator.complexity, node_creator.max_level)
     return to_rm_expr(root.clean())
 
 
-def generate_many(props_path: str | Path, dist_parameters: dict[str, DistBase], n: int) -> list[rm_ast.RMExpr]:
+def generate_many(props_path: str | Path, dist_parameters: dict[str, data_generator.DistBase], n: int) -> list[rm_ast.RMExpr]:
     props = load_props(props_path)
     exprs = []
     for _i in range(n):

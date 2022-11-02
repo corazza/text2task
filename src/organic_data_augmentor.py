@@ -49,9 +49,6 @@ def parse_descriptions(lines: more_itertools.peekable) -> list[str]:
     return descriptions
 
 
-# HERE TODO take at most N, N is the inflation factor (shouldn't devote this much data space to learning a relatively simple transformation)
-
-
 def apply_mapping(to: str,  mapping: dict[str, str]) -> str:
     for k, v in mapping.items():
         to = to.replace(k, v)
@@ -59,8 +56,8 @@ def apply_mapping(to: str,  mapping: dict[str, str]) -> str:
 
 
 def generate_variants(desc: str, src: str, props: dict[str, list[str]], take: int) -> Iterator[Tuple[str, str]]:
-    props_desc = extract_prop_types(desc, props)
-    props_src = extract_prop_types(src, props)
+    props_desc = extract_prop_types(desc)
+    props_src = extract_prop_types(src)
     assert props_desc == props_src
     r = []
     for mapping in mappings(props_desc, props):
@@ -81,46 +78,11 @@ def reshape_entries(entries: list[Tuple[list[str], list[str]]]) -> Iterator[Tupl
             yield (desc, src)
 
 
-# def preprocess_string(x: str) -> str:
-#     types = extract_prop_types_uppercase(x)
-#     IPython.embed()
-#     raise NotImplementedError()
-
-
-# def prop_mapping(x: str, props: props: dict[str, list[str]]) -> dict[str, str]:
-#     raise NotImplementedError()
-
-def prop_to_type(x: str, props: dict[str, list[str]]) -> dict[str, str]:
-    objects = extract_prop_types_uppercase(x)
-    counters = {p: 0 for p in props}
-    letters = {}
-    types = {}
-    for object in objects:
-        for type in props:
-            if object in props[type]:
-                types[object] = type
-                letters[object] = chr(counters[type] + ord('a'))
-                counters[type] += 1
-    r = {}
-    for object in objects:
-        r[object] = f'${types[object]}/{letters[object]}'
-    return r
-
-
-def preprocess_pair(x: Tuple[str, str], props: dict[str, list[str]]) -> Tuple[str, str]:
-    desc = x[0]
-    src = x[1]
-    mapping = prop_to_type(desc, props)
-    return apply_mapping(desc, mapping), apply_mapping(src, mapping)
-
-
 def load_file(path: str | Path, props_path: str | Path, inflation_factor: int) -> list[Tuple[str, str]]:
     assert inflation_factor >= 1
     props = rm_generator.load_props(props_path)
     entries = parse_entries(more_itertools.peekable(util.line_iter(path)))
     organic = list(reshape_entries(entries))
-    organic = [preprocess_pair(
-        p, props) if '$' not in p[0] else p for p in organic]
     variants = list(
         map(lambda desc_src: list(generate_variants(desc_src[0], desc_src[1], props, inflation_factor)), organic))
     flattened_variants = list(itertools.chain(*variants))
@@ -133,58 +95,41 @@ def pairs(entry: Tuple[list[str], list[str]]) -> Iterator[Tuple[str, str]]:
             yield (src, description)
 
 
-def extract_prop_types(x: str,  props: dict[str, list[str]]) -> frozenset[str]:
-    full_spec = set(re.findall('\$[a-z]+\/[a-z]', x))
-    half_spec = frozenset(re.findall('\$[a-z]+\/', x))
-    for subspec in half_spec:
-        found = False
-        for spec in full_spec:
-            if subspec in spec:
-                found = True
-                break
-        if not found:
-            full_spec.add(subspec)
-    return frozenset(full_spec)
-
-
-def extract_prop_types_uppercase(x: str) -> frozenset[str]:
-    uppercase_words = []
-    current_word = ''
-    for c in x:
-        if isupper(c):
-            current_word += c
-        else:
-            if len(current_word) > 1:
-                uppercase_words.append(current_word)
-                current_word = ''
-    if len(current_word) > 1:
-        uppercase_words.append(current_word)
-        current_word = ''
-    return frozenset(uppercase_words)
-
-# TODO rename to categories
+def extract_prop_types(x: str) -> frozenset[str]:
+    half_spec = frozenset(re.findall('[A-Z]+\%', x))
+    full_spec = frozenset(re.findall('[A-Z]+\/[a-z]', x))
+    for half in half_spec:
+        for full in full_spec:
+            assert half not in full
+    return half_spec.union(full_spec)
 
 
 def strip_prop(x: str) -> str:
-    return x[1:x.find('/')]
+    if '/' in x:
+        return x[:x.find('/')]
+    else:
+        assert '%' in x
+        return x[:x.find('%')]
 
 
 def mappings(props: frozenset[str], all_props: dict[str, list[str]]) -> Iterator[dict[str, str]]:
-    types = {prop: strip_prop(prop) for prop in props}
+    types = {prop: strip_prop(prop).lower() for prop in props}
     groups = {prop: all_props[t] for prop, t in types.items()}
     items = groups.items()
     props_ordered = list(map(lambda x: x[0], items))
     groups_ordered = list(map(lambda x: x[1], items))
     for comb in itertools.product(*groups_ordered):
         r = {}
-        taken = {prop: set() for prop in all_props.keys()}
-        invalid = False
         for i in range(len(comb)):
-            if comb[i] in taken[types[props_ordered[i]]]:
-                invalid = True
-                break
             r[props_ordered[i]] = comb[i]
-            taken[types[props_ordered[i]]].add(comb[i])
-        if invalid:
-            continue
-        yield r
+        filtered = {k: v for k, v in r.items() if '%' not in k}
+        suffixes = {v: list() for k, v in filtered.items()}
+        for k, v in filtered.items():
+            suffixes[v].append(k[-1])
+        valid = True
+        for k, v in suffixes.items():
+            if len(set(v)) != 1:
+                valid = False
+                break
+        if valid:
+            yield r

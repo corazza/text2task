@@ -1,6 +1,7 @@
 import sys  # noqa
 sys.path.append('.')  # noqa
 import itertools
+import copy
 from pathlib import Path
 from typing import Tuple
 import numpy as np
@@ -86,6 +87,11 @@ def save_both():
     organic_prompts = load_augmented('../datasets/text2task/organic.txt')
     organic_dist = data_generator.analyze_dist(organic_prompts)
     interactive_prompts = get_interactive_prompts()
+
+    changed_dist = copy.deepcopy(organic_dist)
+    changed_dist['complexity'].start += 1  # type: ignore
+    changed_dist['complexity'].avg += 1  # type: ignore
+
     n = len(organic_prompts) + len(interactive_prompts)
     synthetic_prompts = data_generator.generate_synthetic(
         props, var_describe_map, patterns, organic_dist, n)

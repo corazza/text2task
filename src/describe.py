@@ -136,7 +136,10 @@ def _describe_multiple(context: DescribeContext, current_level: int, patterns: l
     descs = _children_describe(context, current_level+1, exprs)
     num_children = len(descs)
     picked_patterns = _pick_pattern(context, current_level, patterns)
-    return _apply_pattern_helper(picked_patterns[num_children - 1], descs)
+    try:
+        return _apply_pattern_helper(picked_patterns[num_children - 1], descs)
+    except:
+        IPython.embed()
 
 
 def _describe_vars(context: DescribeContext, current_level: int, symbols: list[str]) -> str:
