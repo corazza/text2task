@@ -1,59 +1,65 @@
 LEFT RIGHT UP DOWN
-go
+go $ once
 
 !LEFT !RIGHT !UP !DOWN
-don't go
+never go $
 
 OFFICE
-get to the
-visit the
+get to the $
+visit the $
 
 !OFFICE
-don't get to the
-don't visit the
-don't be in
+never get to the $
+don't visit the $
+don't be in the $
 
 DOOR
-get to the
+get to the $
 
 !DOOR
-don't get to the
+don't get to the $
+never get to the $
 
 COFFEE MAIL KEY ROCK
-get the
-collect the
-grab the
+get the $
+collect the $
+grab the $
 
 !COFFEE !MAIL !KEY !ROCK
-don't get the
-don't collect the
-don't grab the
+don't get the $
+don't collect the $
+don't grab the $
 
 DECORATION
-get the
+get the $
+find the $
 
 !DECORATION
-don't knock over
-don't step on
-avoid the
+don't knock over the $
+don't step on the $
+avoid the $ at all costs
 
 TRAP MINE
-find the
+find the $
 
 !TRAP !MINE
-don't step on the
-avoid the
+don't step on the $
+avoid the $
 
 GOLDMINE FOREST BUILDING BASE
-go to the
-go to a
-visit the
-visit a
-be in
+go to the $
+enter the $
+go to a $
+visit the $
+visit a $
+be in the $
 
 !GOLDMINE !FOREST !BUILDING !BASE
-don't go to the
-don't go to a
-don't visit the
-don't visit a
-don't be in
+never enter the $
+$: never visit it!
+never visit the $
+don't go to the $
+don't go to a $
+don't visit the $
+don't visit a $
+don't be in $

@@ -26,27 +26,27 @@ def parse_entries(lines: more_itertools.peekable) -> list[Tuple[list[str], list[
 
 
 def parse_entry(lines: more_itertools.peekable) -> Tuple[list[str], list[str]]:
-    expr_src = parse_sources(lines)
     descriptions = parse_descriptions(lines)
+    expr_src = parse_sources(lines)
     return expr_src, descriptions
-
-
-def parse_sources(lines: more_itertools.peekable) -> list[str]:
-    sources = list()
-    while lines and not lines.peek() == '=':
-        sources.append(next(lines))
-    sep = next(lines)
-    assert sep == '='
-    return sources
 
 
 def parse_descriptions(lines: more_itertools.peekable) -> list[str]:
     descriptions = list()  # TODO check if this enforces at least one description
-    while lines and not lines.peek() == '':
+    while lines and lines.peek() != '=':
         descriptions.append(next(lines))
+    sep = next(lines)
+    assert sep == '='
+    return descriptions
+
+
+def parse_sources(lines: more_itertools.peekable) -> list[str]:
+    sources = list()
+    while lines and lines.peek() != '':
+        sources.append(next(lines))
     if lines and lines.peek() == '':
         next(lines)
-    return descriptions
+    return sources
 
 
 def apply_mapping(to: str,  mapping: dict[str, str]) -> str:

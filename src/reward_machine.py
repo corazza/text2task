@@ -20,8 +20,8 @@ class RewardMachine:
         self.desc = desc
 
     def transition(self, current_state: int, input_symbol: frozenset[str]) -> Tuple[int, int]:
-        # if current_state in self.terminal_states:
-        #     return (current_state, 0)
+        if current_state not in self.transitions:
+            return (current_state, 0)
         input_symbol = frozenset(self.appears.intersection(input_symbol))
         if input_symbol not in self.transitions[current_state]:
             return (get_one(self.terminal_states), 0)

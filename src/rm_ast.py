@@ -14,6 +14,9 @@ class RMExpr:
     def appears(self) -> frozenset[str]:
         raise NotImplementedError()
 
+    def appears_neg(self) -> frozenset[str]:
+        raise NotImplementedError()
+
     def _internal_repr(self, level: int) -> str:
         raise NotImplementedError()
 
@@ -32,6 +35,13 @@ class Vars(RMExpr):
             if '!' not in symbol:
                 r.add(symbol)
             else:
+                r.add(symbol[1:])
+        return frozenset(r)
+
+    def appears_neg(self) -> frozenset[str]:
+        r = set()
+        for symbol in self.symbols:
+            if '!' in symbol:
                 r.add(symbol[1:])
         return frozenset(r)
 
@@ -73,6 +83,12 @@ class Or(RMExpr):
             r.update(expr.appears())
         return frozenset(r)
 
+    def appears_neg(self) -> frozenset[str]:
+        r = set()
+        for expr in self.exprs:
+            r.update(expr.appears_neg())
+        return frozenset(r)
+
     def compile(self, node_creator: RMNodeCreator) -> CompileState:
         compiled = list(map(lambda e: e.compile(node_creator), self.exprs))
         initial = node_creator.new_node(set())
@@ -112,10 +128,17 @@ class Then(RMExpr):
         super().__init__()
         self.exprs = exprs
 
+    # TODO collapse into base class (single/mult children)
     def appears(self) -> frozenset[str]:
         r = set()
         for expr in self.exprs:
             r.update(expr.appears())
+        return frozenset(r)
+
+    def appears_neg(self) -> frozenset[str]:
+        r = set()
+        for expr in self.exprs:
+            r.update(expr.appears_neg())
         return frozenset(r)
 
     def compile(self, node_creator: RMNodeCreator) -> CompileState:
@@ -157,6 +180,9 @@ class Repeat(RMExpr):
     def appears(self) -> frozenset[str]:
         return self.child.appears()
 
+    def appears_neg(self) -> frozenset[str]:
+        return self.child.appears_neg()
+
     def compile(self, node_creator: RMNodeCreator) -> CompileState:
         child = self.child.compile(node_creator)
         child.terminal.t('*', child.initial)
@@ -184,6 +210,9 @@ class Plus(RMExpr):
 
     def appears(self) -> frozenset[str]:
         return self.child.appears()
+
+    def appears_neg(self) -> frozenset[str]:
+        return self.child.appears_neg()
 
     def compile(self, node_creator: RMNodeCreator) -> CompileState:
         child = self.child.compile(node_creator)

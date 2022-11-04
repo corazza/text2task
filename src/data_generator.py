@@ -21,10 +21,10 @@ class DistBase:
     def sample_bool(self) -> bool:
         raise NotImplementedError()
 
-    def sample_string(self) -> str:
+    def sample_string(self, default: str) -> str:
         raise NotImplementedError()
 
-    def sample_string_banned(self, banned: set[str]) -> str:
+    def sample_string_banned(self, banned: set[str], default: str) -> str:
         raise NotImplementedError()
 
     def __str__(self):
@@ -101,25 +101,34 @@ class ChoiceDist(DistBase):
         for option in options:
             if options[option] > 0:
                 r[option] = options[option] + collected
-            collected += options[option]
+                collected += options[option]
         return (r, collected)
 
+    # @staticmethod
+    # def sample_uniform(options: dict[str, int]):
+    #     keys = list(options.keys())
+    #     choice = np.random.randint(len(keys))
+    #     return keys[choice]
+
     @staticmethod
-    def sample_from_options(options: dict[str, int], collected: int) -> str:
+    def sample_from_options(options: dict[str, int], collected: int, default: str) -> str:
+        if collected == 0:
+            return default
         chosen = np.random.randint(1, collected+1)
         for option in options:
             if chosen <= options[option]:
                 return option
         raise ValueError()
 
-    def sample_string(self) -> str:
-        return ChoiceDist.sample_from_options(self.options, self.collected)
+    def sample_string(self, default: str) -> str:
+        return ChoiceDist.sample_from_options(self.options, self.collected, default)
 
-    def sample_string_banned(self, banned: set[str]) -> str:
+    def sample_string_banned(self, banned: set[str], default: str) -> str:
         options = {option: num for option,
                    num in self.original_options.items() if option not in banned}
         (new_options, collected) = ChoiceDist.generate_options(options)
-        return ChoiceDist.sample_from_options(new_options, collected)
+        r = ChoiceDist.sample_from_options(new_options, collected, default)
+        return r
 
     def __repr__(self):
         return f'ChoiceDist({self.original_options})'
@@ -163,7 +172,6 @@ def analyze_stats(expr: rm_ast.RMExpr) -> dict[str, int | list[int]]:
         visiting = to_visit.pop(0)
         dist['complexity'] += 1
         if isinstance(visiting, rm_ast.Vars):
-            dist['complexity'] -= 1
             for symbol in visiting.symbols:
                 if '!' in symbol:
                     dist['num_negate'] += 1
@@ -211,6 +219,7 @@ def analyze_dist(prompts: list[Tuple[str, str]]) -> dict[str, DistBase]:
     complexities = list()
     max_levels = list()
     repeats = list()
+    num_children = list()
 
     num_repeat = 0
     num_plus = 0
@@ -221,6 +230,7 @@ def analyze_dist(prompts: list[Tuple[str, str]]) -> dict[str, DistBase]:
     # max_max_level = 0
 
     for stat in stats:
+        num_children.extend(stat['nums_children'])  # type: ignore
         children += sum(stat['nums_children'])  # type: ignore
         total_children += len(stat['nums_children'])  # type: ignore
         props += sum(stat['nums_props'])  # type: ignore
@@ -265,13 +275,14 @@ def analyze_dist(prompts: list[Tuple[str, str]]) -> dict[str, DistBase]:
 
     return {
         # defines distr. for # of children of nodes
-        'children': ShiftedLimitedExpDist(2, avg_children, 4),
+        # 'children': ShiftedLimitedExpDist(2, avg_children, 4),
+        'children': HistogramDist(num_children),
         # defines distr. for # of propvars in transitions
         'props': ShiftedLimitedExpDist(1, avg_props, 4),
         # probability to negate a propvar in transitions
         'negate': BinaryDist(p_negate),
         'max_level': HistogramDist(max_levels),
         'repeats': HistogramDist(repeats),
-        'complexity': ShiftedExpDist(0, avg_complexity),
+        'complexity': HistogramDist(complexities),
         'node': ChoiceDist(options)
     }

@@ -48,10 +48,13 @@ $A, $B, $C or $D
 REPEAT 1
 $A (repeat all)
 repeat all: $A
+$A. keep doing that
 
 REPEAT 2
 repeat $A
 $A (repeat)
+$A (at least once)
+at least once $A
 
 PLUS 1
 $A (repeat all at least once)

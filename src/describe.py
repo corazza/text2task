@@ -15,33 +15,6 @@ from rm_ast import RMExpr
 import util
 
 
-def improve_desc(happy_tt: HappyTextToText, settings: TTSettings, desc: str) -> str:
-    result = happy_tt.generate_text(desc, args=settings)
-    return result.text
-
-
-def improve_desc_lt(tool: language_tool_python.LanguageTool, props: list[str], desc: str) -> str:
-    ignore = [
-        'UPPERCASE_SENTENCE_START'
-    ]
-
-    def _filter_ignore(m):
-        return m.ruleId not in ignore
-
-    def _filter_props(m):
-        return desc[m.offset:m.offset+m.errorLength] not in props
-
-    matches = tool.check(desc)
-    matches = list(filter(_filter_ignore, matches))
-    matches = list(filter(_filter_props, matches))
-
-    if len(matches) == 0:
-        return desc
-
-    IPython.embed()
-    raise NotImplementedError()
-
-
 class DescribeContext:
     def __init__(self, patterns: dict[str, list[list[list[str]]]], var_describe_map: dict[str, list[str]], max_level: int):
         self.patterns = patterns
@@ -136,13 +109,12 @@ def _describe_multiple(context: DescribeContext, current_level: int, patterns: l
     descs = _children_describe(context, current_level+1, exprs)
     num_children = len(descs)
     picked_patterns = _pick_pattern(context, current_level, patterns)
-    try:
-        return _apply_pattern_helper(picked_patterns[num_children - 1], descs)
-    except:
-        IPython.embed()
+    return _apply_pattern_helper(picked_patterns[num_children - 1], descs)
 
 
+# TODO describing multiple vars doesn't work like this
 def _describe_vars(context: DescribeContext, current_level: int, symbols: list[str]) -> str:
+    symbols = list(filter(lambda s: '!' not in s, symbols))
     num_symbols = len(symbols)
     phrases = list(map(lambda s: _describe_var(
         context, current_level, s), symbols))
@@ -165,7 +137,7 @@ def _describe_var(context: DescribeContext, current_level: int, var: str) -> lis
         else:
             if '!' in var:
                 var = var[1:]
-            r.add(f'{phrase} {var}')
+            r.add(phrase.replace('$', var))
     return list(r)
 
 
@@ -185,7 +157,25 @@ def _describe(context: DescribeContext, current_level: int, expr: RMExpr) -> str
         return _describe_vars(context, current_level, expr.symbols)
 
 
+def apply_neg(context: DescribeContext, desc: str, appears_neg: str) -> list[str]:
+    r = set()
+    for phrase in context.var_describe_map[f'!{appears_neg}']:
+        assert phrase != ''
+        replaced = phrase.replace('$', appears_neg)
+        r.add(f'{desc}. but {replaced}')
+        r.add(f'while doing the task, {replaced}. {desc}')
+    return list(r)
+
+
 def describe(patterns: dict[str, list[list[list[str]]]], var_describe_map: dict[str, list[str]], expr: RMExpr) -> str:
     max_level = compute_max_level(expr)
     context = DescribeContext(patterns, var_describe_map, max_level)
-    return _describe(context, 0, expr)
+    appears_neg = list(expr.appears_neg())
+    assert len(appears_neg) <= 1
+    desc = _describe(context, 0, expr)
+    if len(appears_neg) == 1:
+        negs = apply_neg(context, desc, appears_neg[0])
+        chosen = np.random.randint(len(negs))
+        return negs[chosen]
+    else:
+        return desc

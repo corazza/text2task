@@ -1,0 +1,9 @@
+first be in base, get the decoration and grab the coffee in any order. then go down. => (BASE | DECORATION&COFFEE) DOWN
+
+# & connectors aren't described properly. separate map, depending on kind/type
+one of: visit the office (at least once). or, get the decoration and go to the building => (OFFICE)+ | DECORATION&BUILDING
+
+before go to the base, collect the key, or collect the key, repeat get the mail and visit a building or visit a building. keep doing that. but don't grab the coffee => (((MAIL&!COFFEE&BUILDING)+ | !COFFEE&BUILDING) (BASE&!COFFEE | !COFFEE&KEY | !COFFEE&KEY))+
+
+either enter the gold mine then go right once and visit the office or get the rock then go to the building or grab the mail then go down once and go to the building then visit the office and get the decoration. afterwards, visit the office (repeat). and in the end, either collect the coffee or visit a base. but never go left => (!LEFT&GOLDMINE OFFICE&RIGHT&!LEFT | ROCK&!LEFT !LEFT&BUILDING | !LEFT&MAIL !LEFT&BUILDING&DOWN !LEFT&OFFICE&DECORATION) (OFFICE&!LEFT)+ (COFFEE&!LEFT | !LEFT&BASE)
+

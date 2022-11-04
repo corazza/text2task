@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 from pathlib import Path
 import more_itertools
@@ -51,12 +52,18 @@ class GenerateNode:
     def clean(self) -> 'GenerateNode':
         raise NotImplementedError()
 
+    def appears(self) -> frozenset[str]:
+        raise NotImplementedError()
+
 
 class StemNode(GenerateNode):
     def __init__(self, level: int):
         super().__init__(level)
 
     def clean(self) -> 'StemNode':
+        raise NotImplementedError()
+
+    def appears(self) -> frozenset[str]:
         raise NotImplementedError()
 
 
@@ -67,6 +74,9 @@ class VarNode(GenerateNode):
 
     def clean(self) -> 'VarNode':
         return self
+
+    def appears(self) -> frozenset[str]:
+        return frozenset(self.vars)
 
 
 class ThenNode(GenerateNode):
@@ -85,6 +95,12 @@ class ThenNode(GenerateNode):
         self.children = new_children
         return self
 
+    def appears(self) -> frozenset[str]:
+        r = set()
+        for child in self.children:
+            r.update(child.appears())
+        return frozenset(r)
+
 
 class OrNode(GenerateNode):
     def __init__(self, level: int, children: Sequence[GenerateNode]):
@@ -102,6 +118,12 @@ class OrNode(GenerateNode):
         self.children = new_children
         return self
 
+    def appears(self) -> frozenset[str]:
+        r = set()
+        for child in self.children:
+            r.update(child.appears())
+        return frozenset(r)
+
 
 class RepeatNode(GenerateNode):
     def __init__(self, level: int, child: GenerateNode):
@@ -115,6 +137,9 @@ class RepeatNode(GenerateNode):
         else:
             return self
 
+    def appears(self) -> frozenset[str]:
+        return self.child.appears()
+
 
 class PlusNode(GenerateNode):
     def __init__(self, level: int, child: GenerateNode):
@@ -123,6 +148,9 @@ class PlusNode(GenerateNode):
 
     def clean(self) -> 'PlusNode':  # TODO
         return self
+
+    def appears(self) -> frozenset[str]:
+        return self.child.appears()
 
 
 def extract_props(props: dict[str, list[str]]) -> list[str]:
@@ -135,9 +163,7 @@ def extract_props(props: dict[str, list[str]]) -> list[str]:
 class NodeCreator:
     def __init__(self, max_level: int, dist_parameters: dict[str, data_generator.DistBase], props: dict[str, list[str]]):
         self.complexity = dist_parameters['complexity'].sample_int()
-        print(self.complexity)
-        # self.complexity = 10000
-        # self.max_level = dist_parameters['max_level'].sample_int()
+        self.original_complexity = self.complexity
         self.max_level = max_level
         self.repeats = dist_parameters['repeats'].sample_int()
         self.dist_parameters = dist_parameters
@@ -162,10 +188,7 @@ class NodeCreator:
         num = self.dist_parameters['props'].sample_int()
         props = []
         for _i in range(num):
-            if self.dist_parameters['negate'].sample_bool():
-                negate = '!'
-            else:
-                negate = ''
+            negate = ''  # the semantics of negation map to avoidance, we do not want to negate variables on an individual basis
             chosen = np.random.randint(0, len(self.props))
             prop = f'{negate}{self.props[chosen]}'
             props.append(prop)
@@ -181,7 +204,10 @@ class NodeCreator:
             banned.add('REPEAT')
             banned.add('PLUS')
 
-        type = self.dist_parameters['node'].sample_string_banned(banned)
+        if self.complexity > 1:
+            banned.add('VAR')
+
+        type = self.dist_parameters['node'].sample_string_banned(banned, 'VAR')
 
         if level > self.max_level:
             type = 'VAR'
@@ -223,6 +249,18 @@ def to_rm_expr(node: GenerateNode) -> rm_ast.RMExpr:
         return rm_ast.Repeat(child)
 
 
+def negate_all(node: GenerateNode, which_prop: str):
+    if isinstance(node, VarNode):
+        node.vars.append(f'!{which_prop}')
+    elif isinstance(node, ThenNode) or isinstance(node, OrNode):
+        for child in node.children:
+            negate_all(child, which_prop)
+    elif isinstance(node, RepeatNode) or isinstance(node, PlusNode):
+        negate_all(node.child, which_prop)
+    else:
+        raise ValueError(f'unknown node type {type(node)} --- {node}')
+
+
 def generate(dist_parameters: dict[str, data_generator.DistBase], props: dict[str, list[str]]) -> rm_ast.RMExpr:
     max_level = 4
     node_creator = NodeCreator(max_level, dist_parameters, props)
@@ -247,7 +285,18 @@ def generate(dist_parameters: dict[str, data_generator.DistBase], props: dict[st
                                  for child in visiting.children]
             to_visit.extend(visiting.children)
 
-    # print(node_creator.complexity, node_creator.max_level)
+    if dist_parameters['negate'].sample_bool():
+        which_prop = 'MINE'
+        # TODO extract these types of ops into Props class
+        appear = root.appears()
+        all_props = set()
+        for _k, v in props.items():
+            all_props.update(v)
+        free = list(all_props - appear)
+        chosen = np.random.randint(len(free))
+        which_prop = free[chosen]
+        negate_all(root, which_prop)
+
     return to_rm_expr(root.clean())
 
 

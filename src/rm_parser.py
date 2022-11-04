@@ -95,7 +95,8 @@ def lex(src: str) -> Iterator[Token]:
             elif c == ')':
                 yield CloseT()
             else:
-                raise ValueError(f'unrecognized character {c}')
+                print(src)
+                raise ValueError(f'unrecognized character `{c}`')
     if len(symbol_buffer) != 0:
         yield SymbolT(''.join(symbol_buffer))
     yield EndT()

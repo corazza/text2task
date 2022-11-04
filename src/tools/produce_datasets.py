@@ -15,20 +15,26 @@ import expr_printer
 import compiler_interface
 
 
+MAX_PROMPT_LENGTH = 550
+
+
 def create_if_doesnt_exist(in_dir: str, filename: str, suffix: str) -> Path:
     path = Path(in_dir)
     path.mkdir(parents=True, exist_ok=True)
     return Path(path, filename).with_suffix(suffix)
 
 
-def save_prompts(path: Path, prompts: list[Tuple[str, str]]):
-    lines = [prompt_to_line(p) for p in prompts]
+def ensure_max_length(lines: list[str]):
     for line in lines:
-        if len(line) >= 700:
+        if len(line) >= MAX_PROMPT_LENGTH:
             print('line too long')
             IPython.embed()
-        assert len(line) < 700
-    lines = list(filter(lambda l: len(l) < 700, lines))
+        assert len(line) < MAX_PROMPT_LENGTH
+
+
+def save_prompts(path: Path, prompts: list[Tuple[str, str]]):
+    lines = [prompt_to_line(p) for p in prompts]
+    ensure_max_length(lines)
     lines = list(map(line_to_json, lines))
     with open(path, 'w') as f:
         f.writelines(lines)
@@ -37,9 +43,7 @@ def save_prompts(path: Path, prompts: list[Tuple[str, str]]):
 
 def save_prompts_human(path: Path, prompts: list[Tuple[str, str]]):
     lines = [f'{prompt_to_line(p)}\n' for p in prompts]
-    for line in lines:
-        assert len(line) < 700
-    lines = list(filter(lambda l: len(l) < 700, lines))
+    ensure_max_length(lines)
     with open(path, 'w') as f:
         f.writelines(lines)
         print(f'wrote {len(lines)} lines to {path}')
@@ -79,6 +83,8 @@ def save_both():
         '../preprocessed_datasets/text2task', 'train', '.json')
     path_human = create_if_doesnt_exist(
         '../preprocessed_datasets/text2task', 'train', '.txt')
+    path_synthetic = create_if_doesnt_exist(
+        '../preprocessed_datasets/text2task', 'synthetic', '.txt')
     rewrites = desc_rewriter.load_file('../datasets/text2task/rewrites.txt')
     props = '../datasets/text2task/prop.txt'
     var_describe_map = '../datasets/text2task/var_describe_map.txt'
@@ -88,31 +94,38 @@ def save_both():
     organic_dist = data_generator.analyze_dist(organic_prompts)
     interactive_prompts = get_interactive_prompts()
 
-    changed_dist = copy.deepcopy(organic_dist)
-    changed_dist['complexity'].start += 1  # type: ignore
-    changed_dist['complexity'].avg += 1  # type: ignore
+    # HERE never place !var alone
+
+    # PLUS gets double-sampled
+    options = copy.deepcopy(organic_dist['node'].options)  # type: ignore
+    options['THEN'] = int(options['THEN'] * 20)
+    options['OR'] = int(options['OR'] * 10)
+    corrected_dist = copy.deepcopy(organic_dist)
+    corrected_dist['node'] = data_generator.ChoiceDist(options)
 
     n = len(organic_prompts) + len(interactive_prompts)
-    synthetic_prompts = data_generator.generate_synthetic(
-        props, var_describe_map, patterns, organic_dist, n)
-    synthetic_dist = data_generator.analyze_dist(synthetic_prompts)
+    # synthetic_prompts = data_generator.generate_synthetic(
+    #     props, var_describe_map, patterns, corrected_dist, n)
+    # synthetic_dist = data_generator.analyze_dist(synthetic_prompts)
 
-    prompts = organic_prompts + synthetic_prompts + interactive_prompts
+    # prompts = organic_prompts + synthetic_prompts + interactive_prompts
+    prompts = organic_prompts + interactive_prompts
     prompts = [(desc_rewriter.apply_rewrites(p[0], rewrites),
                 randomize_conjuncts(p[1])) for p in prompts]
     np.random.shuffle(prompts)  # type: ignore
 
     save_prompts(path, prompts)
     save_prompts_human(path_human, prompts)
+    # save_prompts_human(path_synthetic, synthetic_prompts)
 
     print('distribution of organic data:')
     print(organic_dist)
-    print('distribution of synthetic data:')
-    print(synthetic_dist)
+    # print('distribution of synthetic data:')
+    # print(synthetic_dist)
 
     print(f'num. organic = {len(organic_prompts)}')
     print(f'num. interactive = {len(interactive_prompts)}')
-    print(f'num. synthetic = {len(synthetic_prompts)}')
+    # print(f'num. synthetic = {len(synthetic_prompts)}')
 
 
 def main():
