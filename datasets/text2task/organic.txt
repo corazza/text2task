@@ -108,5 +108,13 @@ enter the PLACE/a. in there, find the OBJECT%. carry it to PLACE/b
 OBJECT%&PLACE/a PLACE/b
 
 never leave the AREA/a
+find the AREA/a. then, remain in AREA/a
+find the AREA/a. then, remain inside AREA/a
+find the AREA/a. then, remain in it
+find the AREA/a. then, remain inside it
 =
 (!AREA/a)* (AREA/a)+
+
+go the the PLACE/a once, and then leave forever
+=
+(!PLACE/a)* PLACE/a (!PLACE/a)
