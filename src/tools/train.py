@@ -279,6 +279,7 @@ def main():
             data_args.dataset_config_name,
             cache_dir=model_args.cache_dir,
             use_auth_token=True if model_args.use_auth_token else None,
+            shuffle=True,
         )
         if "validation" not in raw_datasets.keys():
             raw_datasets["validation"] = load_dataset(
@@ -391,6 +392,7 @@ def main():
                                   'eos_token': '<|eos|>',
                                   'sep_token': '<|sep|>',
                                   'pad_token': '<|pad|>'})
+    # tokenizer.add_special_tokens({'pad_token': '<|pad|>'})
 
     if model_args.model_name_or_path:
         torch_dtype = (
@@ -419,14 +421,6 @@ def main():
     if len(tokenizer) > embedding_size:
         model.resize_token_embeddings(len(tokenizer))
 
-    # Preprocessing the datasets.
-    # First we tokenize all the texts.
-    if training_args.do_train:
-        column_names = list(raw_datasets["train"].features)
-    else:
-        column_names = list(raw_datasets["validation"].features)
-    text_column_name = "text" if "text" in column_names else column_names[0]
-
     # since this will be pickled to avoid _LazyModule error in Hasher force logger loading before tokenize_function
     tok_logger = transformers.utils.logging.get_logger(
         "transformers.tokenization_utils_base")
@@ -435,16 +429,15 @@ def main():
         input_ids = []
         attention_masks = []
         labels = []
-        sep_token_id = tokenizer.sep_token_id
-        for example in data[text_column_name]:
-            a, b = example.split(" => ")
-            encoded = tokenizer(a + '<|sep|>' + b + '<|eos|>')
+        for a, b in zip(data['a'], data['b']):
+            encoded = tokenizer('<|bos|>' + a + '<|sep|>' + b + '<|eos|>')
             input_ids.append(encoded["input_ids"])
             attention_masks.append(encoded["attention_mask"])
-            label = [-100] * (encoded["input_ids"].index(sep_token_id))
+            label = [-100] * \
+                (encoded["input_ids"].index(tokenizer.sep_token_id))
+            label.append(tokenizer.sep_token_id)
             label += encoded["input_ids"][len(label):]
             labels.append(label)
-            IPython.embed()
         return {"input_ids": input_ids, "attention_mask": attention_masks, "labels": labels}
 
     with training_args.main_process_first(desc="dataset map tokenization"):
@@ -452,7 +445,7 @@ def main():
             process_data,
             batched=True,
             num_proc=data_args.preprocessing_num_workers,
-            remove_columns=column_names,
+            remove_columns=['a', 'b'],
             load_from_cache_file=not data_args.overwrite_cache,
             desc="Preprocessing dataset",
         )

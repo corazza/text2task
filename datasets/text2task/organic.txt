@@ -109,9 +109,13 @@ OBJECT%&PLACE/a PLACE/b
 
 never leave the AREA/a
 find the AREA/a. then, remain in AREA/a
+find the AREA/a. remain inside AREA/a
 find the AREA/a. then, remain inside AREA/a
+find the AREA/a. remain inside AREA/a
 find the AREA/a. then, remain in it
+find the AREA/a. remain in it
 find the AREA/a. then, remain inside it
+find the AREA/a. remain inside it
 =
 (!AREA/a)* (AREA/a)+
 

@@ -1,5 +1,3 @@
-import sys  # noqa
-sys.path.append('.')  # noqa
 from transformers import pipeline, set_seed, GPT2Tokenizer
 import IPython
 
@@ -8,17 +6,17 @@ import expr_printer
 
 
 def synthesize(generator, desc: str) -> str:
-    prompt = f'{desc} =>'
+    prompt = f'<|bos|>{desc}<|sep|>'
     output = generator(prompt,
-                       return_full_text=False,
-                       pad_token_id=-100,
-                       eos_token_id=-100,
                        max_new_tokens=100,
+                       bos_token_id=generator.tokenizer.sep_token_id,
+                       eos_token_id=generator.tokenizer.eos_token_id,
+                       pad_token_id=generator.tokenizer.pad_token_id,
                        num_return_sequences=1)
     generated_text = list(output)[
         0]['generated_text']
     final_output = generated_text.splitlines()[0].strip()
-    return final_output
+    return final_output.split(generator.tokenizer.sep_token)[-1]
 
 
 # def postprocess(output: str) -> str:  # TODO fix this in the model

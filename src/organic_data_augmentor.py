@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 from curses.ascii import isspace, isupper
-from typing import Iterator, Tuple
+from typing import Iterator, Optional, Tuple
 import more_itertools
 import random
 import copy
@@ -55,7 +55,7 @@ def apply_mapping(to: str,  mapping: dict[str, str]) -> str:
     return to
 
 
-def generate_variants(desc: str, src: str, props: dict[str, list[str]], take: int) -> Iterator[Tuple[str, str]]:
+def generate_variants(desc: str, src: str, props: dict[str, list[str]], take: Optional[int]) -> Iterator[Tuple[str, str]]:
     props_desc = extract_prop_types(desc)
     props_src = extract_prop_types(src)
     assert props_desc == props_src
@@ -65,7 +65,7 @@ def generate_variants(desc: str, src: str, props: dict[str, list[str]], take: in
     if len(r) == 0:  # there were not variables to map
         r.append((desc, src))
     will_take = set()
-    while len(will_take) < take and len(will_take) < len(r):
+    while not (isinstance(take, int) and len(will_take) >= take) and len(will_take) < len(r):
         chosen = np.random.randint(0, len(r))
         will_take.add(chosen)
     for to_take in will_take:
@@ -78,8 +78,8 @@ def reshape_entries(entries: list[Tuple[list[str], list[str]]]) -> Iterator[Tupl
             yield (desc, src)
 
 
-def load_file(path: str | Path, props_path: str | Path, inflation_factor: int) -> list[Tuple[str, str]]:
-    assert inflation_factor >= 1
+def load_file(path: str | Path, props_path: str | Path, inflation_factor: Optional[int]) -> list[Tuple[str, str]]:
+    assert not (isinstance(inflation_factor, int) and inflation_factor < 1)
     props = rm_generator.load_props(props_path)
     entries = parse_entries(more_itertools.peekable(util.line_iter(path)))
     organic = list(reshape_entries(entries))
@@ -100,7 +100,7 @@ def extract_prop_types(x: str) -> frozenset[str]:
     full_spec = frozenset(re.findall('[A-Z]+\/[a-z]', x))
     for half in half_spec:
         for full in full_spec:
-            assert half not in full
+            assert half[:-1] not in full  # TODO always false
     return half_spec.union(full_spec)
 
 
