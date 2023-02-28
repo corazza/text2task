@@ -1,14 +1,10 @@
 import numpy as np
-import copy
 from pathlib import Path
 from typing import Iterator, Tuple
 import IPython
 import random
 import itertools
 import more_itertools
-from happytransformer import HappyTextToText
-from happytransformer import TTSettings
-import language_tool_python
 
 import rm_ast
 from rm_ast import RMExpr
