@@ -36,7 +36,7 @@ class PlusT(Token):
 
 class ThenT(Token):
     def __repr__(self):
-        return '->'
+        return '>'
 
 
 class OrT(Token):
@@ -82,6 +82,8 @@ def lex(src: str) -> Iterator[Token]:
                 continue
             elif c == '|':
                 yield OrT()
+            elif c == '>':
+                yield ThenT()
             elif c == '&':
                 yield AndT()
             elif c == '!':
@@ -106,7 +108,7 @@ def lex(src: str) -> Iterator[Token]:
 # expression -> term | expression
 
 # term -> factor
-# term -> factor term
+# term -> factor > term
 
 # factor -> (expression)
 # factor -> (expression)*
@@ -114,7 +116,7 @@ def lex(src: str) -> Iterator[Token]:
 # factor -> vars
 
 # vars -> symbol
-# vars -> symbol & vars
+# vars -> symbol&vars
 
 # symbol -> var
 # symbol -> !var
@@ -138,7 +140,12 @@ def parse_expression(lex: more_itertools.peekable) -> RMExpr:
 def parse_term(lex: more_itertools.peekable) -> RMExpr:
     left = parse_factor(lex)
     token = lex.peek()
-    if isinstance(token, NotT) or isinstance(token, SymbolT) or isinstance(token, OpenT):
+    if isinstance(token, ThenT):
+        next(lex)
+        if isinstance(token, NotT) or isinstance(token, SymbolT) or isinstance(token, OpenT):
+            IPython.embed()
+        assert not (isinstance(token, NotT) or isinstance(
+            token, SymbolT) or isinstance(token, OpenT))
         right = parse_term(lex)
         then_terms = [left]
         if isinstance(right, Then):

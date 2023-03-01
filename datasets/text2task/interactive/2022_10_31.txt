@@ -1,26 +1,26 @@
 first either visit the BASE, go to the OFFICE and leave UP, or enter the BUILDING. then, find a ROCK
 =
-(BASE | OFFICE&UP | BUILDING) ROCK
+(BASE | OFFICE&UP | BUILDING) > ROCK
 
 first go UP, then find some COFFEE
 =
-UP COFFEE
+UP > COFFEE
 
 find the KEY and bring it to the FOREST
 =
-KEY FOREST
+KEY > FOREST
 
 bring KEYs to the BUILDING
 =
-(KEY BUILDING)+
+(KEY > BUILDING)+
 
 four options: find MAIL (start looking to the LEFT), or find the KEY and leave LEFT, or just find the KEY, or find the DECORATION
 =
-LEFT MAIL | LEFT&KEY | KEY | DECORATION
+LEFT+ > MAIL | LEFT&KEY | KEY | DECORATION
 
 in the beginning you have to either find the DOOR, a TRAP, or a ROCK. then, you must either leave the FOREST, find the KEY (again) or the TRAP. in the end find the MAIL and finally find a MINE
 =
-(TRAP | DOOR | ROCK) (!FOREST | KEY | TRAP) MAIL MINE
+(TRAP | DOOR | ROCK) > (!FOREST | KEY | TRAP) > MAIL > MINE
 
 keep finding MAIL
 =
@@ -28,19 +28,19 @@ keep finding MAIL
 
 repeat the following. first go to the DOOR, or to the FOREST and exit LEFT (multiple times if necessary). then, find the DECORATION in the BUILDING, or the GOLDMINE, or go UP or DOWN
 =
-((DOOR | LEFT&FOREST)+ (DECORATION&BUILDING | GOLDMINE | UP | DOWN))+
+((DOOR | LEFT&FOREST)+ > (DECORATION&BUILDING | GOLDMINE | UP | DOWN))+
 
 pick up the MAIL or move RIGHT in the GOLDMINE. then either get to the BASE, don't get to the BASE, go DOWN, or go LEFT. then either enter the BUILDING or the FOREST. finally find a MINE
 =
-(MAIL | GOLDMINE&RIGHT) (BASE | !BASE | DOWN | LEFT) (FOREST | BUILDING) MINE
+(MAIL | GOLDMINE&RIGHT) > (BASE | !BASE | DOWN | LEFT) > (FOREST | BUILDING) > MINE
 
 first go LEFT over the MINE as many times as it takes. then simply don't be in the FOREST. afterwards go RIGHT over the TRAP and COFFEE. in the end, find a ROCK
 =
-(MINE&LEFT)+ (!FOREST)+ TRAP&RIGHT&COFFEE ROCK
+(MINE&LEFT)+ > (!FOREST)+ > TRAP&RIGHT&COFFEE > ROCK
 
 keep not being in a FOREST and going DOWN
 =
-(!FOREST DOWN)+
+(!FOREST > DOWN)+
 
 pick up n DECORATIONs or go RIGHT
 =

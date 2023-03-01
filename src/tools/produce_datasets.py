@@ -46,7 +46,7 @@ def save_prompts(path: Path, prompts: list[Tuple[str, str]]):
 
 def randomize_conjuncts(x: str) -> str:
     parsed = compiler_interface.parse(x)
-    return expr_printer.expr_to_str(parsed, randomize=True, connect_then=False)
+    return expr_printer.expr_to_str(parsed, randomize=True)
 
 
 def load_augmented(path) -> list[Tuple[str, str]]:
@@ -76,19 +76,20 @@ def save_both(use_synthetic=False):
     patterns = 'datasets/text2task/patterns.txt'
 
     organic_prompts = load_augmented('datasets/text2task/organic.txt')
-    organic_dist = data_generator.analyze_dist(organic_prompts)
     interactive_prompts = get_interactive_prompts()
 
     # HERE never place !var alone
 
     # PLUS gets double-sampled
+    organic_dist = data_generator.analyze_dist(organic_prompts)
     options = copy.deepcopy(organic_dist['node'].options)  # type: ignore
     options['THEN'] = int(options['THEN'] * 20)
     options['OR'] = int(options['OR'] * 10)
     corrected_dist = copy.deepcopy(organic_dist)
     corrected_vals = corrected_dist['complexity'].values
     corrected_vals = list(filter(lambda x: x < 15, corrected_vals))
-    corrected_dist['complexity'] = data_generator.HistogramDist(corrected_vals)
+    corrected_dist['complexity'] = data_generator.HistogramDist(
+        corrected_vals)
     corrected_dist['node'] = data_generator.ChoiceDist(options)
 
     if use_synthetic:
@@ -96,8 +97,10 @@ def save_both(use_synthetic=False):
             props, var_describe_map, patterns, corrected_dist, len(organic_prompts) + len(interactive_prompts))
         synthetic_dist = data_generator.analyze_dist(synthetic_prompts)
 
-    # prompts = organic_prompts + synthetic_prompts + interactive_prompts
-    prompts = organic_prompts + interactive_prompts
+    if use_synthetic:
+        prompts = organic_prompts + synthetic_prompts + interactive_prompts
+    else:
+        prompts = organic_prompts + interactive_prompts
     prompts = [(desc_rewriter.apply_rewrites(p[0], rewrites),
                 randomize_conjuncts(p[1])) for p in prompts]
     np.random.shuffle(prompts)  # type: ignore

@@ -146,7 +146,7 @@ def generate_synthetic(props_path: str | Path, var_path: str | Path, patterns_pa
     for i in range(n):
         desc = describe.describe(patterns, var_describe_map, exprs[i])
         prompts.append(
-            (desc.lower(), expr_printer.expr_to_str(exprs[i], randomize=True, connect_then=False)))
+            (desc.lower(), expr_printer.expr_to_str(exprs[i], randomize=True)))
 
     return prompts
 

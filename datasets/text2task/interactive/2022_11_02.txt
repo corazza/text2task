@@ -1,6 +1,6 @@
 first go UP once, then find a MINE, and finally do anything but finding the door!
 =
-UP MINE !DOOR
+UP > MINE > !DOOR
 
 go UP once
 =
@@ -12,4 +12,4 @@ GOLDMINE
 
 either find the MAIL and then go RIGHT and LEFT, or find the DECORATION and the OFFICE at the same time
 =
-MAIL RIGHT LEFT | OFFICE&DECORATION
+MAIL > RIGHT > LEFT | OFFICE&DECORATION
