@@ -15,7 +15,6 @@ def get_dfa(src: str) -> CompileStateDFA:
     ast = parse(src)
     node_creator = RMNodeCreator()
     compiled = ast.compile(node_creator).relabel_states()
-    visualize_compilestate(compiled)
     dfa = to_dfa(compiled).relabel_states()
     return dfa
 

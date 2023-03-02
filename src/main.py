@@ -5,6 +5,7 @@ import compiler_interface
 import organic_data_augmentor
 from tools import produce_datasets
 import desc_rewriter
+from visualization import visualize_compilestate
 
 
 def test_generator():

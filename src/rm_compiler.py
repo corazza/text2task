@@ -173,33 +173,28 @@ def to_dfa(compiled: CompileState) -> CompileStateDFA:
     id_counter = 0
     initial = RMNodeDFA(id_counter, dict())
     id_counter += 1
+    terminal = RMNodeDFA(id_counter, dict())
+    id_counter += 1
     state_dict = {to_ids(first_epsilon): initial}
-    visited = set({first_ids})
-    terminal = None
+    visited = set()
     while len(to_visit) > 0:
         visiting = to_visit.pop()
         current_ids = to_ids(visiting)
         visited.add(current_ids)
         current_state = state_dict[current_ids]
-        if compiled.terminal in visiting:
-            # if len(visiting) != 1:
-            #     IPython.embed()
-            # assert len(visiting) == 1
-            # if terminal != None:
-            #     IPython.embed()
-            assert terminal == None
-            terminal = current_state
         appears_in = appears(visiting)
         for i in appears_in:
             superstate = next_superstate(visiting, i)
             ids = to_ids(superstate)
-            if ids in state_dict:
+            if compiled.terminal.id in ids:
+                state = terminal
+            elif ids in state_dict:
                 state = state_dict[ids]
             else:
                 state = RMNodeDFA(id_counter, dict())
                 id_counter += 1
                 state_dict[ids] = state
-            if ids not in visited and superstate not in to_visit:
+            if ids not in visited and compiled.terminal.id not in ids:
                 to_visit.add(superstate)
             current_state.t(i, state)
     assert isinstance(terminal, RMNodeDFA), type(terminal)
