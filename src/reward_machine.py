@@ -12,7 +12,7 @@ class RewardMachine:
     Input alphabet: implicitly set by transition function
     """
 
-    def __init__(self, transitions: dict[int, dict[frozenset[str], Tuple[int, int]]], appears: frozenset[str], terminal_states: frozenset[str], desc: list[str]):
+    def __init__(self, transitions: dict[int, dict[frozenset[str], Tuple[int, int]]], appears: frozenset[str], terminal_states: frozenset[str], desc: list[Tuple[int, int, str, float]]):
         super().__init__()
         self.transitions = transitions
         self.appears = appears
@@ -27,21 +27,18 @@ class RewardMachine:
             return (get_one(self.terminal_states), 0)
         return self.transitions[current_state][input_symbol]
 
-    def __call__(self, current_state: int, *inputs: str | frozenset[str]) -> Tuple[int, int] | list[int]:
-        if len(inputs) == 1:
-            first_input = inputs[0]
-            if isinstance(first_input, str):
-                input_symbol = frozenset({first_input})
-            else:
-                assert isinstance(first_input, frozenset)
-                input_symbol = first_input
-            return self.transition(current_state, input_symbol)
-        else:
-            rs = list()
-            for input_symbol in inputs:
-                if isinstance(input_symbol, str):
-                    input_symbol = frozenset({input_symbol})
-                (current_state, r) = self.transition(
-                    current_state, input_symbol)
-                rs.append(r)
-            return rs
+    def multiple_transitions(self, current_state: int, input_symbols: list[frozenset[str]]) -> list[int]:
+        """Used for demos/testing"""
+        rs = []
+        for input_symbol in input_symbols:
+            if current_state in self.terminal_states:
+                break
+            current_state, r = self.transition(current_state, input_symbol)
+            rs.append(r)
+        return rs
+
+    def __call__(self, input_symbols: list[str]) -> list[int]:
+        """Just a nicer interface for RewardMachine.multiple_transitions"""
+        input_symbols2 = [frozenset({input_symbol})
+                          for input_symbol in input_symbols]
+        return self.multiple_transitions(0, input_symbols2)

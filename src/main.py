@@ -5,7 +5,7 @@ import compiler_interface
 import organic_data_augmentor
 from tools import produce_datasets
 import desc_rewriter
-from visualization import visualize_compilestate
+from visualization import visualize_compilestate, visualize_rm
 
 
 def test_generator():
@@ -17,6 +17,7 @@ def test_compiler():
     # rm = compiler_interface.compile('(A B A&!B)+ C')
     rm = compiler_interface.compile(
         '!MINE&COFFEE > MAIL&!MINE > DOOR&!MINE | !MINE&MAIL > !MINE&COFFEE > DOOR&!MINE')
+    visualize_rm(rm)
     IPython.embed()
 
 

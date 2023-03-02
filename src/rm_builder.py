@@ -17,7 +17,7 @@ def compute_terminal_states(transitions: dict) -> frozenset[int]:
 
 
 def describe_command(c: Tuple[int, int, TExp, int, str]):
-    return f'{c[0]}, {c[1]}, {c[4]}, {c[3]}'
+    return (c[0], c[1], c[4], c[3])
 
 
 class Builder:
@@ -52,7 +52,7 @@ class Builder:
         #     assert terminal_state not in self.transitions
         return RewardMachine(self.transitions, frozenset(self.appears), self.terminal_states, self.describe())
 
-    def describe(self) -> list[str]:
+    def describe(self) -> list[Tuple[int, int, str, float]]:
         return list(map(describe_command, self.commands))
 
     def _t(self, from_state: int, to_state: int, expr: TExp, output: int) -> None:
