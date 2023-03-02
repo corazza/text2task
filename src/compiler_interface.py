@@ -4,6 +4,7 @@ from reward_machine import RewardMachine
 from rm_ast import CompileStateDFA, RMExpr, RMNodeCreator, to_dfa
 from rm_compiler import dfa_to_rm
 import rm_parser
+from visualization import visualize_compilestate
 
 
 def parse(src: str) -> RMExpr:
@@ -14,6 +15,7 @@ def get_dfa(src: str) -> CompileStateDFA:
     ast = parse(src)
     node_creator = RMNodeCreator()
     compiled = ast.compile(node_creator).relabel_states()
+    visualize_compilestate(compiled)
     dfa = to_dfa(compiled).relabel_states()
     return dfa
 

@@ -8,7 +8,7 @@ from typing import Sequence, Tuple
 
 import rm_ast
 import util
-import data_generator
+import distributions
 
 
 def parse_all_props(lines: more_itertools.peekable) -> list[Tuple[str, list[str]]]:
@@ -161,7 +161,7 @@ def extract_props(props: dict[str, list[str]]) -> list[str]:
 
 
 class NodeCreator:
-    def __init__(self, max_level: int, dist_parameters: dict[str, data_generator.DistBase], props: dict[str, list[str]]):
+    def __init__(self, max_level: int, dist_parameters: dict[str, distributions.DistBase], props: dict[str, list[str]]):
         self.complexity = dist_parameters['complexity'].sample_int()
         self.original_complexity = self.complexity
         self.max_level = max_level
@@ -261,7 +261,7 @@ def negate_all(node: GenerateNode, which_prop: str):
         raise ValueError(f'unknown node type {type(node)} --- {node}')
 
 
-def generate(dist_parameters: dict[str, data_generator.DistBase], props: dict[str, list[str]]) -> rm_ast.RMExpr:
+def generate(dist_parameters: dict[str, distributions.DistBase], props: dict[str, list[str]]) -> rm_ast.RMExpr:
     max_level = 4
     node_creator = NodeCreator(max_level, dist_parameters, props)
     root = node_creator.speciate_stem(0, set())
@@ -300,7 +300,7 @@ def generate(dist_parameters: dict[str, data_generator.DistBase], props: dict[st
     return to_rm_expr(root.clean())
 
 
-def generate_many(props_path: str | Path, dist_parameters: dict[str, data_generator.DistBase], n: int) -> list[rm_ast.RMExpr]:
+def generate_many(props_path: str | Path, dist_parameters: dict[str, distributions.DistBase], n: int) -> list[rm_ast.RMExpr]:
     props = load_props(props_path)
     exprs = []
     for _i in range(n):

@@ -25,8 +25,8 @@ class RMNode:
                 r.add(transition)
         return frozenset(r)
 
-    def __repr__(self):
-        return str(self.id)
+    # def __repr__(self):
+    #     return str(self.id)
 
     def along_symbol(self, input_symbol: str) -> frozenset['RMNode']:
         r = set()
@@ -53,29 +53,6 @@ class CompileState:
         self.initial = initial
         self.terminal = terminal
 
-    def state_ids(self, states: Iterable[RMNode]) -> list[int]:
-        return list(map(lambda s: s.id, states))
-
-    def accepts(self, input_symbols: str) -> bool:
-        current_states = frozenset([self.initial])
-        current_states = epsilon(current_states)
-        for i in input_symbols:
-            current_states = next_superstate(current_states, i)
-        return self.terminal in current_states
-
-    def node_by_id(self, id: int | frozenset[int]) -> RMNode:
-        to_visit = set([self.initial])
-        visited = set([self.initial])
-        while len(to_visit) > 0:
-            visiting = to_visit.pop()
-            visited.add(visiting)
-            if visiting.id == id:
-                return visiting
-            for (_transition, node) in visiting.transitions:
-                if node not in visited:
-                    to_visit.add(node)
-        raise ValueError(f'no node with index {id}')
-
     def relabel_states(self) -> 'CompileState':
         counter = 0
         to_visit = list([self.initial])
@@ -89,9 +66,6 @@ class CompileState:
                 if node not in visited:
                     to_visit.append(node)
         return self
-
-    def __getitem__(self, id: int) -> RMNode:
-        return self.node_by_id(id)
 
 
 def epsilon_once(from_states: frozenset[RMNode]) -> frozenset[RMNode]:
@@ -143,8 +117,8 @@ class RMNodeDFA:
         assert input_symbol not in self.transitions
         self.transitions[input_symbol] = node
 
-    def __repr__(self):
-        return str(self.id)
+    # def __repr__(self):
+    #     return str(self.id)
 
     def along_symbol(self, input_symbol: str) -> frozenset['RMNodeDFA']:
         if input_symbol in self.transitions:
@@ -177,32 +151,6 @@ class CompileStateDFA:
             appears_dfa.update(appears)
         return frozenset(appears_dfa), appears_by_state
 
-    def state_ids(self, states: Iterable[RMNode]) -> list[int]:
-        return list(map(lambda s: s.id, states))
-
-    def accepts(self, input_symbols: str) -> bool:
-        current_state = self.initial
-        for i in input_symbols:
-            next_state = current_state.along_symbol(i)
-            assert len(next_state) <= 1
-            if len(next_state) == 0:
-                return False
-            current_state = list(next_state)[0]
-        return current_state == self.terminal
-
-    def node_by_id(self, id: int | frozenset[int]) -> RMNodeDFA:
-        to_visit = set([self.initial])
-        visited = set([self.initial])
-        while len(to_visit) > 0:
-            visiting = to_visit.pop()
-            visited.add(visiting)
-            if visiting.id == id:
-                return visiting
-            for (_transition, node) in visiting.transitions.items():
-                if node not in visited:
-                    to_visit.add(node)
-        raise ValueError(f'no node with index {id}')
-
     def relabel_states(self) -> 'CompileStateDFA':
         counter = 0
         to_visit = list([self.initial])
@@ -216,9 +164,6 @@ class CompileStateDFA:
                 if node not in visited:
                     to_visit.append(node)
         return self
-
-    def __getitem__(self, id: int) -> RMNodeDFA:
-        return self.node_by_id(id)
 
 
 def to_dfa(compiled: CompileState) -> CompileStateDFA:
@@ -240,6 +185,8 @@ def to_dfa(compiled: CompileState) -> CompileStateDFA:
             # if len(visiting) != 1:
             #     IPython.embed()
             # assert len(visiting) == 1
+            # if terminal != None:
+            #     IPython.embed()
             assert terminal == None
             terminal = current_state
         appears_in = appears(visiting)

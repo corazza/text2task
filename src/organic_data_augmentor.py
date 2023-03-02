@@ -25,10 +25,28 @@ def parse_entries(lines: more_itertools.peekable) -> list[Tuple[list[str], list[
     return entries
 
 
+def parse_entries_single_line(lines: more_itertools.peekable) -> list[Tuple[list[str], list[str]]]:
+    entries = [parse_entry_single_line(lines)]
+    while lines and lines.peek() == '':
+        next(lines)
+    if lines:
+        others = parse_entries_single_line(lines)
+        entries.extend(others)
+    return entries
+
+
 def parse_entry(lines: more_itertools.peekable) -> Tuple[list[str], list[str]]:
     descriptions = parse_descriptions(lines)
     expr_src = parse_sources(lines)
     return expr_src, descriptions
+
+
+def parse_entry_single_line(lines: more_itertools.peekable) -> Tuple[list[str], list[str]]:
+    line = next(lines)
+    ab = line.split('=>')
+    description = ab[0].strip()
+    expr_src = ab[1].strip()
+    return [expr_src], [description]
 
 
 def parse_descriptions(lines: more_itertools.peekable) -> list[str]:
@@ -58,6 +76,8 @@ def apply_mapping(to: str,  mapping: dict[str, str]) -> str:
 def generate_variants(desc: str, src: str, props: dict[str, list[str]], take: Optional[int]) -> Iterator[Tuple[str, str]]:
     props_desc = extract_prop_types(desc)
     props_src = extract_prop_types(src)
+    if props_desc != props_src:
+        print(f'props_desc={props_desc}\nprops_src={props_src}')
     assert props_desc == props_src
     r = []
     for mapping in mappings(props_desc, props):
@@ -78,10 +98,14 @@ def reshape_entries(entries: list[Tuple[list[str], list[str]]]) -> Iterator[Tupl
             yield (desc, src)
 
 
-def load_file(path: str | Path, props_path: str | Path, inflation_factor: Optional[int]) -> list[Tuple[str, str]]:
+def load_file(path: str | Path, props_path: str | Path, inflation_factor: Optional[int], single_line: bool = False) -> list[Tuple[str, str]]:
     assert not (isinstance(inflation_factor, int) and inflation_factor < 1)
     props = rm_generator.load_props(props_path)
-    entries = parse_entries(more_itertools.peekable(util.line_iter(path)))
+    if single_line:
+        entries = parse_entries_single_line(
+            more_itertools.peekable(util.line_iter(path)))
+    else:
+        entries = parse_entries(more_itertools.peekable(util.line_iter(path)))
     organic = list(reshape_entries(entries))
     variants = list(
         map(lambda desc_src: list(generate_variants(desc_src[0], desc_src[1], props, inflation_factor)), organic))

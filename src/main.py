@@ -13,7 +13,9 @@ def test_generator():
 
 
 def test_compiler():
-    rm = compiler_interface.compile('(A B A&!B)+ C')
+    # rm = compiler_interface.compile('(A B A&!B)+ C')
+    rm = compiler_interface.compile(
+        '!MINE&COFFEE > MAIL&!MINE > DOOR&!MINE | !MINE&MAIL > !MINE&COFFEE > DOOR&!MINE')
     IPython.embed()
 
 
@@ -35,7 +37,7 @@ def test_dist_analysis():
 
 
 def main():
-    test_dist_analysis()
+    test_compiler()
 
 
 if __name__ == "__main__":

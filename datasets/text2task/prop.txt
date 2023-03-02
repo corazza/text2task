@@ -1,10 +1,14 @@
 direction
 LEFT RIGHT UP DOWN
 
+action
+PICK
+DROP
+
 # go to the
 # get to the
 place
-OFFICE
+BUILDING
 BASE
 DOOR
 # covering single tile
@@ -22,10 +26,11 @@ ROCK
 avoid
 TRAP
 MINE
+SPIKE
 
 # visit the
 area
 FOREST
-BUILDING
 GOLDMINE
+OFFICE
 # covering multiple tiles

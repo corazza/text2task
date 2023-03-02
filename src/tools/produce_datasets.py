@@ -49,8 +49,8 @@ def randomize_conjuncts(x: str) -> str:
     return expr_printer.expr_to_str(parsed, randomize=True)
 
 
-def load_augmented(path) -> list[Tuple[str, str]]:
-    return organic_data_augmentor.load_file(path, 'datasets/text2task/prop.txt', inflation_factor=None)
+def load_augmented(path, single_line=False) -> list[Tuple[str, str]]:
+    return organic_data_augmentor.load_file(path, 'datasets/text2task/prop.txt', inflation_factor=10, single_line=single_line)
 
 
 def get_interactive_prompts() -> list[Tuple[str, str]]:
@@ -76,6 +76,8 @@ def save_both(use_synthetic=False):
     patterns = 'datasets/text2task/patterns.txt'
 
     organic_prompts = load_augmented('datasets/text2task/organic.txt')
+    organic_prompts.extend(load_augmented(
+        'datasets/text2task/organic2.txt', single_line=True))
     interactive_prompts = get_interactive_prompts()
 
     # HERE never place !var alone
@@ -122,7 +124,7 @@ def save_both(use_synthetic=False):
 
 
 def main():
-    save_both(use_synthetic=True)
+    save_both(use_synthetic=False)
 
 
 if __name__ == '__main__':

@@ -31,9 +31,7 @@ patrol around the PLACE/a, PLACE/b, and PLACE/c
 go to the PLACE/a then the PLACE/b then the PLACE/c and go back to the PLACE/a, repeat
 =
 (PLACE/a > PLACE/b > PLACE/c)+ | (PLACE/b > PLACE/c > PLACE/a)+ | (PLACE/c > PLACE/a > PLACE/b)+
-(PLACE/a > PLACE/b > PLACE/c)+
-(PLACE/b > PLACE/c > PLACE/a)+
-(PLACE/c>PLACE/a > PLACE/b)+
+(PLACE/a > PLACE/b > PLACE/c > PLACE/a)+
 
 while patrolling the PLACE/a, PLACE/b, and PLACE/c, avoid the AVOID/a
 circle PLACE/a and PLACE/b and PLACE/c but never hit the AVOID/a

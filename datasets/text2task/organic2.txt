@@ -1,0 +1,23 @@
+Navigate through the OBJECT/a, then the OBJECT/b, and finally reach the PLACE% => OBJECT/a > OBJECT/b > PLACE%
+Enter the AREA/a, then collect OBJECT/a, and finally leave the AREA/a => AREA/a > AREA/a&OBJECT/a > !AREA/a
+Collect OBJECT/a and OBJECT/b in any order, and then avoid AVOID% while navigating through PLACE% => (OBJECT/a | OBJECT/b)+ > PLACE%&!AVOID%
+Enter the PLACE/a, then reach the PLACE/b, and finally leave the PLACE/b => PLACE/a > PLACE/b > !PLACE/b
+Pick up OBJECT/a from the PLACE/a, then reach the PLACE/b, and drop off OBJECT/a => PLACE/a&OBJECT/a > PLACE/b&DROP
+While avoiding AVOID/a, collect OBJECT/a, and then navigate through the PLACE% => (!AVOID/a&OBJECT/a)+ > PLACE%+
+Navigate through the PLACE/a and PLACE/b in any order, and then avoid AVOID/a while collecting OBJECT% => (PLACE/a|PLACE/b)+ > (!AVOID/a&OBJECT%)
+Collect OBJECT/a, then avoid PLACE/a, and finally navigate through the PLACE/b => OBJECT/a > (!PLACE/a)+ > PLACE/b
+While avoiding AVOID/a, navigate through the PLACE/a, then pick up OBJECT/a and OBJECT/b, and finally leave the PLACE/a => (!AVOID/a&PLACE/a)+ > !AVOID/a&OBJECT/a > !AVOID/a&OBJECT/b > (!AVOID/a&!PLACE/a)
+Pick up OBJECT/a from the PLACE/a, then while avoiding AVOID/a reach the PLACE/b => PLACE/a&OBJECT/a > !AVOID/a&PLACE/b
+
+Navigate from PLACE/a to PLACE/b while avoiding AVOID/a => !AVOID/a&PLACE/a > !AVOID/a* > !AVOID/a&PLACE/b
+Collect OBJECT/a and OBJECT/b from PLACE/a and PLACE/b in any order => OBJECT/a&PLACE/a > OBJECT/b&PLACE/a | OBJECT/a&PLACE/a > OBJECT/b&PLACE/b | OBJECT/a&PLACE/b > OBJECT/b&PLACE/a | OBJECT/a&PLACE/b > OBJECT/b&PLACE/b
+Move from PLACE/a to PLACE/b via PLACE/c, but avoid AVOID/a => PLACE/a&!AVOID/a > (PLACE/c & !AVOID/a) > PLACE/b&!AVOID/a
+Find the OBJECT/a and OBJECT/b in the AREA/a => AREA/a&OBJECT/a > AREA/a&OBJECT/b | AREA/a&OBJECT/b > AREA/a&OBJECT/a
+# TODO Go from PLACE/a to PLACE/b, but only step on the designated TILE% => PLACE/a > TILE% > PLACE/b
+Collect OBJECT/a from AREA/a, then move to PLACE/b avoiding AVOID/a => OBJECT/a&AREA/a&!AVOID/a > !AVOID/a* > (!AVOID/a&PLACE/b)
+Retrieve OBJECT/a from AREA/a, bring it to PLACE/b, and then retrieve OBJECT/b from AREA/b => OBJECT/a&AREA/a > PLACE/b > OBJECT/b&AREA/b
+Avoid AVOID/a and AVOID/b while moving from PLACE/a to PLACE/b via PLACE/c => PLACE/a > (!AVOID/a & !AVOID/b > PLACE/c) > PLACE/b
+Find OBJECT/a in AREA/a, bring it to PLACE/b, then retrieve OBJECT/b from PLACE/c => OBJECT/a&AREA/a > PLACE/b > OBJECT/b&PLACE/c
+Collect OBJECT/a and OBJECT/b from AREA/a and AREA/b, respectively, while avoiding AVOID/a and AVOID/b => (AREA/a&OBJECT/a&!AVOID/a&!AVOID/b) > (AREA/b&OBJECT/b&!AVOID/a&!AVOID/b)
+
+# good
