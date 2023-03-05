@@ -1,0 +1,14 @@
+never do A => (!A)*
+
+always do A
+do A at least once
+=
+(A)+
+
+go to the forest
+visit the forest
+=
+(!forest)* > forest
+(!forest)* > (forest)+
+
+First, 
