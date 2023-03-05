@@ -1,41 +1,45 @@
 import IPython
 
-import data_generator
 import compiler_interface
-import organic_data_augmentor
 from tools import produce_datasets
-import desc_rewriter
-from visualization import visualize_compilestate, visualize_rm
-
-
-def test_generator():
-    prompts = data_generator.get_default(100)
-    IPython.embed()
+from visualization import visualize_compilestate, visualize_rm, visualize_ast
 
 
 def test_compiler():
-    # rm = compiler_interface.compile('(A B A&!B)+ C')
-    rm = compiler_interface.compile(
-        '!MINE&COFFEE > MAIL&!MINE > DOOR&!MINE | !MINE&MAIL > !MINE&COFFEE > DOOR&!MINE')
-    visualize_rm(rm)
-    IPython.embed()
+    src = 'A'
+    # src = '!_'
+    # src = 'A > B'
+    # src = 'A | B'
+    # src = '!A | !B'
+    # src = '!(!A | !B)'
+    # src = 'C > (A | B)'
+    # src = 'C > (A & B)'
+    # src = 'C > C&!(A | B) > D'
+    # src = '((A | B) > C) & (D)+'
+    # src = '(A&!B)*'
 
+    # src = '(!A)*'
 
-def test_augmentor():
-    organic_prompts = organic_data_augmentor.load_file(
-        '../datasets/text2task/f_test.txt', '../datasets/text2task/prop.txt', 4)
-    path_human = produce_datasets.create_if_doesnt_exist(
-        '../preprocessed_datasets/text2task', 'train_test', '.txt')
-    produce_datasets.save_prompts_human(path_human, organic_prompts)
-    IPython.embed()
+    # src = '((!B)*)&(A)*'
+    # src = '((B)*)~&(A)*'
+    # src = 'A > _ > B > (.)*'
 
+    tokens = compiler_interface.lex(src)
+    print(tokens)
 
-# TODO FIXME test if str -> rm -> str -> rm ... is invariant
+    ast = compiler_interface.parse(src)
+    visualize_ast(ast, f'AST: {src}')
 
-def test_dist_analysis():
-    organic_prompts = organic_data_augmentor.load_file(
-        '../datasets/text2task/organic.txt', '../datasets/text2task/prop.txt', 4)
-    data_generator.analyze_dist(organic_prompts)
+    nfa, node_creator = compiler_interface.get_nfa(src)
+    visualize_compilestate(nfa, f'NFA: {src}')
+
+    dfa, node_creator = compiler_interface.get_dfa(src)
+    visualize_compilestate(dfa, f'DFA: {src}')
+
+    rm = compiler_interface.compile(src)
+    visualize_rm(rm, f'RM: {src}')
+
+    # IPython.embed()  # type: ignore
 
 
 def main():

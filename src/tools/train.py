@@ -39,8 +39,6 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
-from ab_data_collator import ABDataCollator
-from ab_trainer import ABTrainer
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -384,15 +382,10 @@ def main():
             "You can do it from another script, save it, and load it from here, using --tokenizer_name."
         )
 
-    # if tokenizer.pad_token is None:
-    #     tokenizer.pad_token = tokenizer.eos_token
-    # if tokenizer.sep_token is None:
-    #     tokenizer.sep_token = tokenizer.eos_token
     tokenizer.add_special_tokens({'bos_token': '<|bos|>',
                                   'eos_token': '<|eos|>',
                                   'sep_token': '<|sep|>',
                                   'pad_token': '<|pad|>'})
-    # tokenizer.add_special_tokens({'pad_token': '<|pad|>'})
 
     if model_args.model_name_or_path:
         torch_dtype = (
@@ -434,9 +427,9 @@ def main():
             input_ids.append(encoded["input_ids"])
             attention_masks.append(encoded["attention_mask"])
             label = [-100] * \
-                (encoded["input_ids"].index(tokenizer.sep_token_id))
+                (encoded.input_ids.index(tokenizer.sep_token_id))
             label.append(tokenizer.sep_token_id)
-            label += encoded["input_ids"][len(label):]
+            label += encoded.input_ids[len(label):]
             labels.append(label)
         return {"input_ids": input_ids, "attention_mask": attention_masks, "labels": labels}
 

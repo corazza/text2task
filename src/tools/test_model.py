@@ -1,8 +1,4 @@
 from transformers import pipeline, set_seed, GPT2Tokenizer
-import IPython
-
-import compiler_interface
-import expr_printer
 
 
 def synthesize(generator, desc: str) -> str:
@@ -19,22 +15,10 @@ def synthesize(generator, desc: str) -> str:
     return final_output.split(generator.tokenizer.sep_token)[-1]
 
 
-# def postprocess(output: str) -> str:  # TODO fix this in the model
-#     for i in range(len(output)):
-#         substr = output[0:i+1]
-#         try:
-#             parsed = compiler_interface.parse(substr)
-#         except:
-#             continue
-#         return expr_printer.expr_to_str(parsed)
-#     raise ValueError('couldn\'t find a valid substring')
-
-
 def answer_query(generator):
     desc = input(': ')
     output = synthesize(generator, desc)
     print(output)
-    # print(postprocess(output))
 
 
 def test_model():
