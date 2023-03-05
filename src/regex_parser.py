@@ -9,18 +9,18 @@ from regex_lexer import *
 # expression -> term
 # expression -> term | expression
 
-# term -> conjunction
-# term -> conjunction > term
+# term -> step
+# term -> step > term
 
-# conjunction -> conjunct
-# conjunction -> conjunct & conjunction
+# step -> factor
+# step -> factor & step
 
-# conjunct -> (expression)
-# conjunct -> (expression)+
-# conjunct -> (expression)*
-# conjunct -> (expression)~
-# conjunct -> matcher
-# conjunct -> !matcher
+# factor -> (expression)
+# factor -> (expression)+
+# factor -> (expression)*
+# factor -> (expression)~
+# factor -> matcher
+# factor -> !matcher
 
 # matcher -> symbol
 # matcher -> _
@@ -43,7 +43,7 @@ def parse_expression(lex: more_itertools.peekable) -> RMExpr:
 
 
 def parse_term(lex: more_itertools.peekable) -> RMExpr:
-    left = parse_conjunction(lex)
+    left = parse_step(lex)
     token = lex.peek()
     if isinstance(token, ThenT):
         next(lex)
@@ -57,12 +57,12 @@ def parse_term(lex: more_itertools.peekable) -> RMExpr:
     return left
 
 
-def parse_conjunction(lex: more_itertools.peekable) -> RMExpr:
-    left = parse_conjunct(lex)
+def parse_step(lex: more_itertools.peekable) -> RMExpr:
+    left = parse_factor(lex)
     token = lex.peek()
     if isinstance(token, AndT):
         next(lex)
-        right = parse_conjunction(lex)
+        right = parse_step(lex)
         and_terms = [left]
         if isinstance(right, And):
             and_terms.extend(right.exprs)
@@ -72,7 +72,7 @@ def parse_conjunction(lex: more_itertools.peekable) -> RMExpr:
     return left
 
 
-def parse_conjunct(lex: more_itertools.peekable) -> RMExpr:
+def parse_factor(lex: more_itertools.peekable) -> RMExpr:
     token = lex.peek()
     if isinstance(token, OpenT):
         next(lex)

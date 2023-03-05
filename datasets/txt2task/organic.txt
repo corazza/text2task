@@ -11,4 +11,6 @@ visit the forest
 (!forest)* > forest
 (!forest)* > (forest)+
 
-First, 
+You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the documents back to our base.
+=
+((.)* > door&secret > (enemy&base)+ > enemy&base&documents&secret > (.)* > friendly&base) & (!detected)*

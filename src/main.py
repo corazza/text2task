@@ -6,7 +6,7 @@ from visualization import visualize_compilestate, visualize_rm, visualize_ast
 
 
 def test_compiler():
-    src = 'A'
+    # src = 'A'
     # src = '!_'
     # src = 'A > B'
     # src = 'A | B'
@@ -24,22 +24,25 @@ def test_compiler():
     # src = '((B)*)~&(A)*'
     # src = 'A > _ > B > (.)*'
 
-    tokens = compiler_interface.lex(src)
-    print(tokens)
+    # src = '((.)* > door&secret > (base)+ > base&documents&secret) & (!detected)*'
+    src = '((.)* > door&secret > (enemy&base)+ > enemy&base&documents&secret > (.)* > friendly&base) & (!detected)*'
 
-    ast = compiler_interface.parse(src)
-    visualize_ast(ast, f'AST: {src}')
+    # tokens = compiler_interface.lex(src)
+    # print(tokens)
 
-    nfa, node_creator = compiler_interface.get_nfa(src)
-    visualize_compilestate(nfa, f'NFA: {src}')
+    # ast = compiler_interface.parse(src)
+    # visualize_ast(ast, f'AST: {src}')
 
-    dfa, node_creator = compiler_interface.get_dfa(src)
-    visualize_compilestate(dfa, f'DFA: {src}')
+    # nfa, node_creator = compiler_interface.get_nfa(src)
+    # visualize_compilestate(nfa, f'NFA: {src}')
+
+    # dfa, node_creator = compiler_interface.get_dfa(src)
+    # visualize_compilestate(dfa, f'DFA: {src}')
 
     rm = compiler_interface.compile(src)
-    visualize_rm(rm, f'RM: {src}')
+    # visualize_rm(rm, f'RM: {src}')
 
-    # IPython.embed()  # type: ignore
+    IPython.embed()  # type: ignore
 
 
 def main():

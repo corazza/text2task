@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple
+from typing import Iterable, Sequence, Tuple
 import IPython
 
 
@@ -34,12 +34,6 @@ class RewardMachine:
             rs.append(r)
         return rs
 
-    def __call__(self, *input_symbols: Sequence[str] | Sequence[frozenset[str]]) -> list[int]:
+    def __call__(self, *input_symbols: Iterable[str]) -> list[int]:
         """Just a nicer interface for RewardMachine.multiple_transitions"""
-        input_symbols2 = []
-        for input_symbol in input_symbols:
-            if isinstance(input_symbol, frozenset):
-                input_symbols2.append(input_symbol)
-            else:
-                input_symbols2.append(frozenset({input_symbol}))
-        return self.multiple_transitions(0, input_symbols2)
+        return self.multiple_transitions(0, [frozenset(x) for x in input_symbols])

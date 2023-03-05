@@ -34,34 +34,30 @@ def create_if_doesnt_exist(in_dir: str, filename: str, suffix: str) -> Path:
     return Path(path, filename).with_suffix(suffix)
 
 
-def ensure_max_length(examples: list[Tuple[str, str]], tokenizer):
-    for a, b in examples:
-        encoded = tokenizer('<|bos|>' + a + '<|sep|>' + b + '<|eos|>')
-        if len(encoded.input_ids) >= PAD_SIZE:
-            print('line too long')
-            IPython.embed()  # type: ignore
+def ensure_max_length(a: str, b: str, tokenizer):
+    encoded = tokenizer('<|bos|>' + a + '<|sep|>' + b + '<|eos|>')
+    if len(encoded.input_ids) >= PAD_SIZE:
+        print('line too long')
+        IPython.embed()  # type: ignore
 
 
 def example_to_line(p: Tuple[str, str]) -> str:
     return '{"a": "' + p[0] + '", "b":"' + p[1] + '"}\n'
 
 
-def save_examples(path: Path, examples: list[Tuple[str, str]], tokenizer):
-    ensure_max_length(examples, tokenizer)
-    lines = [example_to_line(p) for p in examples]
+def example_to_line_human(p: Tuple[str, str]) -> str:
+    return p[0] + ' => ' + p[1] + '\n'
+
+
+def save_lines(path: Path, lines: list[str]):
     with open(path, 'w') as f:
         f.writelines(lines)
         print(f'wrote {len(lines)} lines to {path}')
 
 
-def load_examples(path: str) -> list[Tuple[str, str]]:
+def load_examples(path: str, validate: bool) -> list[Tuple[str, str]]:
     lines = more_itertools.peekable(line_iter(path))
-    return parse_examples(lines)
-
-
-def validate_examples(examples: list[Tuple[str, str]]):
-    for desc, src in examples:
-        compile(src)
+    return parse_examples(lines, validate)
 
 
 def main():
@@ -100,10 +96,16 @@ def main():
 
     path = create_if_doesnt_exist(
         'preprocessed_datasets/txt2task', 'train', '.json')
-    examples = load_examples('datasets/txt2task/organic.txt')
-    validate_examples(examples)
+    path_human = create_if_doesnt_exist(
+        'preprocessed_datasets/txt2task', 'train', '.txt')
+    examples = load_examples('datasets/txt2task/organic.txt', False)
+    for a, b in examples:
+        ensure_max_length(a, b, tokenizer)
+    lines = [example_to_line(p) for p in examples]
+    lines_human = [example_to_line_human(p) for p in examples]
     np.random.shuffle(examples)  # type: ignore
-    save_examples(path, examples, tokenizer)
+    save_lines(path, lines)
+    save_lines(path_human, lines_human)
 
 
 if __name__ == '__main__':
