@@ -113,23 +113,6 @@ class CompileStateDFA:
         self.initial = initial
         self.terminal_states = terminal_states
 
-    # def appears(self) -> Tuple[frozenset[str], dict[int, frozenset[str]]]:
-    #     to_visit: set[DFANode] = set([self.initial])
-    #     visited: set[DFANode] = set()
-    #     appears_dfa: set[str] = set()
-    #     appears_by_state: dict[int, frozenset[str]] = dict()
-    #     while len(to_visit) > 0:
-    #         visiting = to_visit.pop()
-    #         visited.add(visiting)
-    #         appears: set[str] = set()
-    #         for (transition, next) in visiting.transitions.items():
-    #             appears.update(parse(transition).appears())
-    #             if next not in visited:
-    #                 to_visit.add(next)
-    #         appears_by_state[visiting.id] = frozenset(appears)
-    #         appears_dfa.update(appears)
-    #     return frozenset(appears_dfa), appears_by_state
-
     def relabel_states(self) -> 'CompileStateDFA':
         counter = 0
         to_visit: list[DFANode] = [self.initial]
@@ -166,13 +149,6 @@ def epsilon(from_states: frozenset[NFANode]) -> frozenset[NFANode]:
 def along_symbol(from_states: frozenset[NFANode], input_symbol: frozenset[str]) -> frozenset[NFANode]:
     next_set = frozenset([s.along_symbol(input_symbol) for s in from_states])
     return frozenset(itertools.chain.from_iterable(next_set))
-
-
-# def appears(states: frozenset[NFANode]) -> frozenset[str]:
-#     r = set()
-#     for state in states:
-#         r.add(state.appears())
-#     return frozenset(itertools.chain.from_iterable(r))
 
 
 def next_superstate(states: frozenset[NFANode], input_symbol: frozenset[str]) -> frozenset[NFANode]:
@@ -253,11 +229,8 @@ def nfa_union(nfas: list[CompileStateNFA], node_creator: NodeCreator) -> Compile
     initial = node_creator.new_nfa_node()
     terminal = node_creator.new_nfa_node()
     for c in nfas:
-        # print(c, c.initial.id, [x.id for x in c.terminal_states])
-        # print(initial.id, c.initial.id)
         initial.t(frozenset({'*'}), c.initial)
         for c_terminal in c.terminal_states:
-            # print(c_terminal.id, terminal.id)
             c_terminal.t(frozenset({'*'}), terminal)
     return CompileStateNFA(initial, {terminal})
 
@@ -281,24 +254,6 @@ def dfa_complement(dfa_original: CompileStateDFA) -> CompileStateDFA:
 def nfa_complement(nfa: CompileStateNFA, node_creator: NodeCreator) -> CompileStateNFA:
     dfa = to_dfa(nfa, node_creator)
     return to_nfa(dfa_complement(dfa), node_creator)
-
-
-# def negate_previous(previous: list[str]) -> str:
-#     assert len(previous) > 0
-#     r = f'!('
-#     for i in range(len(previous) - 1):
-#         r = f'{r}{previous[i]}|'
-#     r = f'{r}{previous[-1]})'
-#     return r
-
-
-# def negate_all(appears: list[str]) -> str:
-#     assert len(appears) > 0
-#     r = f'!('
-#     for i in range(len(appears) - 1):
-#         r = f'{r}{appears[i]}|'
-#     r = f'{r}{appears[-1]})'
-#     return r
 
 
 def dfa_to_rm(dfa: CompileStateDFA, appears: frozenset[str]) -> RewardMachine:

@@ -27,7 +27,7 @@ from regex_lexer import *
 # matcher -> .
 
 
-def parse_expression(lex: more_itertools.peekable) -> RMExpr:
+def parse_expression(lex: more_itertools.peekable) -> RENode:
     left = parse_term(lex)
     token = lex.peek()
     if isinstance(token, OrT):
@@ -42,7 +42,7 @@ def parse_expression(lex: more_itertools.peekable) -> RMExpr:
     return left
 
 
-def parse_term(lex: more_itertools.peekable) -> RMExpr:
+def parse_term(lex: more_itertools.peekable) -> RENode:
     left = parse_step(lex)
     token = lex.peek()
     if isinstance(token, ThenT):
@@ -57,7 +57,7 @@ def parse_term(lex: more_itertools.peekable) -> RMExpr:
     return left
 
 
-def parse_step(lex: more_itertools.peekable) -> RMExpr:
+def parse_step(lex: more_itertools.peekable) -> RENode:
     left = parse_factor(lex)
     token = lex.peek()
     if isinstance(token, AndT):
@@ -72,7 +72,7 @@ def parse_step(lex: more_itertools.peekable) -> RMExpr:
     return left
 
 
-def parse_factor(lex: more_itertools.peekable) -> RMExpr:
+def parse_factor(lex: more_itertools.peekable) -> RENode:
     token = lex.peek()
     if isinstance(token, OpenT):
         next(lex)
@@ -98,7 +98,7 @@ def parse_factor(lex: more_itertools.peekable) -> RMExpr:
         return parse_matcher(lex, False)
 
 
-def parse_matcher(lex: more_itertools.peekable, negated: bool) -> RMExpr:
+def parse_matcher(lex: more_itertools.peekable, negated: bool) -> RENode:
     token = next(lex)
     if isinstance(token, SymbolT):
         return Symbol(token.symbol, negated)
@@ -109,7 +109,7 @@ def parse_matcher(lex: more_itertools.peekable, negated: bool) -> RMExpr:
         return Any(negated)
 
 
-def parse(src: str) -> RMExpr:
+def parse(src: str) -> RENode:
     lexed = more_itertools.peekable(lex(src))
     expr = parse_expression(lexed)
     token = next(lexed)

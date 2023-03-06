@@ -8,7 +8,7 @@ import IPython
 
 from reward_machine import RewardMachine
 import regex_ast
-from regex_ast import RMExpr
+from regex_ast import RENode
 from regex_compiler import CompileStateNFA, CompileStateDFA, NFANode, DFANode
 from hierarchy_pos import hierarchy_pos
 
@@ -77,28 +77,25 @@ def nodes_and_edges_rm(rm: RewardMachine) -> Tuple[list[int], dict[Tuple[int, in
     return list(nodes), edges_transformed
 
 
-def nodes_and_edges_and_labels_ast(ast: RMExpr) -> Tuple[list[int], dict[Tuple[int, int], str], dict[int, str]]:
+def nodes_and_edges_and_labels_ast(ast: RENode) -> Tuple[list[int], dict[Tuple[int, int], str], dict[int, str]]:
     child_id: int = 0
     nodes: list[int] = []
     edges: dict[Tuple[int, int], str] = dict()
     node_labels: dict[int, str] = dict()
-    to_visit: list[Tuple[int, RMExpr]] = [(0, ast)]
+    to_visit: list[Tuple[int, RENode]] = [(0, ast)]
     while len(to_visit) > 0:
         id, visiting = to_visit.pop(0)
         child_id += 1
-        if isinstance(visiting, regex_ast.Symbol):
+        if isinstance(visiting, regex_ast.Matcher):
             node_labels[id] = str(visiting)
             nodes.append(id)
-        elif isinstance(visiting, regex_ast.Matcher):
-            node_labels[id] = str(visiting)
-            nodes.append(id)
-        elif isinstance(visiting, regex_ast.RMExprSing):
+        elif isinstance(visiting, regex_ast.RENodeSing):
             node_labels[id] = visiting.name
             edges[(id, child_id)] = ''
             nodes.append(id)
             to_visit.append((child_id, visiting.child))
         else:
-            assert isinstance(visiting, regex_ast.RMExprMul), f'{visiting}'
+            assert isinstance(visiting, regex_ast.RENodeMul), f'{visiting}'
             node_labels[id] = visiting.name
             nodes.append(id)
             for child in visiting.exprs:
@@ -146,11 +143,11 @@ def node_colors_rm(rm: RewardMachine, nodes: list[int]) -> list[str]:
     return [node_color_rm(rm, node) for node in nodes]
 
 
-def node_colors_ast(ast: RMExpr, nodes: list[int]) -> list[str]:
+def node_colors_ast(ast: RENode, nodes: list[int]) -> list[str]:
     return ['green' if node == 0 else 'gray' for node in nodes]
 
 
-def visualize_ast(ast: RMExpr, title: str):
+def visualize_ast(ast: RENode, title: str):
     nodes, edges, node_labels = nodes_and_edges_and_labels_ast(ast)
     colors = node_colors_ast(ast, nodes)
     draw_graph(title, nodes, node_labels, edges, colors)

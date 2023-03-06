@@ -21,10 +21,12 @@ from transformers import (
     set_seed,
 )
 
-from const import PAD_SIZE
+from const import *
+from regex_printer import expr_to_str
+from regex_validation import equivalent
 from tools.train import ModelArguments, DataTrainingArguments
-
 from example_parser import parse_examples, line_iter
+import compiler_interface
 from compiler_interface import compile
 
 
@@ -58,6 +60,29 @@ def save_lines(path: Path, lines: list[str]):
 def load_examples(path: str, validate: bool) -> list[Tuple[str, str]]:
     lines = more_itertools.peekable(line_iter(path))
     return parse_examples(lines, validate)
+
+
+def augment_examples(examples: list[Tuple[str, str]], num_rewrites: int, test_length: int, num_tests: int, validate: bool) -> list[Tuple[str, str]]:
+    new_examples: list[Tuple[str, str]] = []
+    for desc, src in examples:
+        ast = compiler_interface.parse(src)
+        appears = ast.appears()
+        rewrites_nodes = ast.rewrites(appears, num_rewrites)
+        rewrites: list[str] = [expr_to_str(r) for r in rewrites_nodes]
+        if validate:
+            dfa, _node_creator = compiler_interface.get_dfa(src)
+            for rewrite in rewrites:
+                dfa_b, _ = compiler_interface.get_dfa(rewrite)
+                ineq_evidence = equivalent(
+                    appears, dfa, dfa_b, test_length, num_tests)
+                if len(ineq_evidence) != 0:
+                    print(src)
+                    print(rewrite)
+                    IPython.embed()  # type: ignore
+                assert len(ineq_evidence) == 0
+        new_examples.append((desc, src))
+        new_examples.extend([(desc, rewrite) for rewrite in rewrites])
+    return new_examples
 
 
 def main():
@@ -98,12 +123,15 @@ def main():
         'preprocessed_datasets/txt2task', 'train', '.json')
     path_human = create_if_doesnt_exist(
         'preprocessed_datasets/txt2task', 'train', '.txt')
-    examples = load_examples('datasets/txt2task/organic.txt', False)
+    examples = load_examples(
+        'datasets/txt2task/organic.txt', VALIDATE_EXAMPLES)
+    examples = augment_examples(
+        examples, REWRITE_INFLATION_FACTOR, REWRITE_VALIDATIN_TEST_LENGTH, REWRITE_VALIDATION_NUM_TESTS, validate=VALIDATE_EXAMPLES)
     for a, b in examples:
         ensure_max_length(a, b, tokenizer)
+    np.random.shuffle(examples)  # type: ignore
     lines = [example_to_line(p) for p in examples]
     lines_human = [example_to_line_human(p) for p in examples]
-    np.random.shuffle(examples)  # type: ignore
     save_lines(path, lines)
     save_lines(path_human, lines_human)
 

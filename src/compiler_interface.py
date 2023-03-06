@@ -2,7 +2,7 @@ from typing import Tuple
 import IPython
 
 from reward_machine import RewardMachine
-from regex_ast import RMExpr, NodeCreator
+from regex_ast import RENode, NodeCreator
 from regex_compiler import CompileStateNFA, CompileStateDFA, to_dfa, dfa_to_rm
 import regex_parser
 import regex_lexer
@@ -13,12 +13,12 @@ def lex(src: str) -> list[regex_parser.Token]:
     return list(regex_lexer.lex(src))
 
 
-def parse(src: str) -> RMExpr:
+def parse(src: str) -> RENode:
     return regex_parser.parse(src)
 
 
 def get_nfa(src: str) -> Tuple[CompileStateNFA, NodeCreator]:
-    ast: RMExpr = parse(src)
+    ast: RENode = parse(src)
     appears: frozenset[str] = ast.appears()
     node_creator: NodeCreator = NodeCreator(appears)
     return ast.compile(node_creator).relabel_states(), node_creator

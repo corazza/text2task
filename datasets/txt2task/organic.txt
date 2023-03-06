@@ -11,6 +11,26 @@ visit the forest
 (!forest)* > forest
 (!forest)* > (forest)+
 
-You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the documents back to our base.
+You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the secret documents back to our base.
+First find the secret door to the enemy base. In there, get the secret documents and bring them back to our base. Don't get detected!
+This is a stealth mission to find the secret enemy documents. Infiltrate their base through the secret door, and bring them back to ours. You better not get detected.
+This task is failed by detection. Infiltrate the enemy base (find the secret entrance) and then return to the friendly base.
 =
 ((.)* > door&secret > (enemy&base)+ > enemy&base&documents&secret > (.)* > friendly&base) & (!detected)*
+
+
+Go to the gold mine and gather rock samples.
+=
+(.)* > ((goldmine)* > rock&goldmine)+
+
+Go to the gold mine and gather rock samples, without leaving the goldmine.
+Go to the goldmine and avoid any rocks on the way there. In the gold mine, collect rock samples.
+=
+(!rock)* > ((goldmine)* > rock&goldmine)+
+
+Grab the coffee and mail and bring them to the office.
+Bring coffee and mail to the office.
+get some coffee! get the mail! bring them to the office
+would you please bring coffee and the mail to the office?
+=
+((.)* > coffee > (.)* > mail | (.)* > mail > (.)* > coffee) > (.)* > office
