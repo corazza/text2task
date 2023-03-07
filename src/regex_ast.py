@@ -98,6 +98,15 @@ class RENodeMul(RENode):
         return True
 
 
+def reorder_children(children: list[RENode]) -> list[list[RENode]]:
+    indices = list(range(len(children)))
+    results: list[list[RENode]] = []
+    for perm in itertools.permutations(indices):
+        p_children: list[RENode] = [children[indices[i]] for i in perm]
+        results.append(p_children)
+    return results
+
+
 class Or(RENodeMul):
     def __init__(self, exprs: list[RENode]):
         super().__init__(exprs, 'Or', '|')
@@ -113,9 +122,12 @@ class Or(RENodeMul):
 
     def rewrites_with_rewritten_children(self, children: list[RENode], appears: frozenset[str], num: int) -> list[RENode]:
         results: list[RENode] = []
-        results.append(self.demorgan(children, clean=True))
-        # results.append(self.demorgan(children, clean=False))
         results.append(Or(children))
+        results.append(self.demorgan(children, clean=True))
+        results.extend([Or(children)
+                       for children in reorder_children(children)])
+        results.extend([self.demorgan(children, clean=True)
+                       for children in reorder_children(children)])
         return results
 
 
@@ -139,9 +151,12 @@ class And(RENodeMul):
 
     def rewrites_with_rewritten_children(self, children: list[RENode], appears: frozenset[str], num: int) -> list[RENode]:
         results: list[RENode] = []
-        results.append(self.demorgan(children, clean=True))
-        # results.append(self.demorgan(children, clean=False))
         results.append(And(children))
+        results.append(self.demorgan(children, clean=True))
+        results.extend([And(children)
+                       for children in reorder_children(children)])
+        results.extend([self.demorgan(children, clean=True)
+                       for children in reorder_children(children)])
         return results
 
 
