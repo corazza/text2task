@@ -1,5 +1,14 @@
+1 @ [{}]
+2 @ [{}, {}]
+0 @ [{'A'}, {'A'}]
+1 @ [{}, {'A'}]
+1 @ [{}, {'A'}, {}, {}, {}, {}]
 never do A => (!A)*
 
+0 @ [{}]
+0 @ [{}, {}, {'A'}]
+1 @ [{'A'}]
+2 @ [{'A'}, {'A'}]
 always do A
 do A at least once
 =
@@ -34,3 +43,26 @@ get some coffee! get the mail! bring them to the office
 would you please bring coffee and the mail to the office?
 =
 ((.)* > coffee > (.)* > mail | (.)* > mail > (.)* > coffee) > (.)* > office
+
+Visit the first base, second base, and third base in that order
+Visit the base_1, base_2, and base_3 in that order
+Visit the base 1, base 2, and base 3 in that order
+=
+(.)* > base_1 > (.)* > base_2 > (.)* > base_3
+(.)+ > base_1 > (.)+ > base_2 > (.)+ > base_3
+
+Visit the first base, the second base, and the third base. Start from any of them, but respect that order.
+=
+(.)* > base_1 > (.)* > base_2 > (.)* > base_3 | (.)* > base_2 > (.)* > base_3 > (.)* > base_1 | (.)* > base_3 > (.)* > base_1 > (.)* > base_2
+
+Patrol the first base, second base, and third base in that order
+Patrol the three bases in order 1, 2, and 3
+=
+((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+
+((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+
+
+Patrol the first base, second base, and third base, starting from any of them. Cycle them.
+Patrol the three bases in order 1, 2, and 3 starting from any of them.
+=
+((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+ | ((!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1)+ | ((!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2)+
+((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+ | ((!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1)+ | ((!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2)+

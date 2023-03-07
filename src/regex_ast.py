@@ -4,6 +4,7 @@ import numpy as np
 import itertools
 
 from regex_compiler import NodeCreator, CompileStateNFA, generate_inputs, nfa_union, nfa_complement
+from const import *
 
 
 class RENode:
@@ -123,7 +124,8 @@ class Or(RENodeMul):
     def rewrites_with_rewritten_children(self, children: list[RENode], appears: frozenset[str], num: int) -> list[RENode]:
         results: list[RENode] = []
         results.append(Or(children))
-        results.append(self.demorgan(children, clean=True))
+        if np.random.random() < REWRITE_EXPANSIVE_DEMORGAN_PROB:
+            results.append(self.demorgan(children, clean=True))
         results.extend([Or(children)
                        for children in reorder_children(children)])
         results.extend([self.demorgan(children, clean=True)
@@ -152,7 +154,8 @@ class And(RENodeMul):
     def rewrites_with_rewritten_children(self, children: list[RENode], appears: frozenset[str], num: int) -> list[RENode]:
         results: list[RENode] = []
         results.append(And(children))
-        results.append(self.demorgan(children, clean=True))
+        if np.random.random() < REWRITE_EXPANSIVE_DEMORGAN_PROB:
+            results.append(self.demorgan(children, clean=True))
         results.extend([And(children)
                        for children in reorder_children(children)])
         results.extend([self.demorgan(children, clean=True)
@@ -303,7 +306,7 @@ class Nonempty(Matcher):
         return isinstance(b, Nonempty) and self.negated == b.negated
 
     def content(self) -> str:
-        return '_'
+        return ':'
 
 
 class Any(Matcher):

@@ -82,7 +82,7 @@ class EndT(Token):
 def lex(src: str) -> Iterator[Token]:
     symbol_buffer = []
     for c in src:
-        if isalpha(c):
+        if isalpha(c) or ((c == '_' or c.isnumeric()) and len(symbol_buffer) > 0):
             symbol_buffer.append(c)
         else:
             if len(symbol_buffer) > 0:
@@ -100,7 +100,7 @@ def lex(src: str) -> Iterator[Token]:
                 yield NotT()
             elif c == '.':
                 yield AnyT()
-            elif c == '_':
+            elif c == ':':
                 yield NonemptyT()
             elif c == '*':
                 yield RepeatT()
