@@ -73,7 +73,7 @@ def parse_run(lines: more_itertools.peekable) -> Tuple[int, list[frozenset[str]]
     line = next(lines)
     line_apart: list[str] = line.split('@')
     reward: int = int(line_apart[0].strip())
-    input_symbols: list[set[str]] = eval(line_apart[1].strip())
+    input_symbols: list[set[str]] = eval('[' + line_apart[1].strip() + ']')
     return reward, [frozenset(x) for x in input_symbols]
 
 

@@ -59,12 +59,18 @@ def validate_runs(examples: list[Example]):
         if len(example.runs) == 0:
             print(f'no runs to validate: {example.srcs}')
             continue
+        rewards_sets: dict[Tuple[frozenset[str]], set[Tuple[int]]] = dict()
         for src in example.srcs:
             rm = compiler_interface.compile(src)
             for reward, run in example.runs:
                 rewards = rm.multiple_transitions(0, run)
+                if tuple(run) not in rewards_sets:
+                    rewards_sets[tuple(run)] = set()
+                rewards_sets[tuple(run)].add(tuple(rewards))
                 assert reward == sum(
                     rewards), f'{reward} @ {run} failed for {src} -> {rewards}'
+        for run, rewards_set in rewards_sets.items():
+            assert len(rewards_set) == 1, f'failed on run {run}'
 
 
 def validate_equiv(examples: list[Example]):

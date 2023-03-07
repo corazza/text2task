@@ -1,24 +1,36 @@
-1 @ [{}]
-2 @ [{}, {}]
-0 @ [{'A'}, {'A'}]
-1 @ [{}, {'A'}]
-1 @ [{}, {'A'}, {}, {}, {}, {}]
+1 @ {}
+2 @ {}, {}
+0 @ {'A'}, {'A'}
+1 @ {}, {'A'}
+1 @ {}, {'A'}, {}, {}, {}, {}
 never do A => (!A)*
 
-0 @ [{}]
-0 @ [{}, {}, {'A'}]
-1 @ [{'A'}]
-2 @ [{'A'}, {'A'}]
+0 @ {}
+0 @ {}, {}, {'A'}
+1 @ {'A'}
+2 @ {'A'}, {'A'}
 always do A
 do A at least once
 =
 (A)+
 
+0 @ {}, {}, {}, {}
+1 @ {}, {}, {'forest'}, {}, {'forest'}
+1 @ {}, {}, {'forest'}, {'forest'}
 go to the forest
 visit the forest
 =
 (!forest)* > forest
+
+0 @ {}, {}, {}, {}
+1 @ {}, {}, {'forest'}, {}
+1 @ {}, {}, {'forest'}, {}, {'forest'}
+2 @ {}, {}, {'forest'}, {'forest'}
+go to the forest
+visit the forest
+=
 (!forest)* > (forest)+
+
 
 You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the secret documents back to our base.
 First find the secret door to the enemy base. In there, get the secret documents and bring them back to our base. Don't get detected!
@@ -28,10 +40,32 @@ This task is failed by detection. Infiltrate the enemy base (find the secret ent
 ((.)* > door&secret > (enemy&base)+ > enemy&base&documents&secret > (.)* > friendly&base) & (!detected)*
 
 
+0 @ {}, {}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {}, {'rock'}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}
+1 @ {}, {}, {'goldmine'}, {}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'rock'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock'}, {'rock', 'goldmine'}, 
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
 Go to the gold mine and gather rock samples.
 =
 (.)* > ((goldmine)* > rock&goldmine)+
 
+0 @ {}, {}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {}, {'rock'}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}
+1 @ {}, {}, {'goldmine'}, {}, {'rock', 'goldmine'}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock'}, {'rock', 'goldmine'}, 
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
 Go to the gold mine and gather rock samples, without leaving the goldmine.
 Go to the goldmine and avoid any rocks on the way there. In the gold mine, collect rock samples.
 =
