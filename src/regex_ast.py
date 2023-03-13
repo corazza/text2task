@@ -1,4 +1,5 @@
 import copy
+import IPython
 from typing import Tuple
 import numpy as np
 import itertools
@@ -99,11 +100,26 @@ class RENodeMul(RENode):
         """Must return identity"""
         raise NotImplementedError()
 
-    def __eq__(self, b) -> bool:
+    def clean(self) -> RENode:
+        if len(self.exprs) == 1:
+            return self.exprs[0]
+        return self
+
+    def _ordered__eq__(self, b) -> bool:
         if not isinstance(b, self.__class__):
             return False
         for e1, e2 in zip(self.exprs, b.exprs):
             if e1 != e2:
+                return False
+        return True
+
+    def _unordered__eq__(self, b) -> bool:
+        if not isinstance(b, self.__class__):
+            return False
+        if len(self.exprs) != len(b.exprs):
+            return False
+        for child in self.exprs:
+            if child not in b.exprs:
                 return False
         return True
 
@@ -113,7 +129,8 @@ def reorder_children(children: list[RENode]) -> list[list[RENode]]:
     results: list[list[RENode]] = []
     for perm in itertools.permutations(indices):
         p_children: list[RENode] = [children[indices[i]] for i in perm]
-        results.append(p_children)
+        if p_children != children:  # skipping already-included identity permutation
+            results.append(p_children)
     return results
 
 
@@ -125,44 +142,59 @@ class Or(RENodeMul):
         compiled = [e.compile(node_creator) for e in self.exprs]
         return nfa_union(compiled, node_creator)
 
-    def demorgan(self, exprs: list[RENode], clean: bool) -> RENode:
+    def _rewrite_demorgan(self, exprs: list[RENode], clean: bool) -> RENode:
         complements: list[RENode] = [Complement(
-            x).clean() if clean else Complement(x) for x in exprs]
-        return Complement(And(complements))
+            x).remove_double_negation() if clean else Complement(x) for x in exprs]
+        return Complement(And(complements).clean()).remove_double_negation()
 
-    def distributive(self, children: list[RENode], num: int) -> list[RENode]:
+    def _rewrite_distributive(self, children: list[RENode], num: int) -> list[RENode]:
         result: list[RENode] = []
-        for (i, or_child) in enumerate(children):
-            if not isinstance(or_child, Or):
-                continue
-            for subset_size in range(1, len(children)):
-                for subset in itertools.combinations(children, subset_size):
-                    if or_child in subset:
+        for subset_size in range(2, len(children)+1):
+            for subset in itertools.combinations(children, subset_size):
+                if any([not isinstance(child, And) for child in subset]):
+                    continue
+                all_subchildren: list[list[RENode]] = [
+                    child.exprs for child in subset]  # type: ignore
+                factor_out: list[RENode] = []
+                for combination in itertools.product(*all_subchildren):
+                    if any([combination[0] != x for x in combination]):
                         continue
-                    conjuncts: list[RENode] = []
-                    for (k, child) in enumerate(children):
-                        if k != i and child not in subset:
-                            conjuncts.append(child)
-                    or_terms: list[RENode] = [
-                        And(shuffle([*subset, child])) for child in or_child.exprs]
-                    conjuncts.append(Or(shuffle(or_terms)))
-                    np.random.shuffle(conjuncts)  # type: ignore
-                    if len(conjuncts) > 1:
-                        result.append(And(conjuncts))
-                    else:
-                        result.append(conjuncts[0])
+                    factor_out.append(combination[0])
+                for factor_subset_size in range(1, len(factor_out)+1):
+                    for factor_subset in itertools.combinations(factor_out, factor_subset_size):
+                        new_or_terms: list[RENode] = []
+                        for child in subset:
+                            assert isinstance(child, And)
+                            new_and_terms: list[RENode] = []
+                            for and_child in child.exprs:
+                                if and_child not in factor_subset:
+                                    new_and_terms.append(and_child)
+                            new_or_terms.append(And(new_and_terms).clean())
+                        factored_out = Or(new_or_terms).clean()
+                        factorization = And(
+                            [*factor_subset, factored_out]).clean()
+                        result_or_terms: list[RENode] = []
+                        result_or_terms.append(factorization)
+                        for child in children:
+                            if child not in subset:
+                                result_or_terms.append(child)
+                        result.append(Or(result_or_terms).clean())
         return shuffle_pick_n(result, num)
 
     def rewrites_with_rewritten_children(self, children: list[RENode], appears: frozenset[str], num: int) -> list[RENode]:
-        results: list[RENode] = []
-        results.append(Or(children))
+        # because children are rewritten
+        results: list[RENode] = [Or(children).clean()]
+        results.extend(shuffle_pick_n([Or(children).clean()
+                       for children in reorder_children(children)], num))
         if np.random.random() < REWRITE_EXPANSIVE_DEMORGAN_PROB:
-            results.append(self.demorgan(children, clean=True))
-        results.extend(shuffle_pick_n([Or(children)
-                       for children in reorder_children(children)], num))
-        results.extend(shuffle_pick_n([self.demorgan(children, clean=True)
-                       for children in reorder_children(children)], num))
+            results.extend(shuffle_pick_n([self._rewrite_demorgan(children, clean=True)
+                                           for children in reorder_children(children)], num))
+        results.extend(shuffle_pick_n(
+            self._rewrite_distributive(children, num), num))
         return results
+
+    def __eq__(self, b) -> bool:
+        return self._unordered__eq__(b)
 
 
 class And(RENodeMul):
@@ -178,12 +210,12 @@ class And(RENodeMul):
         union: CompileStateNFA = nfa_union(complements, node_creator)
         return nfa_complement(union, node_creator)
 
-    def demorgan(self, exprs: list[RENode], clean: bool) -> RENode:
+    def _rewrite_demorgan(self, exprs: list[RENode], clean: bool) -> RENode:
         complements: list[RENode] = [Complement(
-            x).clean() if clean else Complement(x) for x in exprs]
-        return Complement(Or(complements))
+            x).remove_double_negation() if clean else Complement(x) for x in exprs]
+        return Complement(Or(complements).clean()).remove_double_negation()
 
-    def distributive(self, children: list[RENode], num: int) -> list[RENode]:
+    def _rewrite_distributive(self, children: list[RENode], num: int) -> list[RENode]:
         result: list[RENode] = []
         for (i, or_child) in enumerate(children):
             if not isinstance(or_child, Or):
@@ -197,11 +229,11 @@ class And(RENodeMul):
                         if k != i and child not in subset:
                             conjuncts.append(child)
                     or_terms: list[RENode] = [
-                        And(shuffle([*subset, child])) for child in or_child.exprs]
-                    conjuncts.append(Or(shuffle(or_terms)))
+                        And(shuffle([*subset, child])).clean() for child in or_child.exprs]
+                    conjuncts.append(Or(shuffle(or_terms)).clean())
                     np.random.shuffle(conjuncts)  # type: ignore
                     if len(conjuncts) > 1:
-                        result.append(And(conjuncts))
+                        result.append(And(conjuncts).clean())
                     else:
                         result.append(conjuncts[0])
         return result
@@ -209,16 +241,19 @@ class And(RENodeMul):
     # TODO 10 random for every extend - so all have semi-equal probability of inclusion
 
     def rewrites_with_rewritten_children(self, children: list[RENode], appears: frozenset[str], num: int) -> list[RENode]:
-        results: list[RENode] = []
-        results.append(And(children))
+        # because children are rewritten
+        results: list[RENode] = [And(children).clean()]
+        results.extend(shuffle_pick_n([And(children).clean()
+                       for children in reorder_children(children)], num))
         if np.random.random() < REWRITE_EXPANSIVE_DEMORGAN_PROB:
-            results.append(self.demorgan(children, clean=True))
-        results.extend(shuffle_pick_n([And(children)
-                       for children in reorder_children(children)], num))
-        results.extend(shuffle_pick_n([self.demorgan(children, clean=True)
-                       for children in reorder_children(children)], num))
-        results.extend(shuffle_pick_n(self.distributive(children, num), num))
+            results.extend(shuffle_pick_n([self._rewrite_demorgan(children, clean=True)
+                                           for children in reorder_children(children)], num))
+        results.extend(shuffle_pick_n(
+            self._rewrite_distributive(children, num), num))
         return results
+
+    def __eq__(self, b) -> bool:
+        return self._unordered__eq__(b)
 
 
 class Then(RENodeMul):
@@ -236,6 +271,9 @@ class Then(RENodeMul):
         results: list[RENode] = []
         results.append(Then(children))
         return results
+
+    def __eq__(self, b):
+        return self._ordered__eq__(b)
 
 
 class Repeat(RENodeSing):
@@ -281,7 +319,7 @@ class Complement(RENodeSing):
         child = self.child.compile(node_creator)
         return nfa_complement(child, node_creator)
 
-    def clean(self) -> RENode:
+    def remove_double_negation(self) -> RENode:
         if isinstance(self.child, Complement):
             return self.child.child
         else:
@@ -289,15 +327,15 @@ class Complement(RENodeSing):
 
     def _demorgans(self, child: RENode) -> list[RENode]:
         if isinstance(child, Or):
-            return [And([Complement(child_child).clean() for child_child in child.exprs])]
+            return [And([Complement(child_child).remove_double_negation() for child_child in child.exprs]).clean()]
         elif isinstance(child, And):
-            return [Or([Complement(child_child).clean() for child_child in child.exprs])]
+            return [Or([Complement(child_child).remove_double_negation() for child_child in child.exprs]).clean()]
         else:
             return []
 
     def rewrites_with_rewritten_child(self, child: RENode, appears: frozenset[str], num: int) -> list[RENode]:
         results: list[RENode] = []
-        results.append(Complement(child))
+        results.append(Complement(child).remove_double_negation())
         if isinstance(child, Complement):
             results.append(child.child)
         results.extend(shuffle_pick_n(self._demorgans(child), num))

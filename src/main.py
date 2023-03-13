@@ -62,10 +62,12 @@ def test_compiler():
     # src = '(A)*'
     # src = 'B'
     # src = '(A)* > B'
-    src = '((A)* > B)*'
+    # src = '((A)* > B)*'
     # src = '((A)* > B)+'
     # src = 'A > (A)*'
     # src = '(A)*'
+    src = '(A & D & B) | (A & D & C)'
+    # src = 'A & D & (B | C)'
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)
     # visualize_compilestate(nfa, src)
