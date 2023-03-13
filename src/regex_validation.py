@@ -2,7 +2,7 @@ import numpy as np
 from typing import Iterable
 
 from regex_compiler import CompileStateDFA, DFANode
-from const import *
+from consts import *
 
 
 def terminating(a: CompileStateDFA, state: DFANode) -> bool:

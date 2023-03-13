@@ -49,8 +49,29 @@ def test_compiler():
     # {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}
     # {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
     # src = '((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+ | ((!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1)+ | ((!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2)+'
-    src = '((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+ | ((!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1)+ | ((!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2)+'
+    # src = '((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+ | ((!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1)+ | ((!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2)+'
+    # rm = compiler_interface.compile(src)
+
+    # src = '(.)* > (goldmine)* > rock&goldmine > ((goldmine)* > rock&goldmine)*'
+
+    # HERE
+    # component by component compilation, figure out where the error is
+    # the error may very unlikely be in the rm class. unlikely because it already shows on the NFA when visualized
+
+    # src = 'A'
+    # src = '(A)*'
+    # src = 'B'
+    # src = '(A)* > B'
+    src = '((A)* > B)*'
+    # src = '((A)* > B)+'
+    # src = 'A > (A)*'
+    # src = '(A)*'
+    ast = compiler_interface.parse(src)
+    nfa, _ = compiler_interface.get_nfa(src)
+    # visualize_compilestate(nfa, src)
+    dfa, _ = compiler_interface.get_dfa(src)
     rm = compiler_interface.compile(src)
+
     IPython.embed()  # type: ignore
 
 

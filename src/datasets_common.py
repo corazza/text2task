@@ -5,7 +5,7 @@ import more_itertools
 import IPython
 
 
-from const import *
+from consts import *
 from regex_printer import expr_to_str
 from regex_validation import equivalent
 from example_parser import Example, parse_examples, line_iter
@@ -55,14 +55,16 @@ def desc_src_to_line_human(a: str, b: str) -> str:
 
 
 def validate_runs(examples: list[Example]):
-    for example in examples:
+    for (i, example) in enumerate(examples):
+        print(f'{i}/{len(examples)}')
         if len(example.runs) == 0:
             print(f'no runs to validate: {example.srcs}')
             continue
         rewards_sets: dict[Tuple[frozenset[str]], set[Tuple[int]]] = dict()
-        for src in example.srcs:
+        for (i_src, src) in enumerate(example.srcs):
+            print(f'    src={i_src}/{len(example.srcs)}')
             rm = compiler_interface.compile(src)
-            for reward, run in example.runs:
+            for (i_rr, (reward, run)) in enumerate(example.runs):
                 rewards = rm.multiple_transitions(0, run)
                 if tuple(run) not in rewards_sets:
                     rewards_sets[tuple(run)] = set()

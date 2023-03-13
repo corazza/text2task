@@ -1,7 +1,7 @@
 import IPython
 import numpy as np
 
-from const import *
+from consts import *
 from datasets_common import ab_to_lines, ab_to_lines_human, ast_rewrites, augment_examples, create_if_doesnt_exist, ensure_max_length, examples_to_ab, load_examples, save_lines, validate_length, validate_runs
 from training import get_args, get_tokenizer
 
@@ -17,8 +17,12 @@ def main():
     examples = load_examples(
         'datasets/txt2task/organic.txt')
 
+    if not VALIDATE_AUGMENTED and VALIDATE_EXAMPLES:
+        validate_runs(examples)
     examples = augment_examples(examples, REWRITE_INFLATION_FACTOR)
-    validate_runs(examples)
+    if VALIDATE_AUGMENTED and VALIDATE_EXAMPLES:
+        validate_runs(examples)
+
     ab = examples_to_ab(examples)
     validate_length(ab, tokenizer)
     np.random.shuffle(ab)  # type: ignore

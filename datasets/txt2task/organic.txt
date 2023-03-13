@@ -32,6 +32,14 @@ visit the forest
 (!forest)* > (forest)+
 
 
+0 @ {}, {}, {}, {}
+0 @ {}, {}, {'door'}, {}, {'secret'}
+0 @ {}, {}, {'door'}, {'secret'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'base'}
+1 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {}, {'friendly', 'base'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {'detected'}, {}, {'friendly', 'base'}
 You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the secret documents back to our base.
 First find the secret door to the enemy base. In there, get the secret documents and bring them back to our base. Don't get detected!
 This is a stealth mission to find the secret enemy documents. Infiltrate their base through the secret door, and bring them back to ours. You better not get detected.
@@ -54,6 +62,7 @@ This task is failed by detection. Infiltrate the enemy base (find the secret ent
 Go to the gold mine and gather rock samples.
 =
 (.)* > ((goldmine)* > rock&goldmine)+
+(.)* > (goldmine)* > rock&goldmine > ((goldmine)* > rock&goldmine)*
 
 0 @ {}, {}
 0 @ {}, {}, {'goldmine'}, {'rock'}, {}
@@ -71,6 +80,12 @@ Go to the goldmine and avoid any rocks on the way there. In the gold mine, colle
 =
 (!rock)* > ((goldmine)* > rock&goldmine)+
 
+0 @ {}, {}, {}, {}
+1 @ {}, {'coffee'}, {}, {'mail'}, {}, {'office'}
+1 @ {}, {'mail'}, {}, {'coffee'}, {}, {'office'}
+1 @ {}, {'mail', 'coffee'}, {}, {'coffee', 'mail'}, {}, {'office'}
+0 @ {}, {'mail', 'coffee'}, {}, {'coffee', 'mail'}, {}, {'coffee'}
+1 @ {}, {'mail'}, {}, {'coffee'}, {}, {'mail'}, {}, {'coffee'}, {}, {'office'}
 Grab the coffee and mail and bring them to the office.
 Bring coffee and mail to the office.
 get some coffee! get the mail! bring them to the office
@@ -78,6 +93,11 @@ would you please bring coffee and the mail to the office?
 =
 ((.)* > coffee > (.)* > mail | (.)* > mail > (.)* > coffee) > (.)* > office
 
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
 Visit the first base, second base, and third base in that order
 Visit the base_1, base_2, and base_3 in that order
 Visit the base 1, base 2, and base 3 in that order
@@ -85,16 +105,35 @@ Visit the base 1, base 2, and base 3 in that order
 (.)* > base_1 > (.)* > base_2 > (.)* > base_3
 (.)+ > base_1 > (.)+ > base_2 > (.)+ > base_3
 
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
 Visit the first base, the second base, and the third base. Start from any of them, but respect that order.
 =
-(.)* > base_1 > (.)* > base_2 > (.)* > base_3 | (.)* > base_2 > (.)* > base_3 > (.)* > base_1 | (.)* > base_3 > (.)* > base_1 > (.)* > base_2
+(!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 | (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 | (!base_1&!base_2)* > base_3 > (!base_1&!base_3)* > base_1 > (!base_1&!base_3)* > base_2
 
-Patrol the first base, second base, and third base in that order
-Patrol the three bases in order 1, 2, and 3
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
+0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
+0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
+Patrol the first base, second base, and third base in that order (start at base one)
+Patrol the three bases in order 1, 2, and 3 (beginning at 1)
 =
 ((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+
 ((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+
 
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
+2 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
+2 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
 Patrol the first base, second base, and third base, starting from any of them. Cycle them.
 Patrol the three bases in order 1, 2, and 3 starting from any of them.
 =
