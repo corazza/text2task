@@ -66,8 +66,18 @@ def test_compiler():
     # src = '((A)* > B)+'
     # src = 'A > (A)*'
     # src = '(A)*'
-    src = '(A & D & B) | (A & D & C)'
+    # src = '(A & D & B) | (A & D & C)'
     # src = 'A & D & (B | C)'
+    # src = 'A > (B | C)'  # -> A > B | A > C
+    # src = '(B | C) > A'  # -> B > A | C > A
+    # src = 'A > (B | C) > D'
+    # src = 'B > A | C > A | D'  # -> (B | C) > A | D
+
+    # src = 'E > F > (B | C > E) > D > A'
+    # src = '((.)* > coffee > (.)* > mail | (.)* > mail > (.)* > coffee) > (.)* > office'
+
+    src = '((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+ | ((!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1)+ | ((!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2)+'
+
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)
     # visualize_compilestate(nfa, src)

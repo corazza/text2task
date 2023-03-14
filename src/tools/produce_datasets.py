@@ -17,9 +17,11 @@ def main():
     examples = load_examples(
         'datasets/txt2task/organic.txt')
 
+    assert not VALIDATE_AUGMENTED or VALIDATE_EXAMPLES
+
     if not VALIDATE_AUGMENTED and VALIDATE_EXAMPLES:
         validate_runs(examples)
-    examples = augment_examples(examples, REWRITE_INFLATION_FACTOR)
+    examples = augment_examples(examples)
     if VALIDATE_AUGMENTED and VALIDATE_EXAMPLES:
         validate_runs(examples)
 

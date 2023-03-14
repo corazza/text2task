@@ -24,8 +24,8 @@ def load_examples(path: str) -> list[Example]:
     return parse_examples(lines)
 
 
-def augment_examples(examples: list[Example], num_rewrites: int) -> list[Example]:
-    examples = ast_rewrites(examples, num_rewrites)
+def augment_examples(examples: list[Example]) -> list[Example]:
+    examples = ast_rewrites(examples)
     return examples
 
 
@@ -33,13 +33,12 @@ def text_rewrites(examples: list[Example]) -> list[Example]:
     raise NotImplementedError()
 
 
-def ast_rewrites(examples: list[Example], num_rewrites: int) -> list[Example]:
+def ast_rewrites(examples: list[Example]) -> list[Example]:
     for example in examples:
         new_srcs: list[str] = []
         for src in example.srcs:
             ast = compiler_interface.parse(src)
-            appears = ast.appears()
-            rewrites_nodes = ast.rewrites(appears, num_rewrites)
+            rewrites_nodes = ast.rewrites()
             rewrites: list[str] = [expr_to_str(r) for r in rewrites_nodes]
             new_srcs.extend(rewrites)
         example.srcs.extend(new_srcs)
