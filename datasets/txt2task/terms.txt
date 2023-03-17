@@ -1,0 +1,42 @@
+ACTIONS
+
+left
+right
+down
+up
+jump
+
+PLACES WITH MORE TILES
+
+office
+parking lot
+goldmine
+mountain
+
+PLACES WITH A SINGLE TILE
+
+house
+apartment
+garage
+garden
+camp
+hospital
+field
+base
+market
+
+OBJECTS
+
+coffee
+mail
+key
+equipment
+petrol
+tools
+food
+
+AVOID
+
+mine
+trap
+hole

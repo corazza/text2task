@@ -1,4 +1,5 @@
 import copy
+from curses.ascii import isalpha
 from pathlib import Path
 from typing import Iterator, Optional, Tuple
 import more_itertools
@@ -29,8 +30,32 @@ def augment_examples(examples: list[Example]) -> list[Example]:
     return examples
 
 
+def apply_text_rewrite_with_concat(x: str, rewrite: list[Tuple[str, str]], sep: str) -> str:
+    new_string: str = x
+    for left, right in rewrite:
+        if ' ' in right:
+            right = sep.join(right.split(' '))
+            right = right.replace('the_', '')
+        new_string = new_string.replace(left, right)
+    return new_string
+
+
 def text_rewrites(examples: list[Example]) -> list[Example]:
-    raise NotImplementedError()
+    new_examples: list[Example] = []
+    for example in examples:
+        for rewrite in example.example_rewrites:
+            new_runs: list[Tuple[int, list[frozenset[str]]]] = []
+            for (reward, runs) in example.runs:
+                new_traces: list[frozenset[str]] = [
+                    frozenset({apply_text_rewrite_with_concat(x, rewrite, '_') for x in run}) for run in runs]
+                new_runs.append((reward, new_traces))
+            new_descs: list[str] = [apply_text_rewrite_with_concat(
+                desc, rewrite, ' ') for desc in example.descs]
+            new_srcs: list[str] = [apply_text_rewrite_with_concat(
+                src, rewrite, '_') for src in example.srcs]
+            new_examples.append(
+                Example([], new_runs, new_descs, new_srcs))
+    return examples + new_examples
 
 
 def ast_rewrites(examples: list[Example]) -> list[Example]:
@@ -89,16 +114,44 @@ def validate_equiv(examples: list[Example]):
     raise NotImplementedError()
 
 
-def ensure_max_length(a: str, b: str, tokenizer):
-    encoded = tokenizer('<|bos|>' + a + '<|sep|>' + b + '<|eos|>')
-    if len(encoded.input_ids) >= PAD_SIZE:
-        print('line too long')
-        IPython.embed()  # type: ignore
+def example_length(ab: Tuple[str, str], tokenizer) -> int:
+    encoded = tokenizer('<|bos|>' + ab[0] + '<|sep|>' + ab[1] + '<|eos|>')
+    return len(encoded.input_ids)
 
 
-def validate_length(ab: list[Tuple[str, str]], tokenizer):
-    for desc, src in ab:
-        ensure_max_length(desc, src, tokenizer)
+def validate_length(abs: list[Tuple[str, str]], tokenizer):
+    for ab in abs:
+        ab_len = example_length(ab, tokenizer)
+        assert ab_len <= PAD_SIZE, f'{ab[0]} => {ab[1]} over {PAD_SIZE}: {ab_len}'
+
+
+def filter_length(abs: list[Tuple[str, str]], tokenizer):
+    result = list(
+        filter(lambda x: example_length(x, tokenizer) <= PAD_SIZE, abs))
+    return result
+
+
+def sanity_check(ab: Tuple[str, str]):
+    desc, src = ab
+    for i, c in enumerate(src):
+        if i == 0 or i == len(src) - 1:
+            continue
+        if c == ' ':
+            assert not isalpha(src[i-1]) or not isalpha(src[i+1])
+
+
+def sanity_checks(abs: list[Tuple[str, str]]):
+    for ab in abs:
+        sanity_check(ab)
+
+
+def remove_residuals(abs: list[Tuple[str, str]]) -> list[Tuple[str, str]]:
+    result: list[Tuple[str, str]] = []
+    for a, b in abs:
+        if '$' in a or '$' in b:
+            continue
+        result.append((a, b))
+    return result
 
 
 def save_lines(path: Path, lines: list[str]):

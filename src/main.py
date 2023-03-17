@@ -11,7 +11,7 @@ def test_rewrites_equivalence(src: str, n_rewrites: int):
     ast = compiler_interface.parse(src)
     dfa, _ = compiler_interface.get_dfa(src)
     appears = ast.appears()
-    rewrites = ast.rewrites(appears, n_rewrites)
+    rewrites = ast.rewrites()
     print(f'testing equivalence for: {src}')
     for rewrite in rewrites:
         src_b = expr_to_str(rewrite)
@@ -73,10 +73,9 @@ def test_compiler():
     # src = 'A > (B | C) > D'
     # src = 'B > A | C > A | D'  # -> (B | C) > A | D
 
-    # src = 'E > F > (B | C > E) > D > A'
-    # src = '((.)* > coffee > (.)* > mail | (.)* > mail > (.)* > coffee) > (.)* > office'
-
-    src = '((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+ | ((!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1)+ | ((!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2)+'
+    # src = '(A)~'
+    # src = '((A)~)*'
+    src = '(!$C&!$B)* > ($B > (!$C)* > $C | $C > $B) > (!$B&!$C&!$A)* >$A'
 
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)

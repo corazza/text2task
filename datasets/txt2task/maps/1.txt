@@ -1,0 +1,16 @@
+o = office
+m = mail
+c = coffee
+x = wall
+b = building
+t = trap
+a = apartment
+h = house
+p = parking lot
+
+x x x x x x x
+x o o       x
+x o o       x
+x x x x   x x
+x c       m x
+x x x x x x x

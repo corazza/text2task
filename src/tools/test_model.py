@@ -1,4 +1,7 @@
-from transformers import pipeline, set_seed, GPT2Tokenizer
+from transformers import pipeline, set_seed
+import IPython
+
+import compiler_interface
 
 
 def synthesize(generator, desc: str) -> str:
@@ -19,6 +22,16 @@ def answer_query(generator):
     desc = input(': ')
     output = synthesize(generator, desc)
     print(output)
+    try:
+        src = output
+        ast = compiler_interface.parse(src)
+        nfa, _ = compiler_interface.get_nfa(src)
+        dfa, _ = compiler_interface.get_dfa(src)
+        rm = compiler_interface.compile(src)
+        IPython.embed()
+    except Exception as e:
+        print('response syntactically invalid')
+        print(e)
 
 
 def test_model():

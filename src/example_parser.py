@@ -1,3 +1,5 @@
+from functools import cmp_to_key
+import IPython
 import more_itertools
 from typing import Iterator, Optional, Tuple
 from compiler_interface import compile
@@ -22,10 +24,11 @@ from compiler_interface import compile
 
 
 class Example:
-    def __init__(self, runs: list[Tuple[int, list[frozenset[str]]]], descs: list[str], srcs: list[str]):
+    def __init__(self, example_rewrites: list[list[Tuple[str, str]]], runs: list[Tuple[int, list[frozenset[str]]]], descs: list[str], srcs: list[str]):
         self.descs = descs
         self.srcs = srcs
         self.runs = runs
+        self.example_rewrites = example_rewrites
 
     def produce_examples(self) -> list[Tuple[str, str]]:
         result: list[Tuple[str, str]] = []
@@ -58,55 +61,74 @@ def parse_example(lines: more_itertools.peekable) -> Example:
         next(lines)
         line = lines.peek()
     runs = parse_runs(lines)
-    descs, srcs = parse_descs_srcs(lines)
-    return Example(runs, descs, srcs)
+    parse_the_separator(lines, '=')
+    example_rewrites = parse_example_rewrites(lines)
+    parse_the_separator(lines, '=')
+    descs = parse_descs(lines)
+    parse_the_separator(lines, '=')
+    srcs = parse_srcs(lines)
+    parse_the_separator(lines, '')
+    return Example(example_rewrites, runs, descs, srcs)
+
+
+def parse_example_rewrites(lines: more_itertools.peekable) -> list[list[Tuple[str, str]]]:
+    rewrite_lines = parse_until_separator(lines, '=')
+    return [line_to_rewrite(line) for line in rewrite_lines]
+
+
+def compare_rewrite(a: Tuple[str, str], b: Tuple[str, str]):
+    if len(a[0]) < len(b[0]):
+        return -1
+    elif len(a[0]) == len(b[0]):
+        return 0
+    else:
+        return 1
+
+
+def line_to_rewrite(line: str) -> list[Tuple[str, str]]:
+    print(line)
+    example_rewrite: list[Tuple[str, str]] = []
+    line_apart: list[str] = line.split(',')
+    for rewrite in line_apart:
+        left, right = rewrite.split('%')
+        left = left.strip()
+        right = right.strip()
+        for previous_left, previous_right in example_rewrite:
+            assert previous_right != left, f'(1) circular rewrite {left}->{right}'
+            assert left not in previous_right, f'(2) circular rewrite {left}->{right}'
+            assert previous_left != left, f'redundant rewrite {left}->{right}'
+        example_rewrite.append((left, right))
+    return list(reversed(sorted(example_rewrite, key=cmp_to_key(compare_rewrite))))
 
 
 def parse_runs(lines: more_itertools.peekable) -> list[Tuple[int, list[frozenset[str]]]]:
-    runs: list[Tuple[int, list[frozenset]]] = []
-    while '@' in lines.peek():
-        runs.append(parse_run(lines))
-    return runs
+    run_lines = parse_until_separator(lines, '=')
+    return [line_to_run(line) for line in run_lines]
 
 
-def parse_run(lines: more_itertools.peekable) -> Tuple[int, list[frozenset[str]]]:
-    line = next(lines)
+def line_to_run(line: str) -> Tuple[int, list[frozenset[str]]]:
     line_apart: list[str] = line.split('@')
     reward: int = int(line_apart[0].strip())
     input_symbols: list[set[str]] = eval('[' + line_apart[1].strip() + ']')
     return reward, [frozenset(x) for x in input_symbols]
 
 
-def parse_descs_srcs(lines: more_itertools.peekable) -> Tuple[list[str], list[str]]:
-    line: str = lines.peek()
-    if '=>' in line:
-        return parse_single(lines)
-    else:
-        return parse_multi(lines)
+def parse_descs(lines: more_itertools.peekable) -> list[str]:
+    return parse_until_separator(lines, '=')
 
 
-def parse_single(lines: more_itertools.peekable) -> Tuple[list[str], list[str]]:
-    line: str = next(lines)
-    assert '=>' in line
-    result = line.split('=>')
-    desc = result[0].strip()
-    src = result[1].strip()
-    return ([desc], [src])
-
-
-def parse_multi(lines: more_itertools.peekable) -> Tuple[list[str], list[str]]:
-    descs = parse_until_separator(lines, '=')
-    token = next(lines)
-    assert token == '='
-    srcs = parse_until_separator(lines, '')
-    assert len(descs) > 0 and len(srcs) > 0
-    return descs, srcs
+def parse_srcs(lines: more_itertools.peekable) -> list[str]:
+    return parse_until_separator(lines, '')
 
 
 def parse_until_separator(lines: more_itertools.peekable, sep: str) -> list[str]:
     parsed_lines: list[str] = []
-    assert lines.peek() != sep
     while lines.peek() != sep:
         line = next(lines)
         parsed_lines.append(line.strip())
     return parsed_lines
+
+
+def parse_the_separator(lines: more_itertools.peekable, sep: str):
+    line = next(lines)
+    assert line == sep

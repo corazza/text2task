@@ -1,14 +1,61 @@
+1 @ {'left'}, {'right'}, {'up'}
+=
+left % down, right % left, up % down
+left % down, right % left, up % left
+left % down, right % left, up % right
+=
+go left once, then right once, then up
+go left, right, then up (but only once each time)
+go left, right, then up (but only once)
+=
+left > right > up
+
 1 @ {}
 2 @ {}, {}
 0 @ {'A'}, {'A'}
 1 @ {}, {'A'}
 1 @ {}, {'A'}, {}, {}, {}, {}
-never do A => (!A)*
+=
+A % bakery, do A % go to the bakery
+A % bakery, do A % visit the bakery
+A % library, do A % go to the library
+A % library, do A % visit the library
+A % office, do A % go to the office
+A % office, do A % visit the office
+A % jump, do A % jump
+=
+never do A
+=
+(!A)*
+
+3 @ {}, {'office'}, {'office'}, {'office', 'jump'}, {'office'}, {'office'}, {}, {}
+3 @ {}, {'office'}, {'office'}, {'office', 'jump'}, {'office'}, {'office'}
+3 @ {}, {'office'}, {'office'}, {'office', 'jump'}
+5 @ {}, {'office'}, {}, {'office'}, {}, {'office', 'jump'}
+5 @ {}, {'office'}, {}, {'office'}, {}, {'office', 'jump'}, {}
+3 @ {}, {'office'}, {'office'}, {'office', 'jump'}, {}
+1 @ {}, {'office', 'jump'}, {}
+0 @ {'office', 'jump'}
+0 @ {'office', 'jump'}, {'office', 'jump'}, {'office', 'jump'}, {'office', 'jump'}
+4 @ {}, {}, {'jump'}, {'office'}
+=
+office % goldmine
+office % goldmine, jump % yell, start jumping % start yelling
+=
+never stand around the office and then start jumping
+do not jump in the office
+no jumping allowed in the office
+=
+(!office | office&!jump)*
+((.)* > (office&jump) > (.)*)~
 
 0 @ {}
 0 @ {}, {}, {'A'}
 1 @ {'A'}
 2 @ {'A'}, {'A'}
+=
+A % goldmine, always do A % stay in the goldmine
+=
 always do A
 do A at least once
 =
@@ -17,6 +64,15 @@ do A at least once
 0 @ {}, {}, {}, {}
 1 @ {}, {}, {'forest'}, {}, {'forest'}
 1 @ {}, {}, {'forest'}, {'forest'}
+=
+forest % office
+forest % goldmine
+forest % mountain
+forest % ocean
+forest % sea
+forest % break room
+forest % space station
+=
 go to the forest
 visit the forest
 =
@@ -26,6 +82,15 @@ visit the forest
 1 @ {}, {}, {'forest'}, {}
 1 @ {}, {}, {'forest'}, {}, {'forest'}
 2 @ {}, {}, {'forest'}, {'forest'}
+=
+forest % office
+forest % goldmine
+forest % mountain
+forest % ocean
+forest % sea
+forest % break room
+forest % space station
+=
 go to the forest
 visit the forest
 =
@@ -40,6 +105,8 @@ visit the forest
 0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'base'}
 1 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {}, {'friendly', 'base'}
 0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {'detected'}, {}, {'friendly', 'base'}
+=
+=
 You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the secret documents back to our base.
 First find the secret door to the enemy base. In there, get the secret documents and bring them back to our base. Don't get detected!
 This is a stealth mission to find the secret enemy documents. Infiltrate their base through the secret door, and bring them back to ours. You better not get detected.
@@ -59,7 +126,14 @@ This task is failed by detection. Infiltrate the enemy base (find the secret ent
 2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock'}, {'rock', 'goldmine'}, 
 2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
 2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
-Go to the gold mine and gather rock samples.
+=
+goldmine % parking lot, gold mine % parking lot, rock samples % empty cans, rock % empty_can
+goldmine % silver mine, gold mine % silver mine, rock samples % silver ore, rock % silver ore
+=
+Go to the gold mine and gather rock samples
+We need rock samples from the goldmine
+Once you get to the goldmine gather rock samples
+Find rock samples from the goldmine
 =
 (.)* > ((goldmine)* > rock&goldmine)+
 (.)* > (goldmine)* > rock&goldmine > ((goldmine)* > rock&goldmine)*
@@ -75,8 +149,13 @@ Go to the gold mine and gather rock samples.
 1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock'}, {'rock', 'goldmine'}, 
 2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
 2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+=
+goldmine % parking lot, gold mine % parking lot, rock samples % empty cans, rock % empty_can, rocks % cans
+goldmine % silver mine, gold mine % silver mine, rock samples % silver ore, rock % silver ore, rocks % silver ore samples
+=
 Go to the gold mine and gather rock samples, without leaving the goldmine.
 Go to the goldmine and avoid any rocks on the way there. In the gold mine, collect rock samples.
+There are many rocks in the goldmine. Go and collect them, but on the way to the goldmine avoid the rocks.
 =
 (!rock)* > ((goldmine)* > rock&goldmine)+
 
@@ -86,8 +165,16 @@ Go to the goldmine and avoid any rocks on the way there. In the gold mine, colle
 1 @ {}, {'mail', 'coffee'}, {}, {'coffee', 'mail'}, {}, {'office'}
 0 @ {}, {'mail', 'coffee'}, {}, {'coffee', 'mail'}, {}, {'coffee'}
 1 @ {}, {'mail'}, {}, {'coffee'}, {}, {'mail'}, {}, {'coffee'}, {}, {'office'}
+=
+coffee % food, mail % tools, office % building
+coffee % ammunition, mail % charger, office % base
+coffee % tire, mail % pump, office % garage
+=
 Grab the coffee and mail and bring them to the office.
 Bring coffee and mail to the office.
+Bring mail and coffee to the office.
+Go to the office, but don't forget coffee and mail
+Go to the office, but don't forget mail and coffee
 get some coffee! get the mail! bring them to the office
 would you please bring coffee and the mail to the office?
 =
@@ -98,6 +185,8 @@ would you please bring coffee and the mail to the office?
 0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
 0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
 1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
+=
+=
 Visit the first base, second base, and third base in that order
 Visit the base_1, base_2, and base_3 in that order
 Visit the base 1, base 2, and base 3 in that order
@@ -110,6 +199,8 @@ Visit the base 1, base 2, and base 3 in that order
 1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
 1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
 1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
+=
+=
 Visit the first base, the second base, and the third base. Start from any of them, but respect that order.
 =
 (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 | (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 | (!base_1&!base_2)* > base_3 > (!base_1&!base_3)* > base_1 > (!base_1&!base_3)* > base_2
@@ -121,6 +212,8 @@ Visit the first base, the second base, and the third base. Start from any of the
 2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
 0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
 0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
+=
+=
 Patrol the first base, second base, and third base in that order (start at base one)
 Patrol the three bases in order 1, 2, and 3 (beginning at 1)
 =
@@ -134,8 +227,190 @@ Patrol the three bases in order 1, 2, and 3 (beginning at 1)
 2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
 2 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
 2 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
+=
+=
 Patrol the first base, second base, and third base, starting from any of them. Cycle them.
 Patrol the three bases in order 1, 2, and 3 starting from any of them.
 =
 ((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+ | ((!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1)+ | ((!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2)+
 ((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+ | ((!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1)+ | ((!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2)+
+
+0 @ {}, {}, {}
+1 @ {'$A'}, {'$B'}, {'$C'}, {}
+1 @ {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}
+2 @ {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}
+3 @ {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}
+1 @ {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}, {}, {'$B'}
+0 @ {'$B'}, {'$A'}, {'$A'}
+0 @ {'$A'}, {'$C'}, {'$B'}
+0 @ {}, {'$B'}, {}, {'$A'}, {}, {'$A'}, {}
+0 @ {}, {'$A'}, {}, {'$C'}, {}, {'$B'}, {}
+1 @ {}, {}, {'$A'}, {'$A'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {'$C'}, {'$C'}, {'$C'}, {}
+1 @ {}, {}, {'$A'}, {'$A'}, {}, {'$B'}, {'$B'}, {'$B'}, {'$B'}, {}, {'$C'}, {'$C'}, {}, {'$C'}, {}
+=
+$A % base, $B % hospital, $C % field
+$A % hospital, $B % base, $C % field
+$A % field, $B % base, $C % hospital
+$A % camp, $B % building, $C % forest
+=
+Patrol the $A, the $B, and the $C
+Circulate the $A, the $B, and the $C
+First go to the $A, then to the $B, and finally to the $C. Repeat
+Repeat the following: $A, $B, then $C
+go to the $A then the $B then the $C and go back to the $A, repeat
+patrol around the $A, $B, and $C
+=
+((!$A&!$B&!$C)* > ($A)+ > (!$A&!$B&!$C)* > ($B)+ > (!$A&!$B&!$C)* > ($C)+ > !$C)+
+
+0 @ {}, {}, {}
+1 @ {'$A'}, {'$B'}, {'$C'}, {}
+1 @ {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}
+2 @ {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}
+3 @ {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}
+1 @ {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}, {}, {'$B'}
+0 @ {'$B'}, {'$A'}, {'$A'}
+0 @ {'$A'}, {'$C'}, {'$B'}
+0 @ {}, {'$B'}, {}, {'$A'}, {}, {'$A'}, {}
+0 @ {}, {'$A'}, {}, {'$C'}, {}, {'$B'}, {}
+1 @ {}, {}, {'$A'}, {'$A'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {'$C'}, {'$C'}, {'$C'}, {}
+1 @ {}, {}, {'$A'}, {'$A'}, {}, {'$B'}, {'$B'}, {'$B'}, {'$B'}, {}, {'$C'}, {'$C'}, {}, {'$C'}, {}
+=
+$A % the base, $B % the hospital, $C % the field
+$A % the hospital, $B % the base, $C % the field
+$A % the field, $B % the base, $C % the hospital
+$A % the camp, $B % the building, $C % the forest
+$A % the garage, $B % the building, $C % the office
+=
+Repeat the following: $A, $B, then $C
+Repeat the following: $A, then $B, then $C
+Do $A, $B, then $C
+=
+((!$A&!$B&!$C)* > ($A)+ > (!$A&!$B&!$C)* > ($B)+ > (!$A&!$B&!$C)* > ($C)+ > !$C)+
+
+0 @ {}, {}, {}, {}
+1 @ {}, {'$B'}, {}, {'$C'}, {}, {'$D'}
+1 @ {}, {'$C'}, {}, {'$B'}, {}, {'$D'}
+1 @ {}, {'$C', '$B'}, {}, {'$B', '$C'}, {}, {'$D'}
+0 @ {}, {'$C', '$B'}, {}, {'$B', '$C'}, {}, {'$B'}
+1 @ {}, {'$C'}, {}, {'$B'}, {}, {'$C'}, {}, {'$B'}, {}, {'$D'}
+0 @ {}, {'$B'}, {'$A'}, {'$C'}, {}, {'$D'}
+0 @ {'$A'}, {'$C'}, {}, {'$B'}, {}, {'$D'}
+0 @ {}, {'$C', '$B'}, {}, {'$B', '$A', '$C'}, {}, {'$D'}
+0 @ {}, {'$C'}, {}, {'$B'}, {}, {'$C'}, {}, {'$B'}, {'$A'}, {'$D'}
+=
+$A % trap, $B % petrol, $C % tools, $D % base
+$A % mine, $B % the person, $C % equipment, $D % base
+$A % pedestrian, $B % the key, $C % food, $D % building
+=
+never hit a $A. get $B and the $C in any order to the $D
+before going to the $D, get $B and $C in any order, but beware not to hit a $A
+=
+((.)* > $B > (.)* > $C > (.)* > $D | (.)* > $C > (.)* > $B > (.)* > $D) & (!$A)*
+((.)* > $B > (.)* > $C > (.)* > $D | (.)* > $C > (.)* > $B > (.)* > $D) & ((.)* > $A > (.)*)~
+((!$A)* > $B&!$A > (!$A)* > $C&!$A > (!$A)* > $D&!$A | (!$A)* > $C&!$A > (!$A)* > $B&!$A > (!$A)* > $D&!$A)
+
+0 @ {}, {}, {}, {}
+1 @ {}, {'$B'}, {}, {'$C'}, {}, {'$D'}
+1 @ {}, {'$C'}, {}, {'$B'}, {}, {'$D'}
+1 @ {}, {'$C', '$B'}, {}, {'$B', '$C'}, {}, {'$D'}
+0 @ {}, {'$C', '$B'}, {}, {'$B', '$C'}, {}, {'$B'}
+1 @ {}, {'$C'}, {}, {'$B'}, {}, {'$C'}, {}, {'$B'}, {}, {'$D'}
+0 @ {}, {'$B'}, {'$A'}, {'$C'}, {}, {'$D'}
+0 @ {'$A'}, {'$C'}, {}, {'$B'}, {}, {'$D'}
+0 @ {}, {'$C', '$B'}, {}, {'$B', '$A', '$C'}, {}, {'$D'}
+0 @ {}, {'$C'}, {}, {'$B'}, {}, {'$C'}, {}, {'$B'}, {'$A'}, {'$D'}
+=
+$A % trap, $B % petrol, $C % tools, $D % base
+$A % mine, $B % the person, $C % equipment, $D % base
+$A % pedestrian, $B % the key, $C % the food, $D % building
+=
+first get $B and $C (avoid $As), and then bring them both to $D
+while avoiding $As, bring $B and $C to the $D
+first: get $B. second: get $C. third: carry them to the $D. but most most importantly never collide with $As
+=
+((.)* > $B > (.)* > $C > (.)* > $D | (.)* > $C > (.)* > $B > (.)* > $D) & (!$A)*
+((.)* > $B > (.)* > $C > (.)* > $D | (.)* > $C > (.)* > $B > (.)* > $D) & ((.)* > $A > (.)*)~
+((!$A)* > $B&!$A > (!$A)* > $C&!$A > (!$A)* > $D&!$A | (!$A)* > $C&!$A > (!$A)* > $B&!$A > (!$A)* > $D&!$A)
+
+0 @ {}, {}, {}
+0 @ {}, {}, {}, {'$B'}, {'$B'}, {}, {'$A'}
+0 @ {}, {}, {}, {'$C'}, {'$C'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$B'}, {'$C'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$C'}, {'$B'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$C'}, {}, {'$B'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}, {}, {}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$C'}, {}, {'$B'}, {}, {'$A'}, {}, {}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}
+=
+$A % garage, $B % tools, $C % food
+$A % building, $B % coffee, $C % key
+$A % base, $B % equipment, $C % petrol
+=
+before going to the $A, get the $B and the $C in any order
+get the $B and the $C to the $A
+first get the $B then get the $C, or first get the $C then get the $B, then go to the $A
+grab the $B then the $C, or $C then the $B, and go to the $A
+once you get the $B and the $C visit the $A
+bring $B and $C to the $A in any order
+=
+(!$C&!$B)* > ($B > (!$C)* > $C | $C > (!$B)* > $B) > (!$B&!$C&!$A)* >$A
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {}, {}, {}, {'$D'}, {}, {'$E'}, {'$C'}, {}, {'$D'}, {}, {}, {}, {}, {}
+1 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'$C'}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {'$A'}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$C'}, {'$D'}, {'$B'}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'$C'}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+=
+$A % mine, $B % trap, $C % house, $D % apartment, $E % garage
+$A % trap, $B % mine, $C % garden, $D % camp, $E % hospital
+$A % hole, $B % building, $C % goldmine, $D % mountain, $E % field
+=
+never step on a $A and avoid the $B, visit the $C then $D then $E. return to $D
+go to $C, $D, then $E. finally return to the $D. avoid the $As and $Bs
+=
+(!$A & !$B & !$C & !$D & !$E)* > $C&!$A&!$B > (!$A&!$B&!$C&!$D&!$E)* > $D&!$A&!$B > (!$A&!$B&!$C&!$D&!$E)* > $E&!$A&!$B > (!$A&!$B&!$C&!$D&!$E)* > $D&!$A&!$B
+((!$C&!$D&!$E)* > $C > (!$C&!$D&!$E)* > $D > (!$C&!$D&!$E)* > $E > (!$C&!$D&!$E)* > $D) & (!$A & !$B)*
+((!$C&!$D&!$E)* > $C > (!$C&!$D&!$E)* > $D > (!$C&!$D&!$E)* > $E > (!$C&!$D&!$E)* > $D) & (!$A & !$B)+
+((!$C&!$D&!$E)* > $C > (!$C&!$D&!$E)* > $D > (!$C&!$D&!$E)* > $E > (!$C&!$D&!$E)* > $D) & ((.)* > ($A | $B) > (.)*)~
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+3 @ {}, {'$A'}, {}, {'$B'}, {}, {}, {'$C'}, {}, {}, {}, {}, {}
+1 @ {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}
+1 @ {}, {}, {}, {}, {}, {'$C'}, {}, {}, {}, {}, {}, {}
+5 @ {'$A'}, {'$A'}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}
+6 @ {'$A'}, {'$A'}, {'$A'}, {'$C'}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}
+=
+$A % left, $B % right, $C % down
+$A % right, $B % down, $C % up
+$A % down, $B % up, $C % left
+$A % up, $B % left, $C % jump
+=
+repeat in any order: $A, $B, $C
+Go $A, or $B, or $C and repeat
+Repeatedly go $A, $B, or $C
+=
+((.)* > ($A | $B | $C))+
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+3 @ {}, {'$A'}, {}, {'$B'}, {}, {}, {'$C'}, {}, {}, {}, {}, {}
+1 @ {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}
+1 @ {}, {}, {}, {}, {}, {'$C'}, {}, {}, {}, {}, {}, {}
+5 @ {'$A'}, {'$A'}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}
+6 @ {'$A'}, {'$A'}, {'$A'}, {'$C'}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}
+=
+$A % food, $B % mail, $C % garden
+$A % key, $B % coffee, $C % house
+$A % tool, $B % petrol, $C % base
+$A % food, $B % equipment, $C % goldmine
+=
+get the $A or $B or go to the $C, repeat
+This task is simple. Either go to $C, or collect the $A or $B.
+You have three options to repeat: go to $C, find $A, or find $B.
+=
+((.)* > ($A | $B | $C))+
