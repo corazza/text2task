@@ -1,42 +1,32 @@
-ACTIONS
+left ACTION
+right ACTION
+down ACTION
+up ACTION
+jump ACTION
 
-left
-right
-down
-up
-jump
+office PLACE
+parking lot PLACE
+goldmine PLACE
+mountain PLACE
 
-PLACES WITH MORE TILES
+house PLACE
+apartment PLACE
+garage PLACE
+garden PLACE
+camp PLACE
+hospital PLACE
+field PLACE
+base PLACE
+market PLACE
 
-office
-parking lot
-goldmine
-mountain
+coffee OBJECT
+mail OBJECT
+key OBJECT
+equipment OBJECT
+petrol OBJECT
+tools OBJECT
+food OBJECT
 
-PLACES WITH A SINGLE TILE
-
-house
-apartment
-garage
-garden
-camp
-hospital
-field
-base
-market
-
-OBJECTS
-
-coffee
-mail
-key
-equipment
-petrol
-tools
-food
-
-AVOID
-
-mine
-trap
-hole
+mine AVOID
+trap AVOID FALL_IN_A
+hole AVOID FALL_IN_A

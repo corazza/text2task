@@ -2,7 +2,7 @@ import IPython
 import numpy as np
 
 from consts import *
-from datasets_common import ab_to_lines, ab_to_lines_human, ast_rewrites, augment_examples, create_if_doesnt_exist, examples_to_ab, filter_length, load_examples, remove_residuals, sanity_checks, save_lines, text_rewrites, validate_length, validate_runs
+from datasets_common import ab_to_lines, ab_to_lines_human, add_term_rewrites, ast_rewrites, augment_examples, create_if_doesnt_exist, examples_to_ab, filter_length, load_examples, load_terms, remove_residuals, sanity_checks, save_lines, text_rewrites, validate_length, validate_runs
 from training import get_args, get_tokenizer
 
 
@@ -15,6 +15,7 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
     path_human = create_if_doesnt_exist(
         'preprocessed_datasets/txt2task', output_name, '.txt')
 
+    terms = load_terms('datasets/txt2task/terms.txt')
     examples = load_examples(load_from[0])
     for load_path in load_from[1:]:
         examples.extend(load_examples(load_path))
@@ -24,6 +25,7 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
     examples = augment_examples(examples)
     if VALIDATE_AUGMENTED or validate_all:
         validate_runs(examples)
+    examples = add_term_rewrites(examples, terms, TERMS_INFLATION_LIMIT)
     examples = text_rewrites(examples)
     if VALIDATE_TEXT_REWRITES or validate_all:
         validate_runs(examples)

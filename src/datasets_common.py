@@ -1,3 +1,4 @@
+import numpy as np
 import copy
 from curses.ascii import isalpha
 from pathlib import Path
@@ -9,9 +10,11 @@ import IPython
 from consts import *
 from regex_printer import expr_to_str
 from regex_validation import equivalent
-from example_parser import Example, parse_examples, line_iter
+from example_parser import Example, parse_examples
+from parser_util import line_iter
 import compiler_interface
 from compiler_interface import compile
+from terms_parser import parse_terms
 
 
 def create_if_doesnt_exist(in_dir: str, filename: str, suffix: str) -> Path:
@@ -23,6 +26,11 @@ def create_if_doesnt_exist(in_dir: str, filename: str, suffix: str) -> Path:
 def load_examples(path: str) -> list[Example]:
     lines = more_itertools.peekable(line_iter(path))
     return parse_examples(lines)
+
+
+def load_terms(path: str) -> dict[str, list[str]]:
+    lines = more_itertools.peekable(line_iter(path))
+    return parse_terms(lines)
 
 
 def augment_examples(examples: list[Example]) -> list[Example]:
@@ -38,6 +46,39 @@ def apply_text_rewrite_with_concat(x: str, rewrite: list[Tuple[str, str]], sep: 
             right = right.replace('the_', '')
         new_string = new_string.replace(left, right)
     return new_string
+
+
+def get_random_term_example_from_tag(terms: dict[str, list[str]], term_tag: str) -> str:
+    applicable: list[str] = []
+    for term, tags in terms.items():
+        if term_tag in tags:
+            applicable.append(term)
+    return np.random.choice(np.array(applicable))
+
+
+def add_term_rewrites(examples: list[Example], terms: dict[str, list[str]], num_new: int) -> list[Example]:
+    for example in examples:
+        new_rewrites: list[list[Tuple[str, str]]] = []
+        for rewrite in example.example_rewrites:
+            new_versions: list[list[Tuple[str, str]]] = []
+            for i in range(num_new):
+                new_rewrite: list[Tuple[str, str]] = []
+                found_new_version: bool = False
+                for left, right in rewrite:
+                    if right.isupper():
+                        new_rewrite.append(
+                            (left, get_random_term_example_from_tag(terms, right)))
+                        found_new_version = True
+                    else:
+                        new_rewrite.append((left, right))
+                if found_new_version:
+                    new_versions.append(new_rewrite)
+            if len(new_versions) > 0:
+                new_rewrites.extend(new_versions)
+            else:
+                new_rewrites.append(rewrite)
+        example.example_rewrites = new_rewrites
+    return examples
 
 
 def text_rewrites(examples: list[Example]) -> list[Example]:

@@ -1,8 +1,4 @@
-before exiting through the PLACE%, grab the OBJECT%! never step on a MINE
-without stepping on a MINE: collect the OBJECT% and get to the PLACE%
-(in reverse order) PLACE% (avoid MINE) then OBJECT% (also avoid MINE)
-=
-OBJECT%&!MINE > PLACE%&!MINE
+
 
 before exiting through the PLACE%, grab the OBJECT%! never fall into a TRAP
 without falling into a TRAP: collect the OBJECT% and get to the PLACE%

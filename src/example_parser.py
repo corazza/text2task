@@ -4,6 +4,8 @@ import more_itertools
 from typing import Iterator, Optional, Tuple
 from compiler_interface import compile
 
+from parser_util import *
+
 # examples -> example
 # examples -> example examples
 
@@ -28,7 +30,7 @@ class Example:
         self.descs = descs
         self.srcs = srcs
         self.runs = runs
-        self.example_rewrites = example_rewrites
+        self.example_rewrites: list[list[Tuple[str, str]]] = example_rewrites
 
     def produce_examples(self) -> list[Tuple[str, str]]:
         result: list[Tuple[str, str]] = []
@@ -36,13 +38,6 @@ class Example:
             for src in self.srcs:
                 result.append((desc, src))
         return result
-
-
-def line_iter(path: str) -> Iterator[str]:
-    with open(path, 'r') as f:
-        for line in f:
-            yield line.strip()
-    yield ''
 
 
 def parse_examples(lines: more_itertools.peekable) -> list[Example]:
@@ -86,7 +81,6 @@ def compare_rewrite(a: Tuple[str, str], b: Tuple[str, str]):
 
 
 def line_to_rewrite(line: str) -> list[Tuple[str, str]]:
-    print(line)
     example_rewrite: list[Tuple[str, str]] = []
     line_apart: list[str] = line.split(',')
     for rewrite in line_apart:

@@ -2,6 +2,7 @@ from transformers import pipeline, set_seed
 import IPython
 
 import compiler_interface
+from reward_machine import RewardMachine
 
 
 def synthesize(generator, desc: str) -> str:
@@ -18,20 +19,25 @@ def synthesize(generator, desc: str) -> str:
     return final_output.split(generator.tokenizer.sep_token)[-1]
 
 
+def get_rm(generator, desc: str) -> Tuple[RewardMachine, str]:  # type: ignore
+    for i in range(10):
+        try:
+            src = synthesize(generator, desc)
+            print(src)
+            ast = compiler_interface.parse(src)
+            nfa, _ = compiler_interface.get_nfa(src)
+            dfa, _ = compiler_interface.get_dfa(src)
+            return compiler_interface.compile(src), src
+        except Exception as e:
+            pass
+    print(f"couldn't produce syntactically valid output in 10 tries, giving up")
+
+
 def answer_query(generator):
     desc = input(': ')
-    output = synthesize(generator, desc)
-    print(output)
-    try:
-        src = output
-        ast = compiler_interface.parse(src)
-        nfa, _ = compiler_interface.get_nfa(src)
-        dfa, _ = compiler_interface.get_dfa(src)
-        rm = compiler_interface.compile(src)
-        IPython.embed()
-    except Exception as e:
-        print('response syntactically invalid')
-        print(e)
+    rm, src = get_rm(generator, desc)
+    if rm != None:
+        IPython.embed()  # type: ignore
 
 
 def test_model():
