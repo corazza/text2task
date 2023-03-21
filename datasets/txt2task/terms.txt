@@ -1,23 +1,27 @@
-left ACTION
-right ACTION
-down ACTION
-up ACTION
+left ACTION, DIRECTION
+right ACTION, DIRECTION
+down ACTION, DIRECTION
+up ACTION, DIRECTION
 jump ACTION
+grab ACTION
+collect ACTION
+drop ACTION
 
 office PLACE
-parking lot PLACE
 goldmine PLACE
 mountain PLACE
-
 house PLACE
 apartment PLACE
 garage PLACE
 garden PLACE
 camp PLACE
 hospital PLACE
-field PLACE
 base PLACE
 market PLACE
+
+forest AREA
+field AREA
+town AREA
 
 coffee OBJECT
 mail OBJECT

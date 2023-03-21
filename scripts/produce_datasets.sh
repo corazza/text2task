@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd ~/repos/text2task
-PYTHONPATH=$PWD/src python3 src/tools/produce_datasets.py config/test_finetune.json
+PYTHONPATH=$PWD/src python3 src/tools/produce_datasets.py config/start.json

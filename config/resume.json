@@ -1,0 +1,13 @@
+{
+    "model_name_or_path": "distilgpt2",
+    "per_device_train_batch_size": 8,
+    "per_device_eval_batch_size": 8,
+    "do_train": true,
+    "do_eval": true,
+    "output_dir": "/mnt/e/work_dirs/text2task_distilgpt2/",
+    "overwrite_output_dir": false,
+    "train_file": "../preprocessed_datasets/txt2task/train.json",
+    "overwrite_cache": false,
+    "num_train_epochs": 20,
+    "seed": 42
+}

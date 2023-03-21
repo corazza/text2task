@@ -3,6 +3,7 @@ import IPython
 
 import compiler_interface
 from reward_machine import RewardMachine
+from typing import Tuple
 
 
 def synthesize(generator, desc: str) -> str:

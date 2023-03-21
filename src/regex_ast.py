@@ -255,8 +255,9 @@ class Or(RENodeMul):
         results: list[RENode] = [Or(children).clean()]
         results.extend(shuffle_pick_n([Or(children).clean()
                        for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_REORDER))
-        results.extend(shuffle_pick_n([self._rewrite_demorgan(children, clean=True)
-                                       for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_DEMORGAN))
+        if np.random.random() < REWRITE_VALIDATION_EMPTY_PROB:
+            results.extend(shuffle_pick_n([self._rewrite_demorgan(children, clean=True)
+                                           for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_DEMORGAN))
         results.extend(shuffle_pick_n(
             self._rewrite_distributive_and_inverse(children), REWRITE_INFLATION_LIMIT_DISTRIBUTIVE))
         results.extend(shuffle_pick_n(
@@ -318,8 +319,9 @@ class And(RENodeMul):
         results: list[RENode] = [And(children).clean()]
         results.extend(shuffle_pick_n([And(children).clean()
                        for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_REORDER))
-        results.extend(shuffle_pick_n([self._rewrite_demorgan(children, clean=True)
-                                       for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_DEMORGAN))
+        if np.random.random() < REWRITE_VALIDATION_EMPTY_PROB:
+            results.extend(shuffle_pick_n([self._rewrite_demorgan(children, clean=True)
+                                           for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_DEMORGAN))
         results.extend(shuffle_pick_n(
             self._rewrite_distributive_and(children), REWRITE_INFLATION_LIMIT_DISTRIBUTIVE))
         return results
@@ -441,8 +443,9 @@ class Complement(RENodeSing):
         results.append(Complement(child).remove_double_negation())
         if isinstance(child, Complement):
             results.append(child.child)
-        results.extend(shuffle_pick_n(self._demorgans(
-            child), REWRITE_INFLATION_LIMIT_DEMORGAN))
+        if np.random.random() < REWRITE_VALIDATION_EMPTY_PROB:
+            results.extend(shuffle_pick_n(self._demorgans(
+                child), REWRITE_INFLATION_LIMIT_DEMORGAN))
         return results
 
 

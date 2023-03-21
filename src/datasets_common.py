@@ -53,6 +53,7 @@ def get_random_term_example_from_tag(terms: dict[str, list[str]], term_tag: str)
     for term, tags in terms.items():
         if term_tag in tags:
             applicable.append(term)
+    assert len(applicable) > 0
     return np.random.choice(np.array(applicable))
 
 
@@ -64,10 +65,16 @@ def add_term_rewrites(examples: list[Example], terms: dict[str, list[str]], num_
             for i in range(num_new):
                 new_rewrite: list[Tuple[str, str]] = []
                 found_new_version: bool = False
+                gotten_terms: set[str] = set()
                 for left, right in rewrite:
                     if right.isupper():
-                        new_rewrite.append(
-                            (left, get_random_term_example_from_tag(terms, right)))
+                        replacement = get_random_term_example_from_tag(
+                            terms, right)
+                        while replacement in gotten_terms:
+                            replacement = get_random_term_example_from_tag(
+                                terms, right)
+                        gotten_terms.add(replacement)
+                        new_rewrite.append((left, replacement))
                         found_new_version = True
                     else:
                         new_rewrite.append((left, right))
