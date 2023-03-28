@@ -31,6 +31,7 @@ class Example:
         self.srcs = srcs
         self.runs = runs
         self.example_rewrites: list[list[Tuple[str, str]]] = example_rewrites
+        self.parent = self
 
     def produce_examples(self) -> list[Tuple[str, str]]:
         result: list[Tuple[str, str]] = []

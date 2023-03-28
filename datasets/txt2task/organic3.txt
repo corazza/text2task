@@ -1,0 +1,124 @@
+0 @ {}, {}, {}, {}
+0 @ {}, {}, {'door'}, {}, {'secret'}
+0 @ {}, {}, {'door'}, {'secret'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'base'}
+1 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {}, {'friendly', 'base'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {'detected'}, {}, {'friendly', 'base'}
+=
+=
+You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the secret documents back to our base.
+First find the secret door to the enemy base. In there, get the secret documents and bring them back to our base. Don't get detected!
+This is a stealth mission to find the secret enemy documents. Infiltrate their base through the secret door, and bring them back to ours. You better not get detected.
+This task is failed by detection. Infiltrate the enemy base (find the secret entrance) and then return to the friendly base.
+=
+((.)* > door&secret > (enemy&base)+ > enemy&base&documents&secret > (.)* > friendly&base) & (!detected)*
+
+0 @ {}, {}
+0 @ {}, {}, {'$A'}, {'rock'}, {}
+0 @ {}, {}, {'$A'}, {}, {'rock'}, {'$A'}, {'rock'}, {}
+0 @ {}, {}, {'$A'}, {'rock'}, {}
+1 @ {}, {}, {'$A'}, {}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'rock'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}
+2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock'}, {'rock', '$A'}, 
+2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock', '$A'}
+2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'$A'}, {'rock', '$A'}
+=
+$A % AREA
+$A % AREA, rock samples % empty cans, rock % can
+=
+Go to the $A and gather rock samples
+Go to the $A and gather rocks
+We need rock samples from the $A
+Once you get to the $A gather rock samples
+Find rock samples in the $A
+=
+(.)* > (($A)* > rock&$A)+
+(.)* > ($A)* > rock&$A > (($A)* > rock&$A)*
+
+0 @ {}, {}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {}, {'rock'}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}
+1 @ {}, {}, {'goldmine'}, {}, {'rock', 'goldmine'}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock'}, {'rock', 'goldmine'}, 
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+=
+goldmine % parking lot, gold mine % parking lot, rock samples % empty cans, rock % empty_can, rocks % cans
+goldmine % silver mine, gold mine % silver mine, rock samples % silver ore, rock % silver ore, rocks % silver ore samples
+=
+Go to the gold mine and gather rock samples, without leaving the goldmine.
+Go to the goldmine and avoid any rocks on the way there. In the gold mine, collect rock samples.
+There are many rocks in the goldmine. Go and collect them, but on the way to the goldmine avoid the rocks.
+=
+(!rock)* > ((goldmine)* > rock&goldmine)+
+
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
+=
+=
+Visit the first base, the second base, and the third base. Start from any of them, but respect that order. Never visit the same base twice.
+=
+(!base_1&!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 | (!base_1&!base_2&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 > (!base_1&!base_2&!base_3)* > base_1 | (!base_1&!base_2&!base_3)* > base_3 > (!base_1&!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > base_2
+
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
+1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
+1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {'base_2'}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
+1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {'base_2'}, {'base_2'}, {}, {'base_3'}, {'base_3'}, {'base_3'}, {}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
+=
+=
+Visit the first base, the second base, and the third base. Start from any of the bases, but respect that order.
+Visit the first base, the second base, and the third base. Start from any of the bases, but respect that order. You can visit the same base twice.
+Visit the first base, the second base, and the third base. You can repeat visits. Start from any of them, but respect that order.
+=
+(!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 | (!base_1&!base_3)* > (base_2)+ > (!base_1&!base_2)* > (base_3)+ > (!base_1&!base_2&!base_3)* > (base_1)+ | (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > (base_2)+
+
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
+0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
+0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
+=
+=
+Patrol the first base, second base, and third base in that order (start at base one)
+Patrol the three bases in order 1, 2, and 3 (beginning at 1)
+=
+((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+
+((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+
+
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
+2 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
+2 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
+=
+=
+Patrol the first base, second base, and third base, starting from any of them. Cycle them.
+Patrol the three bases in order 1, 2, and 3 starting from any of them.
+=
+((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+ | ((!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1)+ | ((!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2)+
+((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+ | ((!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1)+ | ((!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2)+

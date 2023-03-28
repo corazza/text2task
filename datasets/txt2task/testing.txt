@@ -1,0 +1,22 @@
+0 @ {}, {}, {}
+0 @ {}, {}, {}, {'$B'}, {'$B'}, {}, {'$A'}
+0 @ {}, {}, {}, {'$C'}, {'$C'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$B'}, {'$C'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$C'}, {'$B'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}
+0 @ {}, {}, {}, {'$B'}, {'$B'}, {'$C'}, {'$C'}, {'$A'}, {'$A'}
+1 @ {}, {}, {}, {'$C'}, {}, {'$B'}, {}, {'$A'}
+0 @ {}, {}, {}, {'$C'}, {'$C'}, {'$B'}, {'$B'}, {'$A'}, {'$A'}
+1 @ {}, {}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}, {}, {}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}
+1 @ {}, {}, {}, {'$C'}, {}, {'$B'}, {}, {'$A'}, {}, {}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}
+=
+$A % PLACE, $B % OBJECT, $C % OBJECT
+=
+before going to the $A, get the $B and the $C in any order
+get the $B and the $C to the $A
+first get the $B then get the $C, or first get the $C then get the $B, then go to the $A
+grab the $B then the $C, or $C then the $B, and go to the $A
+once you get the $B and the $C visit the $A
+bring the $B and the $C to the $A in any order
+=
+(!$C&!$B)* > ($B > (!$C)* > $C | $C > (!$B)* > $B) > (!$B&!$C&!$A)* >$A

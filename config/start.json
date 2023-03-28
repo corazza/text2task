@@ -8,6 +8,6 @@
     "overwrite_output_dir": true,
     "train_file": "../preprocessed_datasets/txt2task/train.json",
     "overwrite_cache": true,
-    "num_train_epochs": 20,
+    "num_train_epochs": 5,
     "seed": 42
 }

@@ -1,0 +1,95 @@
+0 @ {}, {}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}
+1 @ {}, {}, {'orchard'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}
+1 @ {}, {}, {'orchard'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}
+2 @ {}, {}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}
+=
+red apples % bananas, red_apple % banana
+red apples % mines, red_apple % mine, orchard % field
+red apples % targets, red_apple % target, the orchard % the red area, orchard % red_area
+=
+Find all the red apples in the orchard
+Find all the red apples in the orchard. Once you enter the orchard, don't leave it!
+=
+(!orchard)* > (orchard)* & ((.)* > red_apple)+
+
+0 @ {}, {}
+0 @ {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station'}
+0 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station'}
+1 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}
+1 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}, {}
+1 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}, {}, {'gas_station', 'fill_up'}
+2 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}, {}, {'gas_station'}, {'gas_station', 'fill_up'}
+2 @ {}, {'gas_station'}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}, {}, {'gas_station'}, {'gas_station', 'fill_up'}
+=
+=
+Drive to the gas station and fill up the car
+=
+(.)* > (gas_station)+ > gas_station&fill_up
+
+0 @ {}, {}, {}
+1 @ {}, {}, {'zoo'}
+1 @ {}, {}, {'park'}
+1 @ {}, {}, {'zoo', 'park'}
+1 @ {}, {}, {'zoo'}, {}
+1 @ {}, {}, {'park'}, {}
+1 @ {}, {}, {'zoo', 'park'}, {}
+1 @ {}, {}, {'park'}, {}, {'park'}
+1 @ {}, {}, {'park'}, {}, {'zoo', 'park'}
+=
+park % hospital, zoo % building
+park % parking lot, zoo % store
+park % store
+=
+Visit the park or the zoo
+=
+(!park&!zoo)* > (park|zoo)
+
+0 @ {}, {}, {}
+0 @ {}, {}, {'key'},
+0 @ {}, {}, {'key'}, {'key'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'house'}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {'house'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'house'}, {}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {}, {'house'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}
+1 @ {}, {}, {'key'}, {}, {}, {}, {'house', 'key'}, {}
+1 @ {}, {}, {'key'}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}, {}, {'house'}, {'house', 'key'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}, {}, {'house'}, {'apartment', 'key'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}
+1 @ {}, {}, {}, {}, {}, {}, {'house', 'key'}, {}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}, {'house', 'key'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}, {'apartment', 'key'}
+=
+=
+Enter the house or the apartment using the correct key
+=
+(!house&!apartment)* > (house | apartment) & key
+
+0 @ {}, {}, {}
+0 @ {}, {}, {'key'},
+0 @ {}, {}, {'key'}, {'key'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'house'}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {'house'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'house'}, {}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {}, {'house'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}
+1 @ {}, {}, {'key'}, {}, {}, {}, {'house', 'key'}, {}
+1 @ {}, {}, {'key'}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}, {}, {'house'}, {'house', 'key'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}, {}, {'house'}, {'apartment', 'key'}
+0 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}
+0 @ {}, {}, {}, {}, {}, {}, {'house', 'key'}, {}
+0 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {}, {'house', 'key'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {}, {'apartment', 'key'}
+=
+=
+Enter the house or the apartment using the correct key. Collect the key before
+=
+(!house&!apartment&!key)* > key > (!house&!apartment)* > (house | apartment) & key

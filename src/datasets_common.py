@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 import copy
 from curses.ascii import isalpha
@@ -48,43 +49,48 @@ def apply_text_rewrite_with_concat(x: str, rewrite: list[Tuple[str, str]], sep: 
     return new_string
 
 
-def get_random_term_example_from_tag(terms: dict[str, list[str]], term_tag: str) -> str:
+def get_all_terms_from_tag(terms: dict[str, list[str]], term_tag: str) -> list[str]:
     applicable: list[str] = []
     for term, tags in terms.items():
         if term_tag in tags:
             applicable.append(term)
     assert len(applicable) > 0
-    return np.random.choice(np.array(applicable))
+    return applicable
 
 
 def add_term_rewrites(examples: list[Example], terms: dict[str, list[str]], num_new: int) -> list[Example]:
     for example in examples:
+        num_old_rewrites = len(example.example_rewrites)
         new_rewrites: list[list[Tuple[str, str]]] = []
         for rewrite in example.example_rewrites:
             new_versions: list[list[Tuple[str, str]]] = []
-            for i in range(num_new):
-                new_rewrite: list[Tuple[str, str]] = []
-                found_new_version: bool = False
-                gotten_terms: set[str] = set()
-                for left, right in rewrite:
-                    if right.isupper():
-                        replacement = get_random_term_example_from_tag(
-                            terms, right)
-                        while replacement in gotten_terms:
-                            replacement = get_random_term_example_from_tag(
-                                terms, right)
-                        gotten_terms.add(replacement)
-                        new_rewrite.append((left, replacement))
-                        found_new_version = True
-                    else:
-                        new_rewrite.append((left, right))
-                if found_new_version:
-                    new_versions.append(new_rewrite)
+            all_replacements: dict[str, list[str]] = dict()
+            gotten_terms: set[str] = set()
+            for left, right in rewrite:
+                if right.isupper():
+                    all_replacements[left] = get_all_terms_from_tag(
+                        terms, right)
+                else:
+                    all_replacements[left] = [right]
+            value_combinations = itertools.product(*all_replacements.values())
+            for combination in value_combinations:
+                if len(combination) != len(set(combination)):
+                    continue
+                new_dict = {k: v for k, v in zip(
+                    all_replacements.keys(), combination)}
+                new_versions.append(list(new_dict.items()))
             if len(new_versions) > 0:
                 new_rewrites.extend(new_versions)
             else:
                 new_rewrites.append(rewrite)
-        example.example_rewrites = new_rewrites
+        np.random.shuffle(new_rewrites)
+        seen = set()
+        for rewrite in new_rewrites:
+            seen.add(tuple(rewrite))
+        assert len(seen) == len(new_rewrites)
+        num_new_rewrites: int = len(new_rewrites)
+        to_take: int = min(num_new_rewrites, num_new*num_old_rewrites)
+        example.example_rewrites = new_rewrites[:to_take]
     return examples
 
 
@@ -101,8 +107,9 @@ def text_rewrites(examples: list[Example]) -> list[Example]:
                 desc, rewrite, ' ') for desc in example.descs]
             new_srcs: list[str] = [apply_text_rewrite_with_concat(
                 src, rewrite, '_') for src in example.srcs]
-            new_examples.append(
-                Example([], new_runs, new_descs, new_srcs))
+            new_example = Example([], new_runs, new_descs, new_srcs)
+            new_example.parent = example
+            new_examples.append(new_example)
     return examples + new_examples
 
 
@@ -162,25 +169,25 @@ def validate_equiv(examples: list[Example]):
     raise NotImplementedError()
 
 
-def example_length(ab: Tuple[str, str], tokenizer) -> int:
-    encoded = tokenizer('<|bos|>' + ab[0] + '<|sep|>' + ab[1] + '<|eos|>')
+def example_length(ab: Tuple[Example, str, str], tokenizer) -> int:
+    encoded = tokenizer('<|bos|>' + ab[1] + '<|sep|>' + ab[2] + '<|eos|>')
     return len(encoded.input_ids)
 
 
-def validate_length(abs: list[Tuple[str, str]], tokenizer):
+def validate_length(abs: list[Tuple[Example, str, str]], tokenizer):
     for ab in abs:
         ab_len = example_length(ab, tokenizer)
         assert ab_len <= PAD_SIZE, f'{ab[0]} => {ab[1]} over {PAD_SIZE}: {ab_len}'
 
 
-def filter_length(abs: list[Tuple[str, str]], tokenizer):
+def filter_length(abs: list[Tuple[Example, str, str]], tokenizer):
     result = list(
         filter(lambda x: example_length(x, tokenizer) <= PAD_SIZE, abs))
     return result
 
 
-def sanity_check(ab: Tuple[str, str]):
-    desc, src = ab
+def sanity_check(ab: Tuple[Example, str, str]):
+    e, desc, src = ab
     for i, c in enumerate(src):
         if i == 0 or i == len(src) - 1:
             continue
@@ -188,18 +195,22 @@ def sanity_check(ab: Tuple[str, str]):
             assert not isalpha(src[i-1]) or not isalpha(src[i+1])
 
 
-def sanity_checks(abs: list[Tuple[str, str]]):
+def sanity_checks(abs: list[Tuple[Example, str, str]]):
     for ab in abs:
         sanity_check(ab)
 
 
-def remove_residuals(abs: list[Tuple[str, str]]) -> list[Tuple[str, str]]:
-    result: list[Tuple[str, str]] = []
-    for a, b in abs:
+def remove_residuals(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    result: list[Tuple[Example, str, str]] = []
+    for e, a, b in abs:
         if '$' in a or '$' in b:
             continue
-        result.append((a, b))
+        result.append((e, a, b))
     return result
+
+
+def make_unique(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    return list(set(abs))
 
 
 def save_lines(path: Path, lines: list[str]):
@@ -208,24 +219,60 @@ def save_lines(path: Path, lines: list[str]):
         print(f'wrote {len(lines)} lines to {path}')
 
 
-def examples_to_ab(examples: list[Example]) -> list[Tuple[str, str]]:
-    lines: list[Tuple[str, str]] = []
+def examples_to_ab(examples: list[Example]) -> list[Tuple[Example, str, str]]:
+    lines: list[Tuple[Example, str, str]] = []
     for example in examples:
         for desc in example.descs:
             for src in example.srcs:
-                lines.append((desc, src))
+                lines.append((example, desc, src))
     return lines
 
 
-def ab_to_lines(ab: list[Tuple[str, str]]) -> list[str]:
+def example_statistics(example: Example) -> dict[str, int | str]:
+    return {
+        'representative_desc': example.descs[0],
+        'num_descs': len(example.descs),
+        'num_srcs': len(example.srcs),
+        'num_product': len(example.descs) * len(example.srcs),
+    }
+
+
+def examples_statistics(examples: list[Example]) -> list[dict[str, int | str]]:
+    return [example_statistics(example) for example in examples]
+
+
+def ab_statistics(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
+    result = dict()
+    for e, desc, src in abs:
+        representative = e.parent.descs[0]
+        if representative not in result:
+            result[representative] = 0
+        result[representative] += 1
+    return result
+
+
+def apply_cap(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    taken: dict[str, int] = dict()
+    result: list[Tuple[Example, str, str]] = list()
+    for e, desc, src in abs:
+        representative = e.parent.descs[0]
+        if representative not in taken:
+            taken[representative] = 0
+        if taken[representative] < SENTENCE_CAP:
+            result.append((e, desc, src))
+            taken[representative] += 1
+    return result
+
+
+def ab_to_lines(abs: list[Tuple[Example, str, str]]) -> list[str]:
     result: list[str] = []
-    for desc, src in ab:
+    for e, desc, src in abs:
         result.append(desc_src_to_line(desc, src))
     return result
 
 
-def ab_to_lines_human(ab: list[Tuple[str, str]]) -> list[str]:
+def ab_to_lines_human(ab: list[Tuple[Example, str, str]]) -> list[str]:
     result: list[str] = []
-    for desc, src in ab:
+    for e, desc, src in ab:
         result.append(desc_src_to_line_human(desc, src))
     return result
