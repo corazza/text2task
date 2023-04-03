@@ -26,12 +26,13 @@ from parser_util import *
 
 
 class Example:
-    def __init__(self, example_rewrites: list[list[Tuple[str, str]]], runs: list[Tuple[int, list[frozenset[str]]]], descs: list[str], srcs: list[str]):
+    def __init__(self, example_rewrites: list[list[Tuple[str, str]]], runs: list[Tuple[int, list[frozenset[str]]]], descs: list[str], srcs: list[str], id: str):
         self.descs = descs
         self.srcs = srcs
         self.runs = runs
         self.example_rewrites: list[list[Tuple[str, str]]] = example_rewrites
         self.parent = self
+        self.id: str = id
 
     def produce_examples(self) -> list[Tuple[str, str]]:
         result: list[Tuple[str, str]] = []
@@ -39,6 +40,12 @@ class Example:
             for src in self.srcs:
                 result.append((desc, src))
         return result
+
+    def representative(self) -> str:
+        if self.id == '-1':
+            return self.parent.descs[0]
+        else:
+            return str(self.id)
 
 
 def parse_examples(lines: more_itertools.peekable) -> list[Example]:
@@ -63,12 +70,22 @@ def parse_example(lines: more_itertools.peekable) -> Example:
     descs = parse_descs(lines)
     parse_the_separator(lines, '=')
     srcs = parse_srcs(lines)
+    nextline = lines.peek()
+    if '=' in nextline:
+        parse_the_separator(lines, '=')
+        id = parse_id(lines)
+    else:
+        id = '-1'
     parse_the_separator(lines, '')
-    return Example(example_rewrites, runs, descs, srcs)
+    return Example(example_rewrites, runs, descs, srcs, id)
+
+
+def parse_id(lines: more_itertools.peekable) -> str:
+    return next(lines)
 
 
 def parse_example_rewrites(lines: more_itertools.peekable) -> list[list[Tuple[str, str]]]:
-    rewrite_lines = parse_until_separator(lines, '=')
+    rewrite_lines = parse_until_separator(lines, {'='})
     return [line_to_rewrite(line) for line in rewrite_lines]
 
 
@@ -97,7 +114,7 @@ def line_to_rewrite(line: str) -> list[Tuple[str, str]]:
 
 
 def parse_runs(lines: more_itertools.peekable) -> list[Tuple[int, list[frozenset[str]]]]:
-    run_lines = parse_until_separator(lines, '=')
+    run_lines = parse_until_separator(lines, {'='})
     return [line_to_run(line) for line in run_lines]
 
 
@@ -109,16 +126,16 @@ def line_to_run(line: str) -> Tuple[int, list[frozenset[str]]]:
 
 
 def parse_descs(lines: more_itertools.peekable) -> list[str]:
-    return parse_until_separator(lines, '=')
+    return parse_until_separator(lines, {'='})
 
 
 def parse_srcs(lines: more_itertools.peekable) -> list[str]:
-    return parse_until_separator(lines, '')
+    return parse_until_separator(lines, {'', '='})
 
 
-def parse_until_separator(lines: more_itertools.peekable, sep: str) -> list[str]:
+def parse_until_separator(lines: more_itertools.peekable, sep: set[str]) -> list[str]:
     parsed_lines: list[str] = []
-    while lines.peek() != sep:
+    while lines.peek() not in sep:
         line = next(lines)
         parsed_lines.append(line.strip())
     return parsed_lines

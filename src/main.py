@@ -75,7 +75,7 @@ def test_compiler():
 
     # src = '(A)~'
     # src = '((A)~)*'
-    src = '(!$C&!$B)* > ($B > (!$C)* > $C | $C > $B) > (!$B&!$C&!$A)* >$A'
+    src = '((.)* > ($A | $B | $C))+'
 
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)

@@ -191,7 +191,7 @@ def main():
         config = AutoConfig.from_pretrained(
             model_args.model_name_or_path, **config_kwargs)
     else:
-        config = CONFIG_MAPPING[model_args.model_type]()
+        config = CONFIG_MAPPING[model_args.model_type]()  # type: ignore
         logger.warning(
             "You are instantiating a new config instance from scratch.")
         if model_args.config_overrides is not None:
@@ -312,6 +312,8 @@ def main():
         if training_args.do_eval and not is_torch_tpu_available()
         else None,
     )
+
+    # IPython.embed()  # type: ignore
 
     # Training
     if training_args.do_train:

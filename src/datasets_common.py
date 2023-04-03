@@ -107,7 +107,8 @@ def text_rewrites(examples: list[Example]) -> list[Example]:
                 desc, rewrite, ' ') for desc in example.descs]
             new_srcs: list[str] = [apply_text_rewrite_with_concat(
                 src, rewrite, '_') for src in example.srcs]
-            new_example = Example([], new_runs, new_descs, new_srcs)
+            new_example = Example([], new_runs, new_descs,
+                                  new_srcs, example.id)
             new_example.parent = example
             new_examples.append(new_example)
     return examples + new_examples
@@ -244,7 +245,7 @@ def examples_statistics(examples: list[Example]) -> list[dict[str, int | str]]:
 def ab_statistics(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
     result = dict()
     for e, desc, src in abs:
-        representative = e.parent.descs[0]
+        representative = e.representative()
         if representative not in result:
             result[representative] = 0
         result[representative] += 1
@@ -255,7 +256,7 @@ def apply_cap(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, s
     taken: dict[str, int] = dict()
     result: list[Tuple[Example, str, str]] = list()
     for e, desc, src in abs:
-        representative = e.parent.descs[0]
+        representative = e.representative()
         if representative not in taken:
             taken[representative] = 0
         if taken[representative] < SENTENCE_CAP:

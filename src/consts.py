@@ -1,11 +1,16 @@
-SOURCES = ['organic1', 'organic2', 'organic3', 'organic_asdf']
+SOURCES = ['organic1',
+           'organic2',
+           #    'organic3',
+           'organic_words',
+           'organic_interesting',
+           'organic_asdf']
 
 
 PAD_SIZE = 256
 
 SENTENCE_CAP = 100
 
-TERMS_INFLATION_LIMIT = 10
+TERMS_INFLATION_LIMIT = 1000
 
 REWRITE_INFLATION_LIMIT = 5
 REWRITE_INFLATION_LIMIT_REORDER = 3

@@ -29,7 +29,7 @@ def report_ab_statistics(statistics: dict[str, int]):
         print(f'{v}: {k}')
 
 
-def produce_datasets(output_name: str, load_from: list[str], validate_all: bool):
+def produce_datasets(output_name: str, load_from: list[str], validate_all: bool, inflation_limit: int):
     model_args, data_args, training_args = get_args()
     tokenizer = get_tokenizer(model_args)
 
@@ -50,7 +50,7 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
     examples = augment_examples(examples)
     if VALIDATE_AUGMENTED or validate_all:
         validate_runs(examples)
-    examples = add_term_rewrites(examples, terms, TERMS_INFLATION_LIMIT)
+    examples = add_term_rewrites(examples, terms, inflation_limit)
     examples = text_rewrites(examples)
     if VALIDATE_TEXT_REWRITES or validate_all:
         validate_runs(examples)
@@ -92,8 +92,9 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
 
 
 def main():
-    load_from = [f'datasets/txt2task/{x}.txt' for x in SOURCES]
-    produce_datasets('train', load_from, validate_all=False)
+    load_from = [f'datasets/txt2task/use/{x}.txt' for x in SOURCES]
+    produce_datasets('train', load_from, validate_all=False,
+                     inflation_limit=TERMS_INFLATION_LIMIT)
 
 
 if __name__ == '__main__':
