@@ -43,24 +43,29 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool,
     for load_path in load_from[1:]:
         examples.extend(load_examples(load_path))
 
-    statistics_before_augment = examples_statistics(examples)
-
-    if VALIDATE_RAW or validate_all:
+    if VALIDATE_RAW and not (VALIDATE_AUGMENTED or VALIDATE_TEXT_REWRITES or validate_all):
         validate_runs(examples)
+    # HERE TODO don't pick whole examples to add to: add to all of them, then pick random samples from them in 0.2 proportion
+    print('augmenting examples...')
     examples = augment_examples(examples)
-    if VALIDATE_AUGMENTED or validate_all:
+    if VALIDATE_AUGMENTED and not (VALIDATE_TEXT_REWRITES or validate_all):
         validate_runs(examples)
+    print('adding term rewrites...')
     examples = add_term_rewrites(examples, terms, inflation_limit)
+    print('adding text rewrites...')
     examples = text_rewrites(examples)
     if VALIDATE_TEXT_REWRITES or validate_all:
         validate_runs(examples)
 
-    statistics_after_augment = examples_statistics(examples)
-    # report_statistics(statistics_before_augment, statistics_after_augment)
-
+    print('converting to ab...')
     ab = examples_to_ab(examples)
+    print('removing residuals...')
     ab = remove_residuals(ab)
-    sanity_checks(ab)
+
+    print('shuffling...')
+    np.random.shuffle(ab)  # type: ignore
+    print('applying cap...')
+    ab = apply_cap(ab)
 
     len_before = len(ab)
     ab = filter_length(ab, tokenizer)
@@ -74,8 +79,8 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool,
     diff = len_before - len_after
     print(f'removed {diff} examples based on uniqueness')
 
-    np.random.shuffle(ab)  # type: ignore
-    ab = apply_cap(ab)
+    print('running sanity checks...')
+    sanity_checks(ab)
 
     statistics = ab_statistics(ab)
     report_ab_statistics(statistics)

@@ -83,6 +83,9 @@ def test_compiler():
     dfa, _ = compiler_interface.get_dfa(src)
     rm = compiler_interface.compile(src)
 
+    #
+    #
+
     IPython.embed()  # type: ignore
 
 

@@ -35,7 +35,11 @@ def load_terms(path: str) -> dict[str, list[str]]:
 
 
 def augment_examples(examples: list[Example]) -> list[Example]:
+    # HERE TODO not as probability, but as proportion. pick x and (x, y) combinations beforehand
+    # pick out from (e, a, b)
     examples = ast_rewrites(examples)
+    examples = add_concat(examples)
+    examples = add_avoidance(examples)
     return examples
 
 
@@ -111,6 +115,200 @@ def text_rewrites(examples: list[Example]) -> list[Example]:
                                   new_srcs, example.id)
             new_example.parent = example
             new_examples.append(new_example)
+    return examples + new_examples
+
+
+def clean_desc(desc: str) -> str:
+    desc = desc.replace('..', '.')
+    desc = desc.replace('. .', '.')
+    desc = desc.replace('.,', ',')
+    desc = desc.replace('. ,', ',')
+    return desc
+
+
+def with_avoidance(pvar_class: str, example: Example) -> Example:
+    variable = '$Z'
+    desc_before: dict[str, list[str]] = {
+        'NO_THE': [],
+        'OBJECT_A': [],
+        'AVOID': [],
+        'STEP_ON_A': [],
+        'FALL_IN_A': [],
+        'HIT_A': [],
+    }
+    desc_after: dict[str, list[str]] = {
+        'NO_THE': [],
+        'OBJECT_A': [],
+        'AVOID': [],
+        'STEP_ON_A': [],
+        'FALL_IN_A': [],
+        'HIT_A': [],
+    }
+
+    desc_before['NO_THE'].append(f'Avoid {variable}. ')
+    desc_before['NO_THE'].append(
+        f'Do the following task, but avoid {variable}: ')
+    desc_after['NO_THE'].append(f'. Avoid {variable}.')
+    desc_after['NO_THE'].append(f', and avoid {variable}.')
+    desc_after['NO_THE'].append(f'. Don\'t get near {variable}.')
+
+    desc_before['OBJECT_A'].append(f'Avoid {variable}s. ')
+    desc_before['OBJECT_A'].append(
+        f'Do the following task, but avoid {variable}s: ')
+    desc_after['OBJECT_A'].append(f'. Avoid {variable}s.')
+    desc_after['OBJECT_A'].append(f', and avoid {variable}s')
+    desc_after['OBJECT_A'].append(f'. Don\'t get near {variable}s')
+
+    desc_before['AVOID'].append(f'Avoid {variable}s. ')
+    desc_before['AVOID'].append(
+        f'Do the following task, but avoid {variable}s: ')
+    desc_after['AVOID'].append(f'. Avoid {variable}s')
+    desc_after['AVOID'].append(f', and avoid {variable}s.')
+    desc_after['AVOID'].append(f'. Don\'t get near {variable}s')
+
+    desc_before['STEP_ON_A'].append(f'Don\'t step on {variable}s. ')
+    desc_before['STEP_ON_A'].append(
+        f'Do the following task, but don\'t step on {variable}s: ')
+    desc_after['STEP_ON_A'].append(f', and never step on {variable}s')
+    desc_after['STEP_ON_A'].append(f'. Don\'t step on {variable}s.')
+
+    desc_before['FALL_IN_A'].append(f'Don\'t fall in a {variable}. ')
+    desc_before['FALL_IN_A'].append(
+        f'Do the following task, but don\'t fall in a {variable}: ')
+    desc_after['FALL_IN_A'].append(f', and never fall in a {variable}.')
+    desc_after['FALL_IN_A'].append(f'. Don\'t fall in a {variable}s')
+
+    desc_before['HIT_A'].append(f'Don\'t hit a {variable}. ')
+    desc_before['HIT_A'].append(
+        f'Do the following task, but don\'t hit a {variable}: ')
+    desc_after['HIT_A'].append(f', and never hit a {variable}')
+    desc_after['HIT_A'].append(f'. Don\'t hit a {variable}s.')
+
+    src_after: list[str] = [
+        f'(!{variable})*',  # (!$B)*
+        f'((.)* > {variable} > (.)*)~',  # ((.)* > $B > (.)*)~
+    ]
+
+    new_example_rewrites: list[list[Tuple[str, str]]
+                               ] = [rewrite_list + [(variable, pvar_class)] for rewrite_list in example.example_rewrites]
+    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
+    new_descs: list[str] = []
+    new_srcs: list[str] = []
+    new_id: str = '-1' if example.id == '-1' else f'{example.id}_ADDED_AVOID'
+
+    for (reward, pvars) in example.runs:
+        new_runs.append((reward, pvars))
+        new_runs.append((0, [frozenset({variable})] + pvars))
+
+    for desc in example.descs:
+        if np.random.random() < AUGMENT_PREFER_BEFORE:
+            before: str = random_from(desc_before[pvar_class])
+            new_desc = f'{before}{desc}'
+        else:
+            after: str = random_from(desc_after[pvar_class])
+            new_desc = f'{desc}{after}'
+        new_desc = clean_desc(new_desc)
+        new_descs.append(new_desc)
+
+    for src in example.srcs:
+        for after in src_after:
+            new_src = f'({src})&{after}'
+            new_srcs.append(new_src)
+
+    return Example(new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
+
+
+def map_rewrite(letter: str, example_rewrites: list[Tuple[str, str]]) -> list[Tuple[str, str]]:
+    return [(f'{variable}{letter}', to_class) for (variable, to_class) in example_rewrites]
+
+
+def map_trace(letter: str, trace: list[frozenset[str]]) -> list[frozenset[str]]:
+    return [frozenset([f'{v}{letter}' for v in vars]) for vars in trace]
+
+
+def map_desc(rewrite_list: list[Tuple[str, str]], letter: str, desc: str) -> str:
+    vars = list(reversed(sorted([x for (x, y) in rewrite_list])))
+    for v in vars:
+        desc = desc.replace(v, f'{v}{letter}')
+    return desc
+
+
+def with_concat(example1: Example, example2: Example) -> Example:
+    new_example_rewrites: list[list[Tuple[str, str]]] = [map_rewrite('Q', rewrite_list1) + map_rewrite(
+        'P', rewrite_list2) for rewrite_list1 in example1.example_rewrites for rewrite_list2 in example2.example_rewrites]
+    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
+    new_descs: list[str] = []
+    new_srcs: list[str] = []
+    new_id: str = f'{example1.id}_CONCAT_{example2.id}'
+
+    for (reward1, trace1) in example1.runs:
+        for (reward2, trace2) in example2.runs:
+            reward = reward2 if reward1 > 0 and reward2 > 0 else 0
+            trace = map_trace('Q', trace1) + map_trace('P', trace2)
+            new_runs.append((reward, trace))
+
+    for src1_or in example1.srcs:
+        for src2 in example2.srcs:
+            src1 = map_desc(example1.example_rewrites[0], 'Q', src1_or)
+            src2 = map_desc(example2.example_rewrites[0], 'P', src2)
+            new_src = f'({src1}) > ({src2})'
+            new_srcs.append(new_src)
+
+    for desc1_or in example1.descs:
+        for desc2 in example2.descs:
+            desc1 = desc1_or
+            desc1 = map_desc(example1.example_rewrites[0], 'Q', desc1)
+            desc2 = map_desc(example2.example_rewrites[0], 'P', desc2)
+            if 'first' not in desc1.lower() and 'second' not in desc2.lower():
+                new_descs.append(f'First: {desc1}. Second: {desc2}')
+                new_descs.append(
+                    f'There are two tasks. First {desc1}. Second {desc2}.')
+            if 'first' not in desc1.lower():
+                new_descs.append(f'First: {desc1}. Then: {desc2}')
+                new_descs.append(
+                    f'There are two tasks. First {desc1}. Second {desc2}.')
+            new_descs.append(f'{desc1}. Then {desc2}')
+
+    new_descs = [clean_desc(desc) for desc in new_descs]
+
+    return Example(new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
+
+
+def random_from(xs: list):
+    num = len(xs)
+    i = np.random.randint(num)
+    return xs[i]
+
+
+def add_avoidance(examples: list[Example]) -> list[Example]:
+    new_examples: list[Example] = []
+    for example in examples:
+        eligible_classes = ['NO_THE', 'OBJECT_A',
+                            'AVOID', 'STEP_ON_A', 'FALL_IN_A', 'HIT_A']
+        pvar_class = random_from(eligible_classes)
+        if np.random.random() < ADD_AVOIDANCE_P/2.0:
+            new_examples.append(with_avoidance(pvar_class, example))
+    print(f'avoidance added {len(new_examples)} new examples')
+    return examples + new_examples
+
+
+def add_concat(examples: list[Example]) -> list[Example]:
+    num_eligible = len(
+        [x for x in examples if x.average_desc_length() <= DESC_LENGTH_LIMIT])
+    add_p = ADD_CONCAT_P / num_eligible
+    print(f'eligible={num_eligible}/{len(examples)}')
+    new_examples: list[Example] = []
+    for i, example1 in enumerate(examples):
+        for j, example2 in enumerate(examples):
+            if i == j:
+                continue
+            if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
+                continue
+            if len(example1.example_rewrites) == 0 or len(example2.example_rewrites) == 0:
+                continue  # TODO fix in with_concat
+            if np.random.random() < add_p:
+                new_examples.append(with_concat(example1, example2))
+    print(f'concat added {len(new_examples)} new examples')
     return examples + new_examples
 
 
@@ -222,7 +420,7 @@ def save_lines(path: Path, lines: list[str]):
 
 def examples_to_ab(examples: list[Example]) -> list[Tuple[Example, str, str]]:
     lines: list[Tuple[Example, str, str]] = []
-    for example in examples:
+    for (i, example) in enumerate(examples):
         for desc in example.descs:
             for src in example.srcs:
                 lines.append((example, desc, src))

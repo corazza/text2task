@@ -3,6 +3,7 @@ import IPython
 import more_itertools
 from typing import Iterator, Optional, Tuple
 from compiler_interface import compile
+import copy
 
 from parser_util import *
 
@@ -33,6 +34,18 @@ class Example:
         self.example_rewrites: list[list[Tuple[str, str]]] = example_rewrites
         self.parent = self
         self.id: str = id
+
+    def average_desc_length(self):
+        return float(sum([len(desc) for desc in self.descs])) / len(self.descs)
+
+    def desc_includes_first_second(self):
+        for desc in self.descs:
+            desc = desc.lower()
+            if 'first' in desc:
+                return True
+            if 'second' in desc:
+                return True
+        return False
 
     def produce_examples(self) -> list[Tuple[str, str]]:
         result: list[Tuple[str, str]] = []

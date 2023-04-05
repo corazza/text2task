@@ -1,0 +1,2 @@
+go to the office and stay there
+go to the building => (!trap)* > building&!trap > (!building)* > building&!trap
