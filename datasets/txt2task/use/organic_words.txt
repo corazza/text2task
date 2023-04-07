@@ -139,10 +139,58 @@ Patrol the three bases in order 1, 2, and 3 starting from any of them.
 $A % OBJECT, $B % PLACE
 =
 Find the $A, collect it, then bring it to the $B
-Collect $A. Bring it to the $B
+Collect the $A. Bring it to the $B
 Collect the $A. Bring the collected object to the $B
 =
 (!$A)* > $A > $A&collect > (!$B)* > $B
+=
+Find the $A, collect it, then bring it to the $B
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {'$B'}, {'$B'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}, {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+=
+$A % COLLECTABLE, $B % PLACE
+=
+Find a $A, collect it, then bring it to the $B
+Collect a $A. Bring it to the $B
+Collect a $A. Bring the collected object to the $B
+=
+(!$A)* > $A > $A&collect > (!$B)* > $B
+=
+Find the $A, collect it, then bring it to the $B
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {'$B'}, {'$B'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}, {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+=
+$A % NO_THE, $B % PLACE
+=
+Find $A, collect it, then bring it to the $B
+Collect $A. Bring it to the $B
+Collect $A. Bring the collected object to the $B
+=
+(!$A)* > $A > $A&collect > (!$B)* > $B
+=
+Find the $A, collect it, then bring it to the $B
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}

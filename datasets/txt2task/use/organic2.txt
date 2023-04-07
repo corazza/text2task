@@ -216,7 +216,7 @@ Collect all the $As
 Get all the $As
 Move around. Get as many $As as possible.
 =
-((.)* > $A)+
+((!$A)* > $A)+
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 1 @ {}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}

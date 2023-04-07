@@ -236,7 +236,7 @@ def nfa_union(nfas: list[CompileStateNFA], node_creator: NodeCreator) -> Compile
 
 
 def dfa_complement(dfa_original: CompileStateDFA) -> CompileStateDFA:
-    dfa: CompileStateDFA = copy.deepcopy(dfa_original)
+    dfa: CompileStateDFA = copy.copy(dfa_original)
     to_visit: set[DFANode] = set([dfa.initial])
     new_terminal: set[DFANode] = set()
     visited: set[DFANode] = set()

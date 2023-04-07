@@ -3,14 +3,13 @@ SOURCES = ['organic1',
            #    'organic3',
            'organic_words',
            'organic_interesting',
-           'organic_asdf']
+           'organic_asdf'
+           ]
 
 
 PAD_SIZE = 256
 
-SENTENCE_CAP = 100
-
-TERMS_INFLATION_LIMIT = 100
+SENTENCE_CAP = 30
 
 REWRITE_INFLATION_LIMIT = 5
 REWRITE_INFLATION_LIMIT_REORDER = 3
@@ -22,10 +21,15 @@ REWRITE_VALIDATION_NUM_TESTS = 1000
 
 VALIDATE_RAW = False
 VALIDATE_AUGMENTED = False
-VALIDATE_TEXT_REWRITES = False
+VALIDATE_AB_AUGMENTS = False
 
-ADD_AVOIDANCE_P = 0.15
+ADD_AVOIDANCE_P = 0.35
+ADD_CONCAT_P = 0.35
+ADD_DISJUNCT_P = 0.2
+ADD_CONJUNCT_P = 0.1
+ADD_P = 0.5
+assert abs(ADD_AVOIDANCE_P + ADD_CONCAT_P +
+           ADD_DISJUNCT_P + ADD_CONJUNCT_P - 1) < 1e-9
+
 AUGMENT_PREFER_BEFORE = 0.4
-ADD_CONCAT_P = 0.3
-ADD_DISJUNCT_P = 0.3
 DESC_LENGTH_LIMIT = 50

@@ -1,2 +1,4 @@
 go to the office and stay there
 go to the building => (!trap)* > building&!trap > (!building)* > building&!trap
+Go left. Then, go down => left > left > down
+visit the house, then go to the forest => (!house)* > house > (!forest)* > forest&forest

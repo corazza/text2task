@@ -1,3 +1,5 @@
+import math
+import cProfile
 import itertools
 import numpy as np
 import copy
@@ -6,6 +8,8 @@ from pathlib import Path
 from typing import Iterator, Optional, Tuple
 import more_itertools
 import IPython
+import pstats
+from functools import wraps
 
 
 from consts import *
@@ -16,6 +20,20 @@ from parser_util import line_iter
 import compiler_interface
 from compiler_interface import compile
 from terms_parser import parse_terms
+
+
+def profile(sort_by='cumulative'):
+    def inner(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            profiler = cProfile.Profile()
+            result = profiler.runcall(func, *args, **kwargs)
+            stats = pstats.Stats(profiler)
+            stats.sort_stats(sort_by)
+            stats.print_stats()
+            return result
+        return wrapper
+    return inner
 
 
 def create_if_doesnt_exist(in_dir: str, filename: str, suffix: str) -> Path:
@@ -35,12 +53,71 @@ def load_terms(path: str) -> dict[str, list[str]]:
 
 
 def augment_examples(examples: list[Example]) -> list[Example]:
-    # HERE TODO not as probability, but as proportion. pick x and (x, y) combinations beforehand
-    # pick out from (e, a, b)
     examples = ast_rewrites(examples)
-    examples = add_concat(examples)
-    examples = add_avoidance(examples)
     return examples
+
+
+def augmented_ab(examples: list[Example], num_abs) -> list[Tuple[Example, str, str]]:
+    new_abs: list[Tuple[Example, str, str]] = []
+    np.random.shuffle(examples)  # type: ignore
+
+    eligible_pairs: list[Tuple[int, int]] = []
+    for i, example1 in enumerate(examples):
+        for j, example2 in enumerate(examples):
+            if example1 == example2 or i == j:
+                continue
+            if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
+                continue
+            eligible_pairs.append((i, j))
+
+    num_concat: int = round(ADD_CONCAT_P * ADD_P * num_abs)
+    print(f'adding concat... ({num_concat})')
+    np.random.shuffle(eligible_pairs)
+    for counter, (i, j) in enumerate(eligible_pairs[:num_concat]):
+        example1 = examples[i]
+        example2 = examples[j]
+        example = with_concat(example1, example2)  # type: ignore
+        new_abs.append(get_single_ab(example))
+
+    num_disjunct: int = round(ADD_DISJUNCT_P * ADD_P * num_abs)
+    print(f'adding disjunct... ({num_disjunct})')
+    np.random.shuffle(eligible_pairs)
+    for i, j in eligible_pairs[:num_disjunct]:
+        example1 = examples[i]
+        example2 = examples[j]
+        example = with_disjunct(example1, example2)
+        new_abs.append(get_single_ab(example))
+
+    num_conjunct: int = round(ADD_CONJUNCT_P * ADD_P * num_abs)
+    print(f'adding conjunct... ({num_conjunct})')
+    np.random.shuffle(eligible_pairs)
+    for i, j in eligible_pairs[:num_conjunct]:
+        example1 = examples[i]
+        example2 = examples[j]
+        example = with_conjunct(example1, example2)
+        new_abs.append(get_single_ab(example))
+
+    num_avoidance: int = round(ADD_AVOIDANCE_P * ADD_P * num_abs)
+    print(f'adding avoidance... ({num_avoidance})')
+    eligible_classes = ['NO_THE', 'OBJECT_A',
+                        'AVOID', 'STEP_ON_A', 'FALL_IN_A', 'HIT_A']
+
+    for i in range(num_avoidance):
+        example = random_from(examples)
+        pvar_class = random_from(eligible_classes)
+        new_example = with_avoidance(pvar_class, example)
+        new_abs.append(get_single_ab(new_example))
+
+    if VALIDATE_AB_AUGMENTS:
+        validate_runs([e for e, a, b in new_abs])
+
+    return new_abs
+
+
+def get_single_ab(example: Example):
+    np.random.shuffle(example.descs)
+    np.random.shuffle(example.srcs)
+    return example, example.descs[0], example.srcs[0]
 
 
 def apply_text_rewrite_with_concat(x: str, rewrite: list[Tuple[str, str]], sep: str) -> str:
@@ -62,60 +139,74 @@ def get_all_terms_from_tag(terms: dict[str, list[str]], term_tag: str) -> list[s
     return applicable
 
 
-def add_term_rewrites(examples: list[Example], terms: dict[str, list[str]], num_new: int) -> list[Example]:
-    for example in examples:
-        num_old_rewrites = len(example.example_rewrites)
-        new_rewrites: list[list[Tuple[str, str]]] = []
-        for rewrite in example.example_rewrites:
-            new_versions: list[list[Tuple[str, str]]] = []
-            all_replacements: dict[str, list[str]] = dict()
-            gotten_terms: set[str] = set()
-            for left, right in rewrite:
-                if right.isupper():
-                    all_replacements[left] = get_all_terms_from_tag(
-                        terms, right)
-                else:
-                    all_replacements[left] = [right]
-            value_combinations = itertools.product(*all_replacements.values())
-            for combination in value_combinations:
-                if len(combination) != len(set(combination)):
-                    continue
-                new_dict = {k: v for k, v in zip(
-                    all_replacements.keys(), combination)}
-                new_versions.append(list(new_dict.items()))
-            if len(new_versions) > 0:
-                new_rewrites.extend(new_versions)
-            else:
-                new_rewrites.append(rewrite)
-        np.random.shuffle(new_rewrites)
-        seen = set()
+def organic_ab_to_take(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
+    statistics, num_synthetic = ab_statistics(abs)
+    assert num_synthetic == 0
+    to_take: dict[str, int] = dict()
+    for example, desc, src in abs:
+        r = example.representative()
+        assert not example.synthetic
+        # to_take[r] = max(1, round(SENTENCE_CAP / statistics[r]))
+        to_take[r] = 2
+    return to_take
+
+
+def synthetic_ab_to_take(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
+    statistics, num_synthetic = ab_statistics(abs)
+    assert num_synthetic == len(abs)
+    to_take: dict[str, int] = dict()
+    for example, desc, src in abs:
+        r = example.representative()
+        assert example.synthetic
+        to_take[r] = 1
+    return to_take
+
+
+def ab_rewrites(abs: list[Tuple[Example, str, str]], terms, to_take: dict[str, int]) -> list[Tuple[Example, str, str]]:
+    np.random.shuffle(abs)  # type: ignore
+    new_abs: list[Tuple[Example, str, str]] = []
+    for i, (example, desc, src) in enumerate(abs):
+        if i % 250 == 0:
+            print(f'{i}/{len(abs)}')
+        r = example.representative()
+        new_rewrites = get_new_rewrites(example, terms, to_take[r])
         for rewrite in new_rewrites:
-            seen.add(tuple(rewrite))
-        assert len(seen) == len(new_rewrites)
-        num_new_rewrites: int = len(new_rewrites)
-        to_take: int = min(num_new_rewrites, num_new*num_old_rewrites)
-        example.example_rewrites = new_rewrites[:to_take]
-    return examples
+            r_desc = apply_text_rewrite_with_concat(desc, rewrite, ' ')
+            r_src = apply_text_rewrite_with_concat(src, rewrite, '_')
+            new_abs.append((example, r_desc, r_src))
+    return new_abs
 
 
-def text_rewrites(examples: list[Example]) -> list[Example]:
-    new_examples: list[Example] = []
-    for example in examples:
-        for rewrite in example.example_rewrites:
-            new_runs: list[Tuple[int, list[frozenset[str]]]] = []
-            for (reward, runs) in example.runs:
-                new_traces: list[frozenset[str]] = [
-                    frozenset({apply_text_rewrite_with_concat(x, rewrite, '_') for x in run}) for run in runs]
-                new_runs.append((reward, new_traces))
-            new_descs: list[str] = [apply_text_rewrite_with_concat(
-                desc, rewrite, ' ') for desc in example.descs]
-            new_srcs: list[str] = [apply_text_rewrite_with_concat(
-                src, rewrite, '_') for src in example.srcs]
-            new_example = Example([], new_runs, new_descs,
-                                  new_srcs, example.id)
-            new_example.parent = example
-            new_examples.append(new_example)
-    return examples + new_examples
+def get_new_rewrites(example: Example, terms, num_new: int) -> list[list[Tuple[str, str]]]:
+    new_rewrites: list[list[Tuple[str, str]]] = []
+    for rewrite in example.example_rewrites:
+        new_versions: list[list[Tuple[str, str]]] = []
+        all_replacements: dict[str, list[str]] = dict()
+        for left, right in rewrite:
+            if right.isupper():
+                all_replacements[left] = get_all_terms_from_tag(
+                    terms, right)
+            else:
+                all_replacements[left] = [right]
+        value_combinations = itertools.product(*all_replacements.values())
+        for combination in value_combinations:
+            if len(combination) != len(set(combination)):
+                continue
+            new_dict = {k: v for k, v in zip(
+                all_replacements.keys(), combination)}
+            new_versions.append(list(new_dict.items()))
+        if len(new_versions) > 0:
+            new_rewrites.extend(new_versions)
+        else:
+            new_rewrites.append(rewrite)
+    np.random.shuffle(new_rewrites)
+    seen = set()
+    for rewrite in new_rewrites:
+        seen.add(tuple(rewrite))
+    assert len(seen) == len(new_rewrites)
+    num_new_rewrites: int = len(new_rewrites)
+    to_take: int = min(num_new_rewrites, num_new)
+    return new_rewrites[:to_take]
 
 
 def clean_desc(desc: str) -> str:
@@ -194,7 +285,7 @@ def with_avoidance(pvar_class: str, example: Example) -> Example:
     new_runs: list[Tuple[int, list[frozenset[str]]]] = []
     new_descs: list[str] = []
     new_srcs: list[str] = []
-    new_id: str = '-1' if example.id == '-1' else f'{example.id}_ADDED_AVOID'
+    new_id: str = f'{example.representative()}_ADDED_AVOID'
 
     for (reward, pvars) in example.runs:
         new_runs.append((reward, pvars))
@@ -215,50 +306,80 @@ def with_avoidance(pvar_class: str, example: Example) -> Example:
             new_src = f'({src})&{after}'
             new_srcs.append(new_src)
 
-    return Example(new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
+    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
 
 
 def map_rewrite(letter: str, example_rewrites: list[Tuple[str, str]]) -> list[Tuple[str, str]]:
-    return [(f'{variable}{letter}', to_class) for (variable, to_class) in example_rewrites]
+    return [(f'{variable}{letter}' if '$' in variable else variable, to_class) for (variable, to_class) in example_rewrites]
 
 
 def map_trace(letter: str, trace: list[frozenset[str]]) -> list[frozenset[str]]:
-    return [frozenset([f'{v}{letter}' for v in vars]) for vars in trace]
+    return [frozenset([f'{v}{letter}' if '$' in v else v for v in vars]) for vars in trace]
 
 
 def map_desc(rewrite_list: list[Tuple[str, str]], letter: str, desc: str) -> str:
     vars = list(reversed(sorted([x for (x, y) in rewrite_list])))
     for v in vars:
-        desc = desc.replace(v, f'{v}{letter}')
+        desc = desc.replace(v, f'{v}{letter}' if '$' in v else v)
     return desc
 
 
-def with_concat(example1: Example, example2: Example) -> Example:
+def merge_rewrites(example1: Example, example2: Example) -> list[list[Tuple[str, str]]]:
     new_example_rewrites: list[list[Tuple[str, str]]] = [map_rewrite('Q', rewrite_list1) + map_rewrite(
         'P', rewrite_list2) for rewrite_list1 in example1.example_rewrites for rewrite_list2 in example2.example_rewrites]
+    return new_example_rewrites
+
+
+def with_concat(example1: Example, example2: Example) -> Example:
+    new_example_rewrites: list[list[Tuple[str, str]]
+                               ] = merge_rewrites(example1, example2)
     new_runs: list[Tuple[int, list[frozenset[str]]]] = []
     new_descs: list[str] = []
     new_srcs: list[str] = []
-    new_id: str = f'{example1.id}_CONCAT_{example2.id}'
-
-    for (reward1, trace1) in example1.runs:
-        for (reward2, trace2) in example2.runs:
-            reward = reward2 if reward1 > 0 and reward2 > 0 else 0
-            trace = map_trace('Q', trace1) + map_trace('P', trace2)
-            new_runs.append((reward, trace))
+    new_id: str = f'{example1.representative()}_CONCAT_{example2.representative()}'
 
     for src1_or in example1.srcs:
         for src2 in example2.srcs:
-            src1 = map_desc(example1.example_rewrites[0], 'Q', src1_or)
-            src2 = map_desc(example2.example_rewrites[0], 'P', src2)
+            if len(example1.example_rewrites) > 0:
+                src1 = map_desc(example1.example_rewrites[0], 'Q', src1_or)
+            else:
+                src1 = src1_or
+            if len(example2.example_rewrites) > 0:
+                src2 = map_desc(example2.example_rewrites[0], 'P', src2)
             new_src = f'({src1}) > ({src2})'
             new_srcs.append(new_src)
+
+    if VALIDATE_AB_AUGMENTS:
+        concat_rm = compiler_interface.compile(new_srcs[0])
+        example1_rm = compiler_interface.compile(example1.srcs[0])
+        example2_rm = compiler_interface.compile(example2.srcs[0])
+        for (_reward1, _trace1) in example1.runs:
+            reward1 = example1_rm(*_trace1)
+            first_positive = next(
+                (i for i, x in enumerate(reward1) if x > 0), None)
+            for (_reward2, trace2) in example2.runs:
+                reward2 = example2_rm(*trace2)
+                if first_positive == None:
+                    trace1 = _trace1
+                    reward = 0
+                else:
+                    trace1 = _trace1[:first_positive+1]
+                    reward = sum(reward2)
+                trace = map_trace('Q', trace1) + map_trace('P', trace2)
+                reward = sum(concat_rm(*trace))  # TODO this is wrong
+                new_runs.append((reward, trace))
 
     for desc1_or in example1.descs:
         for desc2 in example2.descs:
             desc1 = desc1_or
-            desc1 = map_desc(example1.example_rewrites[0], 'Q', desc1)
-            desc2 = map_desc(example2.example_rewrites[0], 'P', desc2)
+            if len(example1.example_rewrites) > 0:
+                desc1 = map_desc(example1.example_rewrites[0], 'Q', desc1)
+            if len(example2.example_rewrites) > 0:
+                desc2 = map_desc(example2.example_rewrites[0], 'P', desc2)
+            if '$' not in desc1[:2]:
+                desc1 = desc1[:2].lower() + desc1[2:]
+            if '$' not in desc2[:2]:
+                desc2 = desc2[:2].lower() + desc2[2:]
             if 'first' not in desc1.lower() and 'second' not in desc2.lower():
                 new_descs.append(f'First: {desc1}. Second: {desc2}')
                 new_descs.append(
@@ -268,48 +389,135 @@ def with_concat(example1: Example, example2: Example) -> Example:
                 new_descs.append(
                     f'There are two tasks. First {desc1}. Second {desc2}.')
             new_descs.append(f'{desc1}. Then {desc2}')
-
     new_descs = [clean_desc(desc) for desc in new_descs]
+    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
 
-    return Example(new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
+
+def with_disjunct(example1: Example, example2: Example) -> Example:
+    new_example_rewrites: list[list[Tuple[str, str]]
+                               ] = merge_rewrites(example1, example2)
+    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
+    new_descs: list[str] = []
+    new_srcs: list[str] = []
+    new_id: str = f'{example1.representative()}_DISJUNCT_{example2.representative()}'
+
+    if VALIDATE_AB_AUGMENTS:
+        example1_rm = compiler_interface.compile(example1.srcs[0])
+        example2_rm = compiler_interface.compile(example2.srcs[0])
+
+        for (reward, trace) in example1.runs:
+            reward1 = example1_rm(*trace)
+            reward2 = example2_rm(*trace)
+            new_runs.append(
+                (sum(reward1) + sum(reward2), map_trace('Q', trace)))
+
+        for (reward, trace) in example2.runs:
+            reward1 = example1_rm(*trace)
+            reward2 = example2_rm(*trace)
+            new_runs.append(
+                (sum(reward1) + sum(reward2), map_trace('P', trace)))
+
+    for src1_or in example1.srcs:
+        for src2 in example2.srcs:
+            if len(example1.example_rewrites) > 0:
+                src1 = map_desc(example1.example_rewrites[0], 'Q', src1_or)
+            else:
+                src1 = src1_or
+            if len(example2.example_rewrites) > 0:
+                src2 = map_desc(example2.example_rewrites[0], 'P', src2)
+            new_src = f'({src1}) | ({src2})'
+            new_srcs.append(new_src)
+
+    for desc1_or in example1.descs:
+        for desc2 in example2.descs:
+            desc1 = desc1_or
+            if len(example1.example_rewrites) > 0:
+                desc1 = map_desc(example1.example_rewrites[0], 'Q', desc1)
+            if len(example2.example_rewrites) > 0:
+                desc2 = map_desc(example2.example_rewrites[0], 'P', desc2)
+            if '$' not in desc1[:2]:
+                desc1 = desc1[:2].lower() + desc1[2:]
+            if '$' not in desc2[:2]:
+                desc2 = desc2[:2].lower() + desc2[2:]
+            new_descs.append(
+                f'There are two tasks. Either {desc1}, or {desc2}.')
+            new_descs.append(
+                f'Either {desc1}. Or, {desc2}.')
+    new_descs = [clean_desc(desc) for desc in new_descs]
+    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
+
+
+def merge_traces(trace1: list[frozenset[str]], trace2: list[frozenset[str]]) -> list[frozenset[str]]:
+    trace: list[frozenset[str]] = []
+    for vars1, vars2 in itertools.zip_longest(trace1, trace2, fillvalue=frozenset()):
+        trace.append(vars1.union(vars2))
+    return trace
+
+
+def merge_rewards(rewards1: list[int], rewards2: list[int]):
+    rewards: list[int] = []
+    for r1, r2 in itertools.zip_longest(rewards1, rewards2, fillvalue=0):
+        rewards.append(r1*r2)
+    return rewards
+
+
+def with_conjunct(example1: Example, example2: Example) -> Example:
+    new_example_rewrites: list[list[Tuple[str, str]]
+                               ] = merge_rewrites(example1, example2)
+    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
+    new_descs: list[str] = []
+    new_srcs: list[str] = []
+    new_id: str = f'{example1.representative()}_CONJUNCT_{example2.representative()}'
+
+    if VALIDATE_AB_AUGMENTS:
+        example1_rm = compiler_interface.compile(example1.srcs[0])
+        example2_rm = compiler_interface.compile(example2.srcs[0])
+
+        for (_reward1, trace1) in example1.runs:
+            reward1 = example1_rm(*trace1)
+            for (_reward2, trace2) in example2.runs:
+                reward2 = example2_rm(*trace2)
+                rewards = merge_rewards(reward1, reward2)
+                reward = sum(rewards)
+                trace_merged = merge_traces(trace1, trace2)
+                new_runs.append((reward, trace_merged))
+
+    for src1_or in example1.srcs:
+        for src2 in example2.srcs:
+            if len(example1.example_rewrites) > 0:
+                src1 = map_desc(example1.example_rewrites[0], 'Q', src1_or)
+            else:
+                src1 = src1_or
+            if len(example2.example_rewrites) > 0:
+                src2 = map_desc(example2.example_rewrites[0], 'P', src2)
+            new_src = f'(({src1}) > (.)*) & (({src2}) > (.)*)'
+            new_srcs.append(new_src)
+
+    for desc1_or in example1.descs:
+        for desc2 in example2.descs:
+            desc1 = desc1_or
+            if len(example1.example_rewrites) > 0:
+                desc1 = map_desc(example1.example_rewrites[0], 'Q', desc1)
+            if len(example2.example_rewrites) > 0:
+                desc2 = map_desc(example2.example_rewrites[0], 'P', desc2)
+            if '$' not in desc1[:2]:
+                desc1 = desc1[:2].lower() + desc1[2:]
+            if '$' not in desc2[:2]:
+                desc2 = desc2[:2].lower() + desc2[2:]
+            new_descs.append(
+                f'There are two tasks and you must do both at the same time. {desc1} (first task), and {desc2} (second task).')
+            new_descs.append(
+                f'{desc1}. And at the same time, {desc2}.')
+            new_descs.append(
+                f'{desc1}. And, {desc2}.')
+    new_descs = [clean_desc(desc) for desc in new_descs]
+    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
 
 
 def random_from(xs: list):
     num = len(xs)
     i = np.random.randint(num)
     return xs[i]
-
-
-def add_avoidance(examples: list[Example]) -> list[Example]:
-    new_examples: list[Example] = []
-    for example in examples:
-        eligible_classes = ['NO_THE', 'OBJECT_A',
-                            'AVOID', 'STEP_ON_A', 'FALL_IN_A', 'HIT_A']
-        pvar_class = random_from(eligible_classes)
-        if np.random.random() < ADD_AVOIDANCE_P/2.0:
-            new_examples.append(with_avoidance(pvar_class, example))
-    print(f'avoidance added {len(new_examples)} new examples')
-    return examples + new_examples
-
-
-def add_concat(examples: list[Example]) -> list[Example]:
-    num_eligible = len(
-        [x for x in examples if x.average_desc_length() <= DESC_LENGTH_LIMIT])
-    add_p = ADD_CONCAT_P / num_eligible
-    print(f'eligible={num_eligible}/{len(examples)}')
-    new_examples: list[Example] = []
-    for i, example1 in enumerate(examples):
-        for j, example2 in enumerate(examples):
-            if i == j:
-                continue
-            if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
-                continue
-            if len(example1.example_rewrites) == 0 or len(example2.example_rewrites) == 0:
-                continue  # TODO fix in with_concat
-            if np.random.random() < add_p:
-                new_examples.append(with_concat(example1, example2))
-    print(f'concat added {len(new_examples)} new examples')
-    return examples + new_examples
 
 
 def ast_rewrites(examples: list[Example]) -> list[Example]:
@@ -440,24 +648,35 @@ def examples_statistics(examples: list[Example]) -> list[dict[str, int | str]]:
     return [example_statistics(example) for example in examples]
 
 
-def ab_statistics(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
+def ab_statistics(abs: list[Tuple[Example, str, str]]) -> Tuple[dict[str, int], int]:
     result = dict()
+    synthetic = 0
     for e, desc, src in abs:
+        if e.synthetic:
+            synthetic += 1
         representative = e.representative()
         if representative not in result:
             result[representative] = 0
         result[representative] += 1
+    return result, synthetic
+
+
+def statistics_to_lines(statistics: dict[str, int]) -> list[str]:
+    result: list[str] = []
+    sorted_statistics = sorted(statistics.items(), key=lambda x: x[1])
+    for k, v in sorted_statistics:
+        result.append(f'{v}: {k}\n')
     return result
 
 
-def apply_cap(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+def apply_cap(abs: list[Tuple[Example, str, str]], cap: int) -> list[Tuple[Example, str, str]]:
     taken: dict[str, int] = dict()
     result: list[Tuple[Example, str, str]] = list()
     for e, desc, src in abs:
         representative = e.representative()
         if representative not in taken:
             taken[representative] = 0
-        if taken[representative] < SENTENCE_CAP:
+        if taken[representative] < cap:
             result.append((e, desc, src))
             taken[representative] += 1
     return result

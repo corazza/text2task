@@ -27,12 +27,12 @@ from parser_util import *
 
 
 class Example:
-    def __init__(self, example_rewrites: list[list[Tuple[str, str]]], runs: list[Tuple[int, list[frozenset[str]]]], descs: list[str], srcs: list[str], id: str):
+    def __init__(self, synthetic: bool, example_rewrites: list[list[Tuple[str, str]]], runs: list[Tuple[int, list[frozenset[str]]]], descs: list[str], srcs: list[str], id: str):
+        self.synthetic = synthetic
         self.descs = descs
         self.srcs = srcs
         self.runs = runs
         self.example_rewrites: list[list[Tuple[str, str]]] = example_rewrites
-        self.parent = self
         self.id: str = id
 
     def average_desc_length(self):
@@ -56,7 +56,7 @@ class Example:
 
     def representative(self) -> str:
         if self.id == '-1':
-            return self.parent.descs[0]
+            return self.descs[0]
         else:
             return str(self.id)
 
@@ -90,7 +90,7 @@ def parse_example(lines: more_itertools.peekable) -> Example:
     else:
         id = '-1'
     parse_the_separator(lines, '')
-    return Example(example_rewrites, runs, descs, srcs, id)
+    return Example(False, example_rewrites, runs, descs, srcs, id)
 
 
 def parse_id(lines: more_itertools.peekable) -> str:

@@ -1,0 +1,13 @@
+ --learning_rate 6e-4 \
+        --weight_decay 0.01 \
+        --warmup_steps 6000 \
+        --adam_beta1 0.9 \
+        --adam_beta2 0.98 \
+        --adam_epsilon 1e-6 \
+
+            "learning_rate": 6e-4,
+    "weight_decay": 0.01,
+    "warmup_steps": 6000,
+    "adam_beta1": 0.9,
+    "adam_beta2": 0.98,
+    "adam_epsilon": 1e-6
