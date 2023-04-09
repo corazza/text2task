@@ -253,7 +253,9 @@ Go to the $A, then the $B, then the $C
 $A % PLACE, $B % PLACE, $C % PLACE
 =
 Visit the $A, the $B, and the $C. Start from any of them, but respect that order.
+Go to the $A, the $B, and the $C (start from any of them but respect that order)
 Visit in order: $A, $B, $C. But, you can choose either of the three as a starting place.
+Go to (in order): $A, $B, $C (but, you can choose either of the three as a starting place)
 =
 (!$A&!$B&!$C)* > $A > (!$A&!$B&!$C)* > $B > (!$A&!$B&!$C)* > $C | (!$A&!$B&!$C)* > $B > (!$A&!$B&!$C)* > $C > (!$A&!$B&!$C)* > $A | (!$A&!$B&!$C)* > $C > (!$A&!$B&!$C)* > $A > (!$A&!$B&!$C)* > $B
 
@@ -291,7 +293,7 @@ $A % NONDIRECTION, $B % NONDIRECTION, $C % NONDIRECTION
 =
 repeat in any order: $A, $B, $C
 Repeatedly do $A, $B, or $C
-Your task is to do a single action every step, either $A, or $B, or $C.
+Your task is to do a single action every step, either $A, or $B, or $C
 =
 ($A | $B | $C)+
 =
@@ -308,8 +310,8 @@ repeat in any order: $A, $B, $C
 $A % OBJECT, $B % OBJECT, $C % PLACE
 =
 get the $A or the $B or go to the $C, repeat
-This task is simple. Either go to the $C, or collect the $A or the $B. Repeatedly.
-You have three options to repeat: go to the $C, find the $A, or find the $B.
+Either go to the $C, or collect the $A or the $B, repeatedly
+You have three options to repeat: go to the $C, find the $A, or find the $B
 =
 ((!$A&!$B&!$C)* > ($A | $B | $C))+
 =
@@ -326,8 +328,8 @@ get the $A or the $B or go to the $C, repeat
 $A % OBJECT, $B % PLACE, $C % PLACE
 =
 get the $A or go to the $B or the $C, repeat
-This task is simple. Either get the $A, or go to the $B or the $C. Repeatedly.
-You have three options to repeat: go to the $C, find the $A, or go to the $B.
+Either get the $A, or go to the $B or the $C, repeatedly
+You have three options to repeat: go to the $C, find the $A, or go to the $B
 =
 ((!$A&!$B&!$C)* > ($A | $B | $C))+
 =
@@ -347,7 +349,7 @@ $A % DIRECTION
 =
 Go $A once
 Go $A one time
-Direction: $A. Go there one time
+Direction: $A, go there one time
 =
 $A
 
@@ -364,8 +366,8 @@ $A % DIRECTION
 =
 Go $A twice
 Go $A two times
-Go $A, then again.
-Direction: $A. Go there two times
+Go $A, then again
+Direction: $A, go there two times
 =
 $A > $A
 
@@ -382,8 +384,8 @@ $A % DIRECTION
 =
 Go $A thrice
 Go $A three times
-Go $A, then again, then one last time.
-Direction: $A. Go there three times
+Go $A, then again, then one last time
+Direction: $A, go there three times
 =
 $A > $A > $A
 ($A > $A) > $A
@@ -402,8 +404,8 @@ $A > ($A > $A)
 $A % DIRECTION
 =
 Go $A four times
-Go $A, then again, and again, then one last time.
-Direction: $A. Go there four times
+Go $A, then again, and again, then one last time
+Direction: $A, go there four times
 =
 $A > $A > $A > $A
 ($A > $A) > $A > $A
@@ -423,7 +425,7 @@ $A % SELF_ACTION
 =
 $A once
 $A one time
-Action: $A. Do it once
+Action: $A, do it once
 =
 $A
 
@@ -440,7 +442,8 @@ $A % SELF_ACTION
 =
 $A twice
 $A two times
-$A, then again.
+$A, then again
+$A and $A
 First: $A. Then: $A
 =
 $A > $A
@@ -458,7 +461,8 @@ $A % SELF_ACTION
 =
 $A thrice
 $A three times
-$A, then again, and once more $A.
+$A, then again, and once more $A
+$A, $A, and $A
 First: $A. Then: $A. Finally: $A
 =
 $A > $A > $A
@@ -478,7 +482,7 @@ $A > ($A > $A)
 $A % DIRECTION
 =
 $A four times
-$A, then again, and again, then $A one last time.
+$A, then again, and again, then $A one last time
 First: $A. Then: $A, and $A again. Finally: $A
 =
 $A > $A > $A > $A
@@ -498,9 +502,10 @@ $A > ($A > $A > $A)
 $A % PLACE, $B % AREA, $C % PLACE
 =
 start from the $A and find the $B. then find the $C in the $B. return to $A
-this task begins and ends in the $A. so, starting from the $A, find the $B. and in the $B, find the $C. don't forget to return to $A
-this task begins and ends in the $A. so, starting from the $A, find the $B. and in the $B, find the $C
+begin and end in the $A. so, starting from the $A, find the $B. and in the $B, find the $C. don't forget to return to $A
+start and finish in the $A. so, starting from the $A, find the $B. and in the $B, find the $C
 Find the $A. Then, find the $B in the $C. Finally, return to the $A
+Find the $A, then find the $B in the $C, then return to the $A
 =
 (!$A&!$C)* > $A > (!$A&!$C)* > $B&$C > (!$A&!$C)* > $A
 (!$A&!$C)* > $A > (!$A&!$C)* > ((!$A&!$C)* > $C > (!$A&!$C)*)&($B)* > (!$A&!$C)* > $A
@@ -521,7 +526,7 @@ go to the $A, then get the $C. afterwards run to get the $D, and finally go to t
 in this order: $A, $C, $D, $B
 in reverse order: $B, $D, $C, $A
 You have to do four things. First, go to the $A. Second, get the $C. Third, get the $D. And finally go to $B.
-Go to the $A, then find the $C, then find the $D, then go to the $B.
+Go to the $A, then find the $C, then find the $D, then go to the $B
 =
 (!$A&!$B&!$C&!$D)* > $A > (!$A&!$B&!$C&!$D)* > $C > (!$A&!$B&!$C&!$D)* > $D > (!$A&!$B&!$C&!$D)* > $B
 
@@ -601,7 +606,8 @@ $A % PLACE, $B % OBJECT, $C % FALL_IN_A
 =
 before exiting through the $A, grab the $B! never fall into a $C
 without falling into a $C: collect the $B and get to the $A
-do the following in reverse order: get to the $A then get the $B. avoid $Cs though!
+do the following in reverse order: get to the $A then get the $B. avoid $Cs though
+do the following in reverse order: get to the $A then get the $B (don't fall in $Cs though)
 =
 (!$B&!$C&!$A)* > ($B&!$C) > (!$B&!$C&!$A)* > ($A&!$C)
 ((!$B&!$A)* > $B > (!$B&!$A)* > $A) & (!$C)*
@@ -627,9 +633,9 @@ before exiting through the $A, grab the $B! avoid $Cs
 =
 $A % AREA, $B % COLLECTABLE
 =
-Go to the $A and find $Bs, without leaving the $A (but avoid $Bs before getting to the $A).
-Go to the $A and avoid any $Bs on the way there. In the $A, find $Bs.
-There are many $Bs in the $A. Go and find them, but on the way to the $A avoid the $Bs.
+Go to the $A and find $Bs, without leaving the $A (but avoid $Bs before getting to the $A)
+Go to the $A and avoid any $Bs on the way there. In the $A, find $Bs
+There are many $Bs in the $A. Go and find them, but on the way to the $A avoid the $Bs
 =
 (!$A&!$B)* > (($A&!$B)* > $B&$A)+
 (!$A&!$B)* > (((!$B)* > $B)+ & ($A)*)
@@ -689,8 +695,8 @@ Find $Bs in the $A
 =
 $A % PLACE, $B % OBJECT, $C % OBJECT
 =
-Grab the $B and the $C and bring them to the $A.
-Bring $C and $B to the $A.
+Grab the $B and the $C and bring them to the $A
+Bring $C and $B to the $A
 Go to the $A, but don't forget the $C and $B
 get some $B! get the $C! bring them to the $A
 would you please bring $B and the $C to the $A?
@@ -758,7 +764,7 @@ $A % PLACE, $B % PLACE, $C % PLACE
 Patrol the $A, $B, and $C in that order (start at the $A)
 Circulate the $A, $B, and $C in that order (start at the $A)
 Starting at the $A, circulate the $A, the $B, and the $C
-First go to the $A, then to the $B, and finally to the $C. Repeat
+First go to the $A, then to the $B, and finally to the $C, repeat
 go to the $A then the $B then the $C and go back to the $A, repeat
 Repeat the following: visit the $A, then go to the $B, then visit the $C
 patrol around the $A, $B, and $C
@@ -864,7 +870,7 @@ first: get $B. second: get $C. third: carry them to the $D. but most most import
 =
 $A % AVOID, $B % AVOID, $C % PLACE, $D % PLACE, $E %PLACE
 =
-go to $C, $D, then $E. finally return to the $D. avoid the $As and $Bs
+go to the $C, the $D, then the $E. finally, return to the $D. avoid the $As and $Bs
 Start from $C and find the $D. Then, find the $E. Finally, return to $D. Avoid $As and the $Bs
 =
 (!$A&!$B&!$C&!$D&!$E)* > $C&!$A&!$B > (!$A&!$B&!$C&!$D&!$E)* > $D&!$A&!$B > (!$A&!$B&!$C&!$D&!$E)* > $E&!$A&!$B > (!$A&!$B&!$C&!$D&!$E)* > $D&!$A&!$B
@@ -910,9 +916,10 @@ never fall in a $A and avoid the $B. visit the $C then $D then $E. return to $D
 $A % PLACE, $B % AREA
 =
 find the $A in the $B
-Enter the $B. In there, find the $A.
-Find the $A (it must be in the $B).
-Navigate through the $B. In there, find the $A.
+Enter the $B. In there, find the $A
+Find the $A (it must be in the $B)
+In the $B find the $A
+Navigate through the $B. In there, find the $A
 =
 (!$B)* > ($B&!$A)* > $A&$B
 
@@ -929,9 +936,10 @@ Navigate through the $B. In there, find the $A.
 $A % OBJECT, $B % AREA
 =
 find the $A in the $B
-Enter the $B. In there, find the $A.
-Find the $A (it must be in the $B).
-Navigate through the $B. In there, find the $A.
+Enter the $B. In there, find the $A
+Enter the $B and in there find the $A
+Find the $A (it must be in the $B)
+Navigate through the $B. In there, find the $A
 =
 (!$B)* > ($B&!$A)* > $A&$B
 
@@ -950,11 +958,12 @@ Navigate through the $B. In there, find the $A.
 $A % PLACE, $B % PLACE, $C % AREA
 =
 find the $A then find the $B in the $C
-Go to the $C and find the $B, but not before finding the $A (doesn't have to be in the $C).
-Find the $A wherever. Afterwards, find the $B in the $C.
-Go to the $A. Afterwards, find the $B in the $C.
-Find the $A. Then go to $C. And in the $C, find the $B.
-Go to the $A. Then go to $C. And in the $C, find the $B.
+Go to the $C and find the $B, but not before finding the $A (doesn't have to be in the $C)
+Find the $A wherever. Afterwards, find the $B in the $C
+Go to the $A. Afterwards, find the $B in the $C
+Find the $A. Then go to the $C. And in the $C, find the $B
+Go to the $A. Then go to the $C. And in the $C, find the $B
+Visit the $A and then find the $B in the $C
 =
 (!$A)* > $A > (!$C)* > ($C&!$B)* > ($B&$C)
 
@@ -975,13 +984,13 @@ $A % OBJECT, $B % PLACE
 $A % PLACE, $B % OBJECT
 $A % OBJECT, $B % OBJECT
 =
-Find the $A then find the $B.
+Find the $A then find the $B
 Find the $A (and after that find the $B)
-Find $B, but before that find the $A.
+Find $B, but before that find the $A
 =
 (!$A)* > $A > (!$B)* > $B
 =
-Find the $A then find the $B.
+Find the $A then find the $B
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
@@ -997,13 +1006,13 @@ Find the $A then find the $B.
 =
 $A % PLACE, $B % PLACE
 =
-Go to the $A then go to the $B.
+Go to the $A then go to the $B
 Go to the $A (and after that go to the $B)
-Go to the $B, but before that go to the $A.
+Go to the $B, but before that go to the $A
 =
 (!$A)* > $A > (!$B)* > $B
 =
-Find the $A then find the $B.
+Find the $A then find the $B
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
@@ -1019,13 +1028,13 @@ Find the $A then find the $B.
 =
 $A % OBJECT, $B % PLACE
 =
-Find the $A then go to the $B.
+Find the $A then go to the $B
 Find the $A (and after that go to the $B)
-Go to the $B, but before that find the $A.
+Go to the $B, but before that find the $A
 =
 (!$A)* > $A > (!$B)* > $B
 =
-Find the $A then find the $B.
+Find the $A then find the $B
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
@@ -1041,13 +1050,13 @@ Find the $A then find the $B.
 =
 $A % OBJECT, $B % OBJECT
 =
-Find the $A then go to the $B.
+Find the $A then go to the $B
 Find the $A (and after that go to the $B)
-Find the $B, but before that find the $A.
+Find the $B, but before that find the $A
 =
 (!$A)* > $A > (!$B)* > $B
 =
-Find the $A then find the $B.
+Find the $A then find the $B
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 1 @ {}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
@@ -1060,11 +1069,11 @@ $A % PLACE
 $A % AREA
 =
 find the $A. remain inside the $A
-find the $A. then, remain in it
+find the $A then remain in it
 go to the $A. remain inside the $A
-go to the $A. then, remain in it
+go to the $A then remain in it
 visit the $A. remain inside the $A
-visit the $A. then, remain in it
+visit the $A then remain in it
 find the $A. don't leave the $A
 find the $A and don't leave it
 go to the $A. don't leave the $A
@@ -1085,9 +1094,9 @@ $A % AREA
 =
 go to the $A once, and then leave forever
 find the $A, and then leave the $A
-Visit the $A and never return.
-Go to the $A once and never return.
-Your task is to find the $A, once, and then don't visit it ever again.
+Visit the $A and never return there
+Go to the $A once and never return
+Find the $A, once, and then don't visit it ever again
 =
 (!$A)* > $A > (!$A)+
 =
@@ -1101,10 +1110,10 @@ go to the $A once, and then leave forever
 =
 $A % OBJECT
 =
-Roam around and find the $A. Afterwards, you must never find it again.
-Get the $A. Then, never get it again.
+Roam around and find the $A, afterwards, you must never find it again
+Get the $A. Then, never get it again
 find the $A, and then never find the $A again
-Your task is to find the $A, once, and then don't ever find it again.
+Your task is to find the $A, once, and then don't ever find it again
 =
 (!$A)* > $A > (!$A)+
 =

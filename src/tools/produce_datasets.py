@@ -41,6 +41,8 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
         'preprocessed_datasets/txt2task', output_name, '.txt')
     path_statistics = create_if_doesnt_exist(
         'preprocessed_datasets/txt2task', 'statistics', '.txt')
+    path_synthetic = create_if_doesnt_exist(
+        'preprocessed_datasets/txt2task', 'synthetic', '.txt')
 
     terms = load_terms('datasets/txt2task/terms.txt')
     examples = load_examples(load_from[0])
@@ -57,17 +59,21 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
 
     print('converting to ab...')
     organic_ab = examples_to_ab(examples)
-    to_take_organic = organic_ab_to_take(organic_ab)
+    organic_ab = apply_cap(organic_ab, SENTENCE_CAP)
+    print('applying organic rewrites...')
+    organic_rewrites = ab_rewrites(organic_ab, terms, True)
+    print(f'num_organic={len(organic_rewrites)}')
+    statistics = ab_statistics(organic_ab)
 
     print('augmenting ab...')
-    synthetic_ab = augmented_ab(examples, len(organic_ab))
-    to_take_synthetic = synthetic_ab_to_take(synthetic_ab)
+    patterns = load_patterns('datasets/txt2task/augment_patterns.txt')
+    synthetic_ab = augmented_ab(patterns, examples, len(organic_rewrites))
 
-    print('applying rewrites...')
-    ab = ab_rewrites(organic_ab, terms, to_take_organic) + \
-        ab_rewrites(synthetic_ab, terms, to_take_synthetic)
+    print('applying synthetic rewrites...')
+    synthetic_rewrites = ab_rewrites(synthetic_ab, terms, False)
+    print(f'num_synthetic={len(synthetic_rewrites)}')
 
-    # ab = apply_cap(ab, SENTENCE_CAP)
+    ab = organic_rewrites + synthetic_rewrites
 
     np.random.shuffle(ab)  # type: ignore
 
@@ -86,14 +92,14 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
     print('running sanity checks...')
     sanity_checks(ab)
 
-    statistics, num_synthetic = ab_statistics(ab)
-    num_organic = len([e for e, a, b in ab if not e.synthetic])
     lines = ab_to_lines(ab)
     lines_human = ab_to_lines_human(ab)
-    lines_statistics = statistics_to_lines(
-        statistics) + [f'organic: {num_organic}\n', f'synthetic: {num_synthetic}\n']
+    lines_synthetic = ab_to_lines_synthetic(synthetic_rewrites)
+
+    lines_statistics = statistics_to_lines(statistics)
     save_lines(path, lines)
     save_lines(path_human, lines_human)
+    save_lines(path_synthetic, lines_synthetic)
     save_lines(path_statistics, lines_statistics)
 
 

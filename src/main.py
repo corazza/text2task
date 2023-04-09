@@ -75,7 +75,18 @@ def test_compiler():
 
     # src = '(A)~'
     # src = '((A)~)*'
-    src = '((.)* > ($A | $B | $C))+'
+    # src = '((.)* > ($A | $B | $C))+'
+
+    src = '((!equipment)* > equipment > (!wall)* > wall > (.)*)&((!mail)* > mail > (!door)* > door > (.)*)'
+
+    # In [7]: rm({}, {'equipment'}, {}, {'mail'}, {}, {'wall'}, {}, {'door'})
+    # Out[7]: [0, 0, 0, 0, 0, 0, 0, 1]
+
+    # In [6]: rm({}, {'equipment'}, {}, {}, {}, {'mail'}, {}, {'door'})
+    # Out[6]: [0, 0, 0, 0, 0, 0, 0, 0]
+
+    # In [5]: rm({}, {'equipment'}, {}, {'wall'}, {}, {'mail'}, {}, {'door'})
+    # Out[5]: [0, 0, 0, 0, 0, 0, 0, 1]
 
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)

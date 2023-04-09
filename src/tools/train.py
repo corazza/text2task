@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
 
+from transformers.optimization import Adafactor, AdafactorSchedule
 import datasets
 import evaluate
 import torch
@@ -297,10 +298,18 @@ def main():
     data_collator = DataCollatorForSeq2Seq(
         tokenizer, model=model, padding=True)
 
+    # optimizer = Adafactor(model.parameters(), scale_parameter=True,
+    #                       relative_step=True, warmup_init=True, lr=None)
+    lr = 0.0003
+    optimizer = Adafactor(model.parameters(), scale_parameter=False,
+                          relative_step=False, warmup_init=False, lr=lr)
+    lr_scheduler = AdafactorSchedule(optimizer, initial_lr=lr)
+
     # Initialize our Trainer
     trainer = Trainer(
         model=model,
         args=training_args,
+        optimizers=(optimizer, lr_scheduler),  # type: ignore
         train_dataset=train_dataset if training_args.do_train else None,  # type: ignore
         eval_dataset=eval_dataset if training_args.do_eval else None,  # type: ignore
         tokenizer=tokenizer,

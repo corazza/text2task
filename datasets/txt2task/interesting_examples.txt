@@ -1,4 +1,10 @@
 go to the office and stay there
+
 go to the building => (!trap)* > building&!trap > (!building)* > building&!trap
+
 Go left. Then, go down => left > left > down
+
 visit the house, then go to the forest => (!house)* > house > (!forest)* > forest&forest
+visit the house, then go to the forest => (!house)* > house > (!forest)* > (forest&!house)* > (house&forest)
+
+go to the town, and find some coffee there => (!town)* > (town&!coffee)* > coffee&town

@@ -1,8 +1,11 @@
+from util import *
 import copy
+from typing_extensions import override
 import IPython
 from typing import Tuple
 import numpy as np
 import itertools
+import math
 
 from regex_compiler import NodeCreator, CompileStateNFA, generate_inputs, nfa_union, nfa_complement
 from consts import *
@@ -19,9 +22,64 @@ def shuffle_pick_n(xs: list, n: int) -> list:
     return xs[:min(n, len(xs))]
 
 
+class RewriteStatistics:
+    def __init__(self):
+        self.num_demorgan: int = 0
+        self.num_distr: int = 0
+        self.num_plus_repeat: int = 0
+        self.num_removed_double_compl: int = 0
+
+    def sum_with(self, other: 'RewriteStatistics') -> 'RewriteStatistics':
+        return self.sum_with_others([other])
+
+    def sum_with_others(self, others: list['RewriteStatistics']) -> 'RewriteStatistics':
+        result: 'RewriteStatistics' = copy.copy(self)
+        for other in others:
+            result.num_demorgan += other.num_demorgan
+            result.num_distr += other.num_distr
+            result.num_plus_repeat += other.num_plus_repeat
+            result.num_removed_double_compl += other.num_removed_double_compl
+        return result
+
+    def as_dict(self) -> dict[str, int]:
+        return {
+            'num_demorgan': self.num_demorgan,
+            'num_distr': self.num_distr,
+            'num_plus_repeat': self.num_plus_repeat,
+            'num_removed_double_compl': self.num_removed_double_compl,
+        }
+
+
 class RENode:
     def __init__(self):
-        return
+        self.rewrite_statistics = RewriteStatistics()
+
+    def get_statistics(self) -> RewriteStatistics:
+        return self.rewrite_statistics
+
+    def repetative(self) -> bool:
+        raise NotImplementedError()
+
+    def inherit_statistics(self, node: 'RENode') -> 'RENode':
+        self.rewrite_statistics = self.rewrite_statistics.sum_with(
+            node.rewrite_statistics)
+        return self
+
+    def inc_demorgan(self) -> 'RENode':
+        self.rewrite_statistics.num_demorgan += 1
+        return self
+
+    def inc_distr(self) -> 'RENode':
+        self.rewrite_statistics.num_distr += 1
+        return self
+
+    def inc_num_plus_repeat(self) -> 'RENode':
+        self.rewrite_statistics.num_plus_repeat += 1
+        return self
+
+    def inc_removed_double_compl(self) -> 'RENode':
+        self.rewrite_statistics.num_removed_double_compl += 1
+        return self
 
     def compile(self, _node_creator: NodeCreator) -> CompileStateNFA:
         raise NotImplementedError()
@@ -43,9 +101,14 @@ class RENodeSing(RENode):
     """For expressions like Repeat and Plus, that have a single child"""
 
     def __init__(self, child: RENode, name: str, con: str):
+        super().__init__()
         self.child = child
         self.name = name
         self.con = con
+
+    @override
+    def get_statistics(self) -> RewriteStatistics:
+        return self.rewrite_statistics.sum_with(self.child.get_statistics())
 
     def appears(self) -> frozenset[str]:
         return self.child.appears()
@@ -57,7 +120,7 @@ class RENodeSing(RENode):
             rewrites_for_combination: list[RENode] = self.rewrites_with_rewritten_child(
                 child_rewrites[i])
             rewrites.extend(rewrites_for_combination)
-        return shuffle_pick_n(rewrites, REWRITE_INFLATION_LIMIT)
+        return rewrites
 
     def rewrites_with_rewritten_child(self, child: RENode) -> list[RENode]:
         """Must return identity"""
@@ -73,9 +136,14 @@ class RENodeMul(RENode):
     """For expressions like Then, And, and Or, that have multiple children"""
 
     def __init__(self, exprs: list[RENode], name: str, con: str):
+        super().__init__()
         self.exprs: list[RENode] = exprs
         self.name: str = name
         self.con: str = con
+
+    @override
+    def get_statistics(self) -> RewriteStatistics:
+        return self.rewrite_statistics.sum_with_others([x.get_statistics() for x in self.exprs])
 
     def appears(self) -> frozenset[str]:
         r = set()
@@ -84,17 +152,30 @@ class RENodeMul(RENode):
         return frozenset(r)
 
     def rewrites(self) -> list[RENode]:
-        children: list[list[RENode]] = [
+        children_all: list[list[RENode]] = [
             c.rewrites() for c in self.exprs]
+        children: list[list[RENode]] = []
+        combinations_cutoff = max(
+            2, math.ceil(math.log(COMBINATIONS_CUTOFF, len(children_all))))
+        for rewrites_list in children_all:
+            np.random.shuffle(rewrites_list)  # type: ignore
+            with_demorgans = [(r.get_statistics().num_demorgan, r)
+                              for r in rewrites_list]
+            # candidates =
+            # for i, r in with_demorgans:
+            #     if i > 0 and len(rewrites_list) > combinations_cutoff:
+            #         IPython.embed()
+            children.append(rewrites_list[:combinations_cutoff])
         combinations: list[Tuple[RENode]] = list(itertools.product(*children))
         np.random.shuffle(combinations)  # type: ignore
+        combinations = combinations[:combinations_cutoff]
         rewrites: list[RENode] = []
         for i in range(len(combinations)):
             rewritten_children: list[RENode] = list(combinations[i])
             rewrites_for_combination: list[RENode] = self.rewrites_with_rewritten_children(
                 rewritten_children)
             rewrites.extend(rewrites_for_combination)
-        return shuffle_pick_n(rewrites, REWRITE_INFLATION_LIMIT)
+        return rewrites
 
     def rewrites_with_rewritten_children(self, children: list[RENode]) -> list[RENode]:
         """Must return identity"""
@@ -121,7 +202,7 @@ class RENodeMul(RENode):
             return Then(new_children)
 
     def clean(self) -> RENode:
-        return self._clean_child_same()._clean_single()
+        return self._clean_child_same()._clean_single().inherit_statistics(self)
 
     def _ordered__eq__(self, b) -> bool:
         if not isinstance(b, self.__class__):
@@ -147,8 +228,7 @@ def reorder_children(children: list[RENode]) -> list[list[RENode]]:
     results: list[list[RENode]] = []
     for perm in itertools.permutations(indices):
         p_children: list[RENode] = [children[indices[i]] for i in perm]
-        if p_children != children:  # skipping already-included identity permutation
-            results.append(p_children)
+        results.append(p_children)
     return results
 
 
@@ -163,6 +243,10 @@ class Or(RENodeMul):
     def compile(self, node_creator: NodeCreator) -> CompileStateNFA:
         compiled = [e.compile(node_creator) for e in self.exprs]
         return nfa_union(compiled, node_creator)
+
+    def repetative(self) -> bool:
+        children_repetative = [1 if x.repetative() else 0 for x in self.exprs]
+        return sum(children_repetative) > 1
 
     def _rewrite_demorgan(self, exprs: list[RENode], clean: bool) -> RENode:
         complements: list[RENode] = [Complement(
@@ -247,21 +331,33 @@ class Or(RENodeMul):
                             for child in children:
                                 if child not in subset:
                                     final_or_terms.append(child)
-                            result.append(Or(final_or_terms).clean())
+                            result.append(
+                                Or(final_or_terms).clean())
         return result
 
-    def rewrites_with_rewritten_children(self, children: list[RENode]) -> list[RENode]:
-        # because children are rewritten
-        results: list[RENode] = [Or(children).clean()]
-        results.extend(shuffle_pick_n([Or(children).clean()
-                       for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_REORDER))
-        if np.random.random() < REWRITE_VALIDATION_EMPTY_PROB:
-            results.extend(shuffle_pick_n([self._rewrite_demorgan(children, clean=True)
-                                           for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_DEMORGAN))
-        results.extend(shuffle_pick_n(
-            self._rewrite_distributive_and_inverse(children), REWRITE_INFLATION_LIMIT_DISTRIBUTIVE))
-        results.extend(shuffle_pick_n(
-            self._rewrite_distributive_then_inverse(children), REWRITE_INFLATION_LIMIT_DISTRIBUTIVE))
+    def rewrites_with_rewritten_children(self, original_children: list[RENode]) -> list[RENode]:
+        results: list[RENode] = []
+        reordered: list[list[RENode]] = reorder_children(original_children)
+        np.random.shuffle(reordered)  # type: ignore
+        for r_children in reordered[:TAKE_DEMORGANS]:
+            if np.random.random() < DEMORGANS_P:
+                results.append(self._rewrite_demorgan(
+                    r_children, clean=True).inc_demorgan())
+
+        np.random.shuffle(reordered)  # type: ignore
+        for r_children in reordered[:TAKE_OTHERS]:
+            results.append(Or(r_children).clean())
+
+        np.random.shuffle(reordered)  # type: ignore
+        for r_children in reordered[:TAKE_OTHERS]:
+            results.extend([x.inc_distr()
+                            for x in self._rewrite_distributive_and_inverse(r_children)])
+
+        np.random.shuffle(reordered)  # type: ignore
+        for r_children in reordered[:TAKE_OTHERS]:
+            results.extend([x.inc_distr()
+                            for x in self._rewrite_distributive_then_inverse(r_children)])
+
         return results
 
     def __eq__(self, b) -> bool:
@@ -280,6 +376,10 @@ class And(RENodeMul):
             nfa_complement(c, node_creator) for c in compiled]
         union: CompileStateNFA = nfa_union(complements, node_creator)
         return nfa_complement(union, node_creator)
+
+    def repetative(self) -> bool:
+        children_repetative = [1 if x.repetative() else 0 for x in self.exprs]
+        return sum(children_repetative) == len(children_repetative)
 
     def _rewrite_demorgan(self, exprs: list[RENode], clean: bool) -> RENode:
         complements: list[RENode] = [Complement(
@@ -303,9 +403,8 @@ class And(RENodeMul):
                         if k != i and child not in subset:
                             conjuncts.append(child)
                     or_terms: list[RENode] = [
-                        And(shuffle([*subset, child])).clean() for child in or_child.exprs]
-                    conjuncts.append(Or(shuffle(or_terms)).clean())
-                    np.random.shuffle(conjuncts)  # type: ignore
+                        And([*subset, child]).clean() for child in or_child.exprs]
+                    conjuncts.append(Or(or_terms).clean())
                     if len(conjuncts) > 1:
                         result.append(And(conjuncts).clean())
                     else:
@@ -314,16 +413,25 @@ class And(RENodeMul):
 
     # TODO 10 random for every extend - so all have semi-equal probability of inclusion
 
-    def rewrites_with_rewritten_children(self, children: list[RENode]) -> list[RENode]:
+    def rewrites_with_rewritten_children(self, original_children: list[RENode]) -> list[RENode]:
         # because children are rewritten
-        results: list[RENode] = [And(children).clean()]
-        results.extend(shuffle_pick_n([And(children).clean()
-                       for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_REORDER))
-        if np.random.random() < REWRITE_VALIDATION_EMPTY_PROB:
-            results.extend(shuffle_pick_n([self._rewrite_demorgan(children, clean=True)
-                                           for children in reorder_children(children)], REWRITE_INFLATION_LIMIT_DEMORGAN))
-        results.extend(shuffle_pick_n(
-            self._rewrite_distributive_and(children), REWRITE_INFLATION_LIMIT_DISTRIBUTIVE))
+        results: list[RENode] = []
+        reordered: list[list[RENode]] = reorder_children(original_children)
+
+        np.random.shuffle(reordered)  # type: ignore
+        for r_children in reordered[:TAKE_DEMORGANS]:
+            if np.random.random() < DEMORGANS_P:
+                results.append(self._rewrite_demorgan(
+                    r_children, clean=True).inc_demorgan())
+
+        np.random.shuffle(reordered)  # type: ignore
+        for r_children in reordered[:TAKE_OTHERS]:
+            results.append(And(r_children).clean())
+
+        np.random.shuffle(reordered)  # type: ignore
+        for r_children in reordered[:TAKE_OTHERS]:
+            results.extend([x.inc_distr()
+                            for x in self._rewrite_distributive_and(r_children)])
         return results
 
     def __eq__(self, b) -> bool:
@@ -340,6 +448,9 @@ class Then(RENodeMul):
             for compiled_i_terminal in compiled[i].terminal_states:
                 compiled_i_terminal.t(frozenset({'*'}), compiled[i+1].initial)
         return CompileStateNFA(compiled[0].initial, compiled[-1].terminal_states)
+
+    def repetative(self) -> bool:
+        return self.exprs[-1].repetative()
 
     def _rewrite_distributive_then(self, children: list[RENode]) -> list[RENode]:
         """
@@ -365,7 +476,7 @@ class Then(RENodeMul):
                     or_term = Or(middle_parts).clean()
                     untouched_left_part: list[RENode] = children[0:i-left_i]
                     untouched_right_part: list[RENode] = children[i +
-                                                                  1+right_i:len(children)]
+                                                                  1+right_i: len(children)]
                     result.append(
                         Then([*untouched_left_part, or_term, *untouched_right_part]).clean())
         return result
@@ -373,8 +484,8 @@ class Then(RENodeMul):
     def rewrites_with_rewritten_children(self, children: list[RENode]) -> list[RENode]:
         results: list[RENode] = []
         results.append(Then(children).clean())
-        results.extend(shuffle_pick_n(
-            self._rewrite_distributive_then(children), REWRITE_INFLATION_LIMIT_DISTRIBUTIVE))
+        results.extend([x.inc_distr()
+                       for x in self._rewrite_distributive_then(children)])
         return results
 
     def __eq__(self, b):
@@ -384,6 +495,9 @@ class Then(RENodeMul):
 class Repeat(RENodeSing):
     def __init__(self, child: RENode):
         super().__init__(child, 'Repeat', '*')
+
+    def repetative(self) -> bool:
+        return True
 
     def compile(self, node_creator: NodeCreator) -> CompileStateNFA:
         child = self.child.compile(node_creator)
@@ -403,6 +517,9 @@ class Plus(RENodeSing):
     def __init__(self, child: RENode):
         super().__init__(child, name='Plus', con='+')
 
+    def repetative(self) -> bool:
+        return True
+
     def compile(self, node_creator: NodeCreator) -> CompileStateNFA:
         child = self.child.compile(node_creator)
         for child_terminal in child.terminal_states:
@@ -412,7 +529,8 @@ class Plus(RENodeSing):
     def rewrites_with_rewritten_child(self, child: RENode) -> list[RENode]:
         results: list[RENode] = []
         results.append(Plus(child))
-        results.append(Then([child, Repeat(child)]).clean())
+        results.append(Then([child, Repeat(child)]
+                            ).clean().inc_num_plus_repeat())
         return results
 
 
@@ -420,13 +538,16 @@ class Complement(RENodeSing):
     def __init__(self, child: RENode):
         super().__init__(child, 'Complement', '~')
 
+    def repetative(self) -> bool:
+        return True
+
     def compile(self, node_creator: NodeCreator) -> CompileStateNFA:
         child = self.child.compile(node_creator)
         return nfa_complement(child, node_creator)
 
     def remove_double_negation(self) -> RENode:
         if isinstance(self.child, Complement):
-            return self.child.child
+            return self.child.child.inherit_statistics(self)
         else:
             return self
 
@@ -440,12 +561,11 @@ class Complement(RENodeSing):
 
     def rewrites_with_rewritten_child(self, child: RENode) -> list[RENode]:
         results: list[RENode] = []
-        results.append(Complement(child).remove_double_negation())
+        results.append(Complement(child).inherit_statistics(self))
         if isinstance(child, Complement):
-            results.append(child.child)
-        if np.random.random() < REWRITE_VALIDATION_EMPTY_PROB:
-            results.extend(shuffle_pick_n(self._demorgans(
-                child), REWRITE_INFLATION_LIMIT_DEMORGAN))
+            results.append(child.child.inc_removed_double_compl())
+        if np.random.random() < DEMORGANS_P:
+            results.extend([x.inc_demorgan() for x in self._demorgans(child)])
         return results
 
 
@@ -456,6 +576,9 @@ class Matcher(RENode):
 
     def matches(self, input_symbol: frozenset[str]) -> bool:
         raise NotImplementedError()
+
+    def repetative(self) -> bool:
+        return False
 
     def compile(self, node_creator: NodeCreator) -> CompileStateNFA:
         terminal = node_creator.new_nfa_node()

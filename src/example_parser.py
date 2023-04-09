@@ -38,6 +38,12 @@ class Example:
     def average_desc_length(self):
         return float(sum([len(desc) for desc in self.descs])) / len(self.descs)
 
+    def vars(self) -> list[str]:
+        if len(self.example_rewrites) == 0:
+            return []
+        else:
+            return list(reversed(sorted([x for (x, y) in self.example_rewrites[0]])))
+
     def desc_includes_first_second(self):
         for desc in self.descs:
             desc = desc.lower()

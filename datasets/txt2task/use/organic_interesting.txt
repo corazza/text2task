@@ -8,8 +8,8 @@ $A % PLACE, $B % DIRECTION
 $A % AREA, $B % DIRECTION
 =
 Visit the $A by going $B
-Always go $B. Visit the $A.
-Always go $B. Go to the $A.
+Always go $B. Visit the $A
+Always go $B. Go to the $A
 Go to the $A, but never stop going $B
 =
 (!$A&$B)* > $A&$B

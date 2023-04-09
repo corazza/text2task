@@ -13,6 +13,7 @@ from functools import wraps
 
 
 from consts import *
+from regex_ast import RENode
 from regex_printer import expr_to_str
 from regex_validation import equivalent
 from example_parser import Example, parse_examples
@@ -20,6 +21,7 @@ from parser_util import line_iter
 import compiler_interface
 from compiler_interface import compile
 from terms_parser import parse_terms
+from util import *
 
 
 def profile(sort_by='cumulative'):
@@ -57,59 +59,160 @@ def augment_examples(examples: list[Example]) -> list[Example]:
     return examples
 
 
-def augmented_ab(examples: list[Example], num_abs) -> list[Tuple[Example, str, str]]:
-    new_abs: list[Tuple[Example, str, str]] = []
-    np.random.shuffle(examples)  # type: ignore
+def has_without_dot(example: Example) -> bool:
+    for desc in example.descs:
+        if '.' not in desc:
+            return True
+    return False
 
+
+def get_eligible_pairs(examples: list[Example]) -> list[Tuple[int, int]]:
     eligible_pairs: list[Tuple[int, int]] = []
     for i, example1 in enumerate(examples):
         for j, example2 in enumerate(examples):
-            if example1 == example2 or i == j:
+            if i >= j:
                 continue
             if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
                 continue
+            if not has_without_dot(example1) or not has_without_dot(example2):
+                continue
             eligible_pairs.append((i, j))
+    return eligible_pairs
 
-    num_concat: int = round(ADD_CONCAT_P * ADD_P * num_abs)
-    print(f'adding concat... ({num_concat})')
-    np.random.shuffle(eligible_pairs)
-    for counter, (i, j) in enumerate(eligible_pairs[:num_concat]):
-        example1 = examples[i]
-        example2 = examples[j]
-        example = with_concat(example1, example2)  # type: ignore
-        new_abs.append(get_single_ab(example))
 
-    num_disjunct: int = round(ADD_DISJUNCT_P * ADD_P * num_abs)
-    print(f'adding disjunct... ({num_disjunct})')
-    np.random.shuffle(eligible_pairs)
-    for i, j in eligible_pairs[:num_disjunct]:
-        example1 = examples[i]
-        example2 = examples[j]
-        example = with_disjunct(example1, example2)
-        new_abs.append(get_single_ab(example))
+def load_patterns(path: str) -> dict[str, list[Example]]:
+    as_examples: list[Example] = load_examples(path)
+    result: dict[str, list[Example]] = dict()
+    for example in as_examples:
+        assert example.id != '-1'
+        if example.id not in result:
+            result[example.id] = [example]
+        else:
+            result[example.id].append(example)
+    return result
 
-    num_conjunct: int = round(ADD_CONJUNCT_P * ADD_P * num_abs)
-    print(f'adding conjunct... ({num_conjunct})')
-    np.random.shuffle(eligible_pairs)
-    for i, j in eligible_pairs[:num_conjunct]:
-        example1 = examples[i]
-        example2 = examples[j]
-        example = with_conjunct(example1, example2)
-        new_abs.append(get_single_ab(example))
 
-    num_avoidance: int = round(ADD_AVOIDANCE_P * ADD_P * num_abs)
-    print(f'adding avoidance... ({num_avoidance})')
-    eligible_classes = ['NO_THE', 'OBJECT_A',
-                        'AVOID', 'STEP_ON_A', 'FALL_IN_A', 'HIT_A']
+def get_adds(pattern_id: str, example: Example) -> str:
+    if pattern_id == 'conjunct':
+        rep_src = example.srcs[0]
+        ast = compiler_interface.parse(rep_src)
+        return '' if ast.repetative() else ' > (.)*'
+    else:
+        return ''
 
-    for i in range(num_avoidance):
-        example = random_from(examples)
-        pvar_class = random_from(eligible_classes)
-        new_example = with_avoidance(pvar_class, example)
-        new_abs.append(get_single_ab(new_example))
 
-    if VALIDATE_AB_AUGMENTS:
-        validate_runs([e for e, a, b in new_abs])
+def apply_replacements(original: str, which: list[Tuple[str, str]]) -> str:
+    for left, right in which:
+        original = original.replace(left, right)
+    return original
+
+
+def eligible_combination_in_pair(pattern_desc: str, example_descs: list[str]) -> bool:
+    cant_appear_both = ['first', 'second', 'finally']
+    for example_desc in example_descs:
+        for disallowed in cant_appear_both:
+            if disallowed in pattern_desc.lower() and example_desc.lower():
+                return False
+    return True
+
+
+def eligible_desc_in_pair(example_desc: str) -> bool:
+    return '.' not in example_desc
+
+
+def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filter, eligible_combination_filter) -> Example:
+    representatives: list[str] = [x.representative() for x in examples]
+    new_example_rewrites: list[list[Tuple[str, str]]] = []
+    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
+    new_descs: list[str] = []
+    new_srcs: list[str] = []
+    new_id: str = f'_ADDED_{pattern.id}_' + '|'.join(representatives)
+
+    merged_rewrites: list[list[Tuple[str, str]]] = merge_rewrites(examples)
+    if len(pattern.example_rewrites) > 0:
+        for r in merged_rewrites:
+            for pattern_r in pattern.example_rewrites:
+                new_example_rewrites.append(r + pattern_r)
+    else:
+        new_example_rewrites = merged_rewrites
+
+    src_candidates: list[list[str]] = [x.srcs for x in examples]
+    desc_candidates: list[list[str]] = [
+        list(filter(eligible_desc_filter, x.descs)) for x in examples]
+
+    desc_combinations: list[list[str]] = list(
+        itertools.product(*desc_candidates))
+    src_combinations: list[list[str]] = list(
+        itertools.product(*src_candidates))
+
+    assert len(desc_combinations) > 0
+
+    adds: list[str] = [get_adds(pattern.id, x) for x in examples]
+
+    for chosen_descs in desc_combinations:
+        for pattern_desc in pattern.descs:
+            if not eligible_combination_filter(pattern_desc, chosen_descs):
+                continue
+            replacements: list[Tuple[str, str]] = []
+            for i in range(len(examples)):
+                desc_i: str = map_desc(
+                    examples[i].vars(), AUGMENT_CHAR_LIST[i], chosen_descs[i])
+                desc_i = desc_i[0].lower() + desc_i[1:]
+                replacements.append((f'DESC{i}', desc_i))
+                replacements.append((f'ADD{i}', adds[i]))
+            new_descs.append(clean_desc(
+                apply_replacements(pattern_desc, replacements)))
+
+    for chosen_srcs in src_combinations:
+        for pattern_src in pattern.srcs:
+            replacements: list[Tuple[str, str]] = []
+            for i in range(len(examples)):
+                src_i: str = map_desc(
+                    examples[i].vars(), AUGMENT_CHAR_LIST[i], chosen_srcs[i])
+                replacements.append((f'SRC{i}', src_i))
+                replacements.append((f'ADD{i}', adds[i]))
+            new_srcs.append(apply_replacements(pattern_src, replacements))
+
+    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
+
+
+def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], num_abs) -> list[Tuple[Example, str, str]]:
+    new_abs: list[Tuple[Example, str, str]] = []
+    np.random.shuffle(examples)  # type: ignore
+    eligible_pairs: list[Tuple[int, int]] = get_eligible_pairs(examples)
+    eligible_single: list[int] = list(range(len(examples)))
+
+    to_add_pairs: dict[str, int] = {
+        'concat': round(ADD_CONCAT_P * ADD_P * num_abs),
+        'disjunct': round(ADD_DISJUNCT_P * ADD_P * num_abs),
+        'conjunct': round(ADD_CONJUNCT_P * ADD_P * num_abs),
+    }
+
+    for pattern_id, pattern_num in to_add_pairs.items():
+        assert len(eligible_pairs) >= pattern_num
+        print(f'adding {pattern_id}... ({pattern_num})')
+        np.random.shuffle(eligible_pairs)
+        for i, j in eligible_pairs[:pattern_num]:
+            pattern = random_from(patterns[pattern_id])
+            example1 = examples[i]
+            example2 = examples[j]
+            example = apply_pattern(
+                pattern, [example1, example2], eligible_desc_in_pair, eligible_combination_in_pair)
+            new_abs.append(get_single_ab(example))
+
+    to_add_single: dict[str, int] = {
+        'avoid': round(ADD_AVOIDANCE_P * ADD_P * num_abs)
+    }
+
+    for pattern_id, pattern_num in to_add_single.items():
+        print(f'adding {pattern_id}... ({pattern_num})')
+        np.random.shuffle(eligible_single)
+        for counter in range(pattern_num):
+            pattern = random_from(patterns[pattern_id])
+            example = examples[counter % len(eligible_single)]
+            new_example = apply_pattern(
+                pattern, [example], lambda x: True, lambda x, y: True)
+            new_abs.append(get_single_ab(new_example))
 
     return new_abs
 
@@ -117,7 +220,8 @@ def augmented_ab(examples: list[Example], num_abs) -> list[Tuple[Example, str, s
 def get_single_ab(example: Example):
     np.random.shuffle(example.descs)
     np.random.shuffle(example.srcs)
-    return example, example.descs[0], example.srcs[0]
+    ast = compiler_interface.parse(example.srcs[0])
+    return example, example.descs[0], expr_to_str(ast)
 
 
 def apply_text_rewrite_with_concat(x: str, rewrite: list[Tuple[str, str]], sep: str) -> str:
@@ -139,45 +243,30 @@ def get_all_terms_from_tag(terms: dict[str, list[str]], term_tag: str) -> list[s
     return applicable
 
 
-def organic_ab_to_take(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
-    statistics, num_synthetic = ab_statistics(abs)
-    assert num_synthetic == 0
-    to_take: dict[str, int] = dict()
-    for example, desc, src in abs:
-        r = example.representative()
-        assert not example.synthetic
-        # to_take[r] = max(1, round(SENTENCE_CAP / statistics[r]))
-        to_take[r] = 2
-    return to_take
-
-
-def synthetic_ab_to_take(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
-    statistics, num_synthetic = ab_statistics(abs)
-    assert num_synthetic == len(abs)
-    to_take: dict[str, int] = dict()
-    for example, desc, src in abs:
-        r = example.representative()
-        assert example.synthetic
-        to_take[r] = 1
-    return to_take
-
-
-def ab_rewrites(abs: list[Tuple[Example, str, str]], terms, to_take: dict[str, int]) -> list[Tuple[Example, str, str]]:
+def ab_rewrites(abs: list[Tuple[Example, str, str]], terms, to_cap: bool) -> list[Tuple[Example, str, str]]:
     np.random.shuffle(abs)  # type: ignore
+    statistics = ab_statistics(abs)
     new_abs: list[Tuple[Example, str, str]] = []
     for i, (example, desc, src) in enumerate(abs):
-        if i % 250 == 0:
-            print(f'{i}/{len(abs)}')
+        # if i % 250 == 0:
+        #     print(f'{i}/{len(abs)}')
         r = example.representative()
-        new_rewrites = get_new_rewrites(example, terms, to_take[r])
+        if not to_cap:
+            to_take = 1
+        else:
+            id = example.representative() + '|' + desc
+            to_take = max(1, round(SENTENCE_CAP / statistics[id]))
+        new_rewrites = get_new_rewrites(example, terms)[:to_take]
         for rewrite in new_rewrites:
             r_desc = apply_text_rewrite_with_concat(desc, rewrite, ' ')
             r_src = apply_text_rewrite_with_concat(src, rewrite, '_')
             new_abs.append((example, r_desc, r_src))
+        if '$' not in src and '$' not in desc:
+            new_abs.append((example, desc, src))
     return new_abs
 
 
-def get_new_rewrites(example: Example, terms, num_new: int) -> list[list[Tuple[str, str]]]:
+def get_new_rewrites(example: Example, terms) -> list[list[Tuple[str, str]]]:
     new_rewrites: list[list[Tuple[str, str]]] = []
     for rewrite in example.example_rewrites:
         new_versions: list[list[Tuple[str, str]]] = []
@@ -204,9 +293,7 @@ def get_new_rewrites(example: Example, terms, num_new: int) -> list[list[Tuple[s
     for rewrite in new_rewrites:
         seen.add(tuple(rewrite))
     assert len(seen) == len(new_rewrites)
-    num_new_rewrites: int = len(new_rewrites)
-    to_take: int = min(num_new_rewrites, num_new)
-    return new_rewrites[:to_take]
+    return new_rewrites
 
 
 def clean_desc(desc: str) -> str:
@@ -214,99 +301,9 @@ def clean_desc(desc: str) -> str:
     desc = desc.replace('. .', '.')
     desc = desc.replace('.,', ',')
     desc = desc.replace('. ,', ',')
+    if np.random.random() < 0.5:
+        desc = desc[0].upper() + desc[1:]
     return desc
-
-
-def with_avoidance(pvar_class: str, example: Example) -> Example:
-    variable = '$Z'
-    desc_before: dict[str, list[str]] = {
-        'NO_THE': [],
-        'OBJECT_A': [],
-        'AVOID': [],
-        'STEP_ON_A': [],
-        'FALL_IN_A': [],
-        'HIT_A': [],
-    }
-    desc_after: dict[str, list[str]] = {
-        'NO_THE': [],
-        'OBJECT_A': [],
-        'AVOID': [],
-        'STEP_ON_A': [],
-        'FALL_IN_A': [],
-        'HIT_A': [],
-    }
-
-    desc_before['NO_THE'].append(f'Avoid {variable}. ')
-    desc_before['NO_THE'].append(
-        f'Do the following task, but avoid {variable}: ')
-    desc_after['NO_THE'].append(f'. Avoid {variable}.')
-    desc_after['NO_THE'].append(f', and avoid {variable}.')
-    desc_after['NO_THE'].append(f'. Don\'t get near {variable}.')
-
-    desc_before['OBJECT_A'].append(f'Avoid {variable}s. ')
-    desc_before['OBJECT_A'].append(
-        f'Do the following task, but avoid {variable}s: ')
-    desc_after['OBJECT_A'].append(f'. Avoid {variable}s.')
-    desc_after['OBJECT_A'].append(f', and avoid {variable}s')
-    desc_after['OBJECT_A'].append(f'. Don\'t get near {variable}s')
-
-    desc_before['AVOID'].append(f'Avoid {variable}s. ')
-    desc_before['AVOID'].append(
-        f'Do the following task, but avoid {variable}s: ')
-    desc_after['AVOID'].append(f'. Avoid {variable}s')
-    desc_after['AVOID'].append(f', and avoid {variable}s.')
-    desc_after['AVOID'].append(f'. Don\'t get near {variable}s')
-
-    desc_before['STEP_ON_A'].append(f'Don\'t step on {variable}s. ')
-    desc_before['STEP_ON_A'].append(
-        f'Do the following task, but don\'t step on {variable}s: ')
-    desc_after['STEP_ON_A'].append(f', and never step on {variable}s')
-    desc_after['STEP_ON_A'].append(f'. Don\'t step on {variable}s.')
-
-    desc_before['FALL_IN_A'].append(f'Don\'t fall in a {variable}. ')
-    desc_before['FALL_IN_A'].append(
-        f'Do the following task, but don\'t fall in a {variable}: ')
-    desc_after['FALL_IN_A'].append(f', and never fall in a {variable}.')
-    desc_after['FALL_IN_A'].append(f'. Don\'t fall in a {variable}s')
-
-    desc_before['HIT_A'].append(f'Don\'t hit a {variable}. ')
-    desc_before['HIT_A'].append(
-        f'Do the following task, but don\'t hit a {variable}: ')
-    desc_after['HIT_A'].append(f', and never hit a {variable}')
-    desc_after['HIT_A'].append(f'. Don\'t hit a {variable}s.')
-
-    src_after: list[str] = [
-        f'(!{variable})*',  # (!$B)*
-        f'((.)* > {variable} > (.)*)~',  # ((.)* > $B > (.)*)~
-    ]
-
-    new_example_rewrites: list[list[Tuple[str, str]]
-                               ] = [rewrite_list + [(variable, pvar_class)] for rewrite_list in example.example_rewrites]
-    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
-    new_descs: list[str] = []
-    new_srcs: list[str] = []
-    new_id: str = f'{example.representative()}_ADDED_AVOID'
-
-    for (reward, pvars) in example.runs:
-        new_runs.append((reward, pvars))
-        new_runs.append((0, [frozenset({variable})] + pvars))
-
-    for desc in example.descs:
-        if np.random.random() < AUGMENT_PREFER_BEFORE:
-            before: str = random_from(desc_before[pvar_class])
-            new_desc = f'{before}{desc}'
-        else:
-            after: str = random_from(desc_after[pvar_class])
-            new_desc = f'{desc}{after}'
-        new_desc = clean_desc(new_desc)
-        new_descs.append(new_desc)
-
-    for src in example.srcs:
-        for after in src_after:
-            new_src = f'({src})&{after}'
-            new_srcs.append(new_src)
-
-    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
 
 
 def map_rewrite(letter: str, example_rewrites: list[Tuple[str, str]]) -> list[Tuple[str, str]]:
@@ -317,227 +314,71 @@ def map_trace(letter: str, trace: list[frozenset[str]]) -> list[frozenset[str]]:
     return [frozenset([f'{v}{letter}' if '$' in v else v for v in vars]) for vars in trace]
 
 
-def map_desc(rewrite_list: list[Tuple[str, str]], letter: str, desc: str) -> str:
-    vars = list(reversed(sorted([x for (x, y) in rewrite_list])))
+def map_desc(vars: list[str], letter: str, desc: str) -> str:
     for v in vars:
         desc = desc.replace(v, f'{v}{letter}' if '$' in v else v)
     return desc
 
 
-def merge_rewrites(example1: Example, example2: Example) -> list[list[Tuple[str, str]]]:
-    new_example_rewrites: list[list[Tuple[str, str]]] = [map_rewrite('Q', rewrite_list1) + map_rewrite(
-        'P', rewrite_list2) for rewrite_list1 in example1.example_rewrites for rewrite_list2 in example2.example_rewrites]
+def merge_rewrites(examples: list[Example]) -> list[list[Tuple[str, str]]]:
+    old_rewrites: list[list[list[Tuple[str, str]]]] = [
+        x.example_rewrites if len(x.example_rewrites) > 0 else [[]] for x in examples]
+    new_example_rewrites: list[list[Tuple[str, str]]] = []
+    for combination in itertools.product(*old_rewrites):
+        new_rewrite_list: list[Tuple[str, str]] = []
+        for i, rewrite_list in enumerate(combination):
+            mapped = map_rewrite(f'{AUGMENT_CHAR_LIST[i]}', rewrite_list)
+            new_rewrite_list.extend(mapped)
+        new_example_rewrites.append(new_rewrite_list)
     return new_example_rewrites
 
 
-def with_concat(example1: Example, example2: Example) -> Example:
-    new_example_rewrites: list[list[Tuple[str, str]]
-                               ] = merge_rewrites(example1, example2)
-    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
-    new_descs: list[str] = []
-    new_srcs: list[str] = []
-    new_id: str = f'{example1.representative()}_CONCAT_{example2.representative()}'
-
-    for src1_or in example1.srcs:
-        for src2 in example2.srcs:
-            if len(example1.example_rewrites) > 0:
-                src1 = map_desc(example1.example_rewrites[0], 'Q', src1_or)
-            else:
-                src1 = src1_or
-            if len(example2.example_rewrites) > 0:
-                src2 = map_desc(example2.example_rewrites[0], 'P', src2)
-            new_src = f'({src1}) > ({src2})'
-            new_srcs.append(new_src)
-
-    if VALIDATE_AB_AUGMENTS:
-        concat_rm = compiler_interface.compile(new_srcs[0])
-        example1_rm = compiler_interface.compile(example1.srcs[0])
-        example2_rm = compiler_interface.compile(example2.srcs[0])
-        for (_reward1, _trace1) in example1.runs:
-            reward1 = example1_rm(*_trace1)
-            first_positive = next(
-                (i for i, x in enumerate(reward1) if x > 0), None)
-            for (_reward2, trace2) in example2.runs:
-                reward2 = example2_rm(*trace2)
-                if first_positive == None:
-                    trace1 = _trace1
-                    reward = 0
-                else:
-                    trace1 = _trace1[:first_positive+1]
-                    reward = sum(reward2)
-                trace = map_trace('Q', trace1) + map_trace('P', trace2)
-                reward = sum(concat_rm(*trace))  # TODO this is wrong
-                new_runs.append((reward, trace))
-
-    for desc1_or in example1.descs:
-        for desc2 in example2.descs:
-            desc1 = desc1_or
-            if len(example1.example_rewrites) > 0:
-                desc1 = map_desc(example1.example_rewrites[0], 'Q', desc1)
-            if len(example2.example_rewrites) > 0:
-                desc2 = map_desc(example2.example_rewrites[0], 'P', desc2)
-            if '$' not in desc1[:2]:
-                desc1 = desc1[:2].lower() + desc1[2:]
-            if '$' not in desc2[:2]:
-                desc2 = desc2[:2].lower() + desc2[2:]
-            if 'first' not in desc1.lower() and 'second' not in desc2.lower():
-                new_descs.append(f'First: {desc1}. Second: {desc2}')
-                new_descs.append(
-                    f'There are two tasks. First {desc1}. Second {desc2}.')
-            if 'first' not in desc1.lower():
-                new_descs.append(f'First: {desc1}. Then: {desc2}')
-                new_descs.append(
-                    f'There are two tasks. First {desc1}. Second {desc2}.')
-            new_descs.append(f'{desc1}. Then {desc2}')
-    new_descs = [clean_desc(desc) for desc in new_descs]
-    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
-
-
-def with_disjunct(example1: Example, example2: Example) -> Example:
-    new_example_rewrites: list[list[Tuple[str, str]]
-                               ] = merge_rewrites(example1, example2)
-    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
-    new_descs: list[str] = []
-    new_srcs: list[str] = []
-    new_id: str = f'{example1.representative()}_DISJUNCT_{example2.representative()}'
-
-    if VALIDATE_AB_AUGMENTS:
-        example1_rm = compiler_interface.compile(example1.srcs[0])
-        example2_rm = compiler_interface.compile(example2.srcs[0])
-
-        for (reward, trace) in example1.runs:
-            reward1 = example1_rm(*trace)
-            reward2 = example2_rm(*trace)
-            new_runs.append(
-                (sum(reward1) + sum(reward2), map_trace('Q', trace)))
-
-        for (reward, trace) in example2.runs:
-            reward1 = example1_rm(*trace)
-            reward2 = example2_rm(*trace)
-            new_runs.append(
-                (sum(reward1) + sum(reward2), map_trace('P', trace)))
-
-    for src1_or in example1.srcs:
-        for src2 in example2.srcs:
-            if len(example1.example_rewrites) > 0:
-                src1 = map_desc(example1.example_rewrites[0], 'Q', src1_or)
-            else:
-                src1 = src1_or
-            if len(example2.example_rewrites) > 0:
-                src2 = map_desc(example2.example_rewrites[0], 'P', src2)
-            new_src = f'({src1}) | ({src2})'
-            new_srcs.append(new_src)
-
-    for desc1_or in example1.descs:
-        for desc2 in example2.descs:
-            desc1 = desc1_or
-            if len(example1.example_rewrites) > 0:
-                desc1 = map_desc(example1.example_rewrites[0], 'Q', desc1)
-            if len(example2.example_rewrites) > 0:
-                desc2 = map_desc(example2.example_rewrites[0], 'P', desc2)
-            if '$' not in desc1[:2]:
-                desc1 = desc1[:2].lower() + desc1[2:]
-            if '$' not in desc2[:2]:
-                desc2 = desc2[:2].lower() + desc2[2:]
-            new_descs.append(
-                f'There are two tasks. Either {desc1}, or {desc2}.')
-            new_descs.append(
-                f'Either {desc1}. Or, {desc2}.')
-    new_descs = [clean_desc(desc) for desc in new_descs]
-    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
-
-
-def merge_traces(trace1: list[frozenset[str]], trace2: list[frozenset[str]]) -> list[frozenset[str]]:
-    trace: list[frozenset[str]] = []
-    for vars1, vars2 in itertools.zip_longest(trace1, trace2, fillvalue=frozenset()):
-        trace.append(vars1.union(vars2))
-    return trace
-
-
-def merge_rewards(rewards1: list[int], rewards2: list[int]):
-    rewards: list[int] = []
-    for r1, r2 in itertools.zip_longest(rewards1, rewards2, fillvalue=0):
-        rewards.append(r1*r2)
-    return rewards
-
-
-def with_conjunct(example1: Example, example2: Example) -> Example:
-    new_example_rewrites: list[list[Tuple[str, str]]
-                               ] = merge_rewrites(example1, example2)
-    new_runs: list[Tuple[int, list[frozenset[str]]]] = []
-    new_descs: list[str] = []
-    new_srcs: list[str] = []
-    new_id: str = f'{example1.representative()}_CONJUNCT_{example2.representative()}'
-
-    if VALIDATE_AB_AUGMENTS:
-        example1_rm = compiler_interface.compile(example1.srcs[0])
-        example2_rm = compiler_interface.compile(example2.srcs[0])
-
-        for (_reward1, trace1) in example1.runs:
-            reward1 = example1_rm(*trace1)
-            for (_reward2, trace2) in example2.runs:
-                reward2 = example2_rm(*trace2)
-                rewards = merge_rewards(reward1, reward2)
-                reward = sum(rewards)
-                trace_merged = merge_traces(trace1, trace2)
-                new_runs.append((reward, trace_merged))
-
-    for src1_or in example1.srcs:
-        for src2 in example2.srcs:
-            if len(example1.example_rewrites) > 0:
-                src1 = map_desc(example1.example_rewrites[0], 'Q', src1_or)
-            else:
-                src1 = src1_or
-            if len(example2.example_rewrites) > 0:
-                src2 = map_desc(example2.example_rewrites[0], 'P', src2)
-            new_src = f'(({src1}) > (.)*) & (({src2}) > (.)*)'
-            new_srcs.append(new_src)
-
-    for desc1_or in example1.descs:
-        for desc2 in example2.descs:
-            desc1 = desc1_or
-            if len(example1.example_rewrites) > 0:
-                desc1 = map_desc(example1.example_rewrites[0], 'Q', desc1)
-            if len(example2.example_rewrites) > 0:
-                desc2 = map_desc(example2.example_rewrites[0], 'P', desc2)
-            if '$' not in desc1[:2]:
-                desc1 = desc1[:2].lower() + desc1[2:]
-            if '$' not in desc2[:2]:
-                desc2 = desc2[:2].lower() + desc2[2:]
-            new_descs.append(
-                f'There are two tasks and you must do both at the same time. {desc1} (first task), and {desc2} (second task).')
-            new_descs.append(
-                f'{desc1}. And at the same time, {desc2}.')
-            new_descs.append(
-                f'{desc1}. And, {desc2}.')
-    new_descs = [clean_desc(desc) for desc in new_descs]
-    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
-
-
-def random_from(xs: list):
-    num = len(xs)
-    i = np.random.randint(num)
-    return xs[i]
+def filter_rewrites(srcs, rewrites_nodes: list[RENode]) -> list[RENode]:
+    filtered = []
+    gotten_srcs: set[str] = set()
+    for node in rewrites_nodes:
+        rewrite_src = expr_to_str(node)
+        found = False
+        for src in srcs:
+            if rewrite_src == src:
+                found = True
+        if not found and rewrite_src not in gotten_srcs:
+            filtered.append(node)
+            gotten_srcs.add(rewrite_src)
+    return filtered
 
 
 def ast_rewrites(examples: list[Example]) -> list[Example]:
-    for example in examples:
+    statistics2: dict[str, int] = {'has_demorgan': 0, 'no_demorgan': 0}
+    for i, example in enumerate(examples):
+        to_take: int = max(1, SENTENCE_CAP - len(example.srcs))
         new_srcs: list[str] = []
-        for src in example.srcs:
-            ast = compiler_interface.parse(src)
+        asts = [compiler_interface.parse(src) for src in example.srcs]
+        for src, ast in zip(example.srcs, asts):
             rewrites_nodes = ast.rewrites()
-            rewrites: list[str] = [expr_to_str(r) for r in rewrites_nodes]
+            np.random.shuffle(rewrites_nodes)  # type: ignore
+            rewrites_nodes = rewrites_nodes[:to_take]
+            filtered = filter_rewrites(example.srcs, rewrites_nodes)
+            rewrites = [expr_to_str(f) for f in filtered]
+            for ast2 in filtered:
+                rewrite_statistics = ast2.get_statistics()
+                if rewrite_statistics.num_demorgan > 0:
+                    statistics2['has_demorgan'] += 1
+                else:
+                    statistics2['no_demorgan'] += 1
             new_srcs.extend(rewrites)
+        np.random.shuffle(new_srcs)
+        new_srcs = new_srcs[:to_take]
         example.srcs.extend(new_srcs)
     return examples
 
 
 def desc_src_to_line(a: str, b: str) -> str:
-    return '{"a": "' + a + '", "b":"' + b + '"}\n'
+    return '{"a": "' + a.lower() + '", "b":"' + b.lower() + '"}'
 
 
 def desc_src_to_line_human(a: str, b: str) -> str:
-    return a + ' => ' + b + '\n'
+    return a.lower() + ' => ' + b.lower()
 
 
 def validate_runs(examples: list[Example]):
@@ -549,9 +390,14 @@ def validate_runs(examples: list[Example]):
         rewards_sets: dict[Tuple[frozenset[str]], set[Tuple[int]]] = dict()
         for (i_src, src) in enumerate(example.srcs):
             print(f'    src={i_src}/{len(example.srcs)}')
+            # ast = compiler_interface.parse(src)
+            # src2 = expr_to_str(ast)
             rm = compiler_interface.compile(src)
+            # rm2 = compiler_interface.compile(src2)
             for (i_rr, (reward, run)) in enumerate(example.runs):
                 rewards = rm.multiple_transitions(0, run)
+                # rewards2 = rm2.multiple_transitions(0, run)
+                # assert rewards == rewards2, 'printer failed'
                 if tuple(run) not in rewards_sets:
                     rewards_sets[tuple(run)] = set()
                 rewards_sets[tuple(run)].add(tuple(rewards))
@@ -571,7 +417,6 @@ def validate_equiv(examples: list[Example]):
     #         if len(ineq_evidence) != 0:
     #             print(src)
     #             print(rewrite)
-    #             IPython.embed()  # type: ignore
     #         assert len(ineq_evidence) == 0
     raise NotImplementedError()
 
@@ -600,6 +445,7 @@ def sanity_check(ab: Tuple[Example, str, str]):
             continue
         if c == ' ':
             assert not isalpha(src[i-1]) or not isalpha(src[i+1])
+    assert '$' not in desc
 
 
 def sanity_checks(abs: list[Tuple[Example, str, str]]):
@@ -648,17 +494,17 @@ def examples_statistics(examples: list[Example]) -> list[dict[str, int | str]]:
     return [example_statistics(example) for example in examples]
 
 
-def ab_statistics(abs: list[Tuple[Example, str, str]]) -> Tuple[dict[str, int], int]:
+def ab_statistics(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
     result = dict()
     synthetic = 0
     for e, desc, src in abs:
         if e.synthetic:
             synthetic += 1
-        representative = e.representative()
+        representative = e.representative() + '|' + desc
         if representative not in result:
             result[representative] = 0
         result[representative] += 1
-    return result, synthetic
+    return result
 
 
 def statistics_to_lines(statistics: dict[str, int]) -> list[str]:
@@ -670,10 +516,11 @@ def statistics_to_lines(statistics: dict[str, int]) -> list[str]:
 
 
 def apply_cap(abs: list[Tuple[Example, str, str]], cap: int) -> list[Tuple[Example, str, str]]:
+    np.random.shuffle(abs)  # type: ignore
     taken: dict[str, int] = dict()
     result: list[Tuple[Example, str, str]] = list()
     for e, desc, src in abs:
-        representative = e.representative()
+        representative = e.representative() + '|' + desc
         if representative not in taken:
             taken[representative] = 0
         if taken[representative] < cap:
@@ -685,12 +532,23 @@ def apply_cap(abs: list[Tuple[Example, str, str]], cap: int) -> list[Tuple[Examp
 def ab_to_lines(abs: list[Tuple[Example, str, str]]) -> list[str]:
     result: list[str] = []
     for e, desc, src in abs:
-        result.append(desc_src_to_line(desc, src))
+        result.append(desc_src_to_line(desc, src) + '\n')
     return result
 
 
 def ab_to_lines_human(ab: list[Tuple[Example, str, str]]) -> list[str]:
     result: list[str] = []
     for e, desc, src in ab:
-        result.append(desc_src_to_line_human(desc, src))
+        result.append(desc_src_to_line_human(desc, src) + '\n')
+    return result
+
+
+def ab_to_lines_synthetic(ab: list[Tuple[Example, str, str]]) -> list[str]:
+    result: list[str] = []
+    for e, desc, src in ab:
+        # result.append(
+        #     f'{desc_src_to_line_human(desc, src)}         ~ {e.id}\n')
+        skip = len('_ADDED_')
+        prefix = e.id[skip:skip+len('disjunct')]
+        result.append(f'{prefix} ~ {desc_src_to_line_human(desc, src)}\n')
     return result

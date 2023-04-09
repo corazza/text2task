@@ -1,0 +1,121 @@
+0 @ {}, {}
+=
+=
+DESC0. Then DESC1
+There are two tasks. First DESC0. Second DESC1.
+First: DESC0. Second: DESC1
+There are two tasks. First DESC0. Second DESC1.
+=
+(SRC0) > (SRC1)
+=
+concat
+
+0 @ {}, {}
+=
+=
+There are two tasks. Either DESC0, or DESC1
+Either DESC0. Or, DESC1
+=
+(SRC0) | (SRC1)
+=
+disjunct
+
+0 @ {}, {}
+=
+=
+There are two tasks and you must do both at the same time. {desc1} (first task), and {desc2} (second task).
+DESC0. And at the same time, DESC1.
+DESC0. And, DESC1
+=
+((SRC0)ADD0) & ((SRC1)ADD1)
+=
+conjunct
+
+0 @ {}, {}
+=
+$Z % NO_THE
+=
+Avoid $Z. DESC0
+Do the following task, but avoid $Z: DESC0
+DESC0. Avoid $Z
+DESC0, and avoid $Z
+DESC0. Don't get near $Z
+=
+(SRC0) & (!$Z)*
+(SRC0) & ((.)* > $Z > (.)*)~
+=
+avoid
+
+0 @ {}, {}
+=
+$Z % AVOID
+$Z % OBJECT_A
+=
+Avoid $Zs. DESC0
+Do the following task, but avoid $Zs: DESC0
+DESC0. Avoid $Zs
+DESC0, and avoid $Zs
+DESC0. Don't get near $Zs
+=
+(SRC0) & (!$Z)*
+(SRC0) & ((.)* > $Z > (.)*)~
+=
+avoid
+
+0 @ {}, {}
+=
+$Z % AVOID
+$Z % OBJECT_A
+=
+Avoid $Zs. DESC0
+Do the following task, but avoid $Zs: DESC0
+DESC0. Avoid $Zs
+DESC0, and avoid $Zs
+DESC0. Don't get near $Zs
+=
+(SRC0) & (!$Z)*
+(SRC0) & ((.)* > $Z > (.)*)~
+=
+avoid
+
+0 @ {}, {}
+=
+$Z % STEP_ON_A
+=
+Don't step on $Zs. DESC0
+Do the following task, but don't step on $Zs: DESC0
+DESC0, and never step on $Zs
+DESC0. Don't step on $Zs
+=
+(SRC0) & (!$Z)*
+(SRC0) & ((.)* > $Z > (.)*)~
+=
+avoid
+
+0 @ {}, {}
+=
+$Z % FALL_IN_A
+=
+Don't fall in a $Z. DESC0
+Do the following task, but don't fall in a $Z: DESC0
+DESC0, and never fall in a $Z
+DESC0. Don't fall in a $Z
+=
+(SRC0) & (!$Z)*
+(SRC0) & ((.)* > $Z > (.)*)~
+=
+avoid
+
+0 @ {}, {}
+=
+$Z % HIT_A
+=
+Don't hit a $Z. DESC0
+Do the following task, but don't hit a $Z: DESC0
+DESC0, and never hit a $Z
+DESC0. Don't hit a $Z.
+=
+(SRC0) & (!$Z)*
+(SRC0) & ((.)* > $Z > (.)*)~
+=
+avoid

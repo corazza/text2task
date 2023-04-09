@@ -11,10 +11,10 @@
     "overwrite_cache": true,
     "num_train_epochs": 5,
     "seed": 42,
-    "learning_rate": 6e-4,
-    "weight_decay": 0.01,
-    "warmup_steps": 6000,
-    "adam_beta1": 0.9,
-    "adam_beta2": 0.98,
-    "adam_epsilon": 1e-6
+    "report_to": "tensorboard",
+    "evaluation_strategy": "steps",
+    "eval_steps": 10,
+    "logging_strategy": "steps",
+    "logging_steps": 10,
+    "weight_decay": 0.0001
 }
