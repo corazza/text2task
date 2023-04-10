@@ -8,3 +8,12 @@ visit the house, then go to the forest => (!house)* > house > (!forest)* > fores
 visit the house, then go to the forest => (!house)* > house > (!forest)* > (forest&!house)* > (house&forest)
 
 go to the town, and find some coffee there => (!town)* > (town&!coffee)* > coffee&town
+
+find the tools. avoid the traps. then, go to the house => ((!tools)* > tools > (!house)* > house)&((.)* > trap > (.)*)~ > ((house)* > house > (.)*)~
+
+go to the house, and then the forest. repeat that =>
+((!house)~ | (!forest)~)~)* > house > (!forest)* > forest&forest > ((!house&forest)* > forest&house)*
+(!house&!forest)* > house > (!house&!forest)* > forest&forest > ((house&!forest)* > house > (!house&!forest)* > forest&forest)*
+
+circle the building, office, and the house =>
+((!building&!house&!office)* > building > (!house&!office&!building)* > office > (!house&!building&!office)* > house)+

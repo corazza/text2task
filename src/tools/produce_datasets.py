@@ -69,6 +69,11 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
     patterns = load_patterns('datasets/txt2task/augment_patterns.txt')
     synthetic_ab = augmented_ab(patterns, examples, len(organic_rewrites))
 
+    # print('paraphrasing synthetic...')
+    # synthetic_original, synthetic_paraphrased = paraphrase_split(
+    #     synthetic_ab, PARAP_P)
+    # synthetic_ab = synthetic_original + synthetic_paraphrased
+
     print('applying synthetic rewrites...')
     synthetic_rewrites = ab_rewrites(synthetic_ab, terms, False)
     print(f'num_synthetic={len(synthetic_rewrites)}')

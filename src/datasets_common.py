@@ -1,3 +1,5 @@
+import torch
+from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import math
 import cProfile
 import itertools
@@ -189,11 +191,11 @@ def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], nu
     }
 
     for pattern_id, pattern_num in to_add_pairs.items():
-        assert len(eligible_pairs) >= pattern_num
         print(f'adding {pattern_id}... ({pattern_num})')
         np.random.shuffle(eligible_pairs)
-        for i, j in eligible_pairs[:pattern_num]:
+        for counter in range(pattern_num):
             pattern = random_from(patterns[pattern_id])
+            i, j = eligible_pairs[counter % len(eligible_pairs)]
             example1 = examples[i]
             example2 = examples[j]
             example = apply_pattern(
@@ -209,7 +211,8 @@ def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], nu
         np.random.shuffle(eligible_single)
         for counter in range(pattern_num):
             pattern = random_from(patterns[pattern_id])
-            example = examples[counter % len(eligible_single)]
+            i = eligible_single[counter % len(eligible_single)]
+            example = examples[i]
             new_example = apply_pattern(
                 pattern, [example], lambda x: True, lambda x, y: True)
             new_abs.append(get_single_ab(new_example))
@@ -256,7 +259,7 @@ def ab_rewrites(abs: list[Tuple[Example, str, str]], terms, to_cap: bool) -> lis
         else:
             id = example.representative() + '|' + desc
             to_take = max(1, round(SENTENCE_CAP / statistics[id]))
-        new_rewrites = get_new_rewrites(example, terms)[:to_take]
+        new_rewrites = get_new_rewrites(example, terms, to_take)[:to_take]
         for rewrite in new_rewrites:
             r_desc = apply_text_rewrite_with_concat(desc, rewrite, ' ')
             r_src = apply_text_rewrite_with_concat(src, rewrite, '_')
@@ -266,9 +269,10 @@ def ab_rewrites(abs: list[Tuple[Example, str, str]], terms, to_cap: bool) -> lis
     return new_abs
 
 
-def get_new_rewrites(example: Example, terms) -> list[list[Tuple[str, str]]]:
+def get_new_rewrites(example: Example, terms, to_take: int) -> list[list[Tuple[str, str]]]:
     new_rewrites: list[list[Tuple[str, str]]] = []
     for rewrite in example.example_rewrites:
+        counter: int = to_take
         new_versions: list[list[Tuple[str, str]]] = []
         all_replacements: dict[str, list[str]] = dict()
         for left, right in rewrite:
@@ -277,17 +281,25 @@ def get_new_rewrites(example: Example, terms) -> list[list[Tuple[str, str]]]:
                     terms, right)
             else:
                 all_replacements[left] = [right]
-        value_combinations = itertools.product(*all_replacements.values())
-        for combination in value_combinations:
+        for combination in itertools.product(*all_replacements.values()):
+            if counter == 0:
+                break
             if len(combination) != len(set(combination)):
                 continue
             new_dict = {k: v for k, v in zip(
                 all_replacements.keys(), combination)}
             new_versions.append(list(new_dict.items()))
+            counter -= 1
         if len(new_versions) > 0:
             new_rewrites.extend(new_versions)
         else:
-            new_rewrites.append(rewrite)
+            has_vars = False
+            for left, right in rewrite:
+                if right.isupper():
+                    has_vars = True
+            if not has_vars:
+                new_rewrites.append(rewrite)
+
     np.random.shuffle(new_rewrites)
     seen = set()
     for rewrite in new_rewrites:
@@ -529,6 +541,55 @@ def apply_cap(abs: list[Tuple[Example, str, str]], cap: int) -> list[Tuple[Examp
     return result
 
 
+def paraphrase_ab(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    new_abs: list[Tuple[Example, str, str]] = []
+    model_name = 'tuner007/pegasus_paraphrase'
+    torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    tokenizer = PegasusTokenizer.from_pretrained(model_name)
+    model = PegasusForConditionalGeneration.from_pretrained(
+        model_name).to(torch_device)  # type: ignore
+
+    def get_response(input_text, num_return_sequences, num_beams) -> list[str]:
+        batch = tokenizer([input_text], truncation=True, padding='longest',
+                          max_length=60, return_tensors="pt").to(torch_device)
+        translated = model.generate(**batch, max_length=2*len(input_text), num_beams=num_beams,
+                                    num_return_sequences=num_return_sequences, temperature=1.5)
+        tgt_text = tokenizer.batch_decode(translated, skip_special_tokens=True)
+        return tgt_text
+
+    def has_vars(e: Example, a: str) -> bool:
+        for v in e.vars():
+            if v not in a:
+                return False
+        return True
+
+    num_beams = 10
+    num_return_sequences = 10
+    fail_counter: int = 0
+    for e, a, b in abs:
+        try:
+            p_as: list[str] = get_response(a, num_return_sequences, num_beams)
+            p_as = [p_a for p_a in p_as if has_vars(e, p_a)]
+            p_a: str = max(p_as, key=len)
+            new_abs.append((e, p_a, b))
+        except:
+            fail_counter += 1
+            new_abs.append((e, a, b))
+    print(f'total={len(new_abs)}, failed={fail_counter}')
+    return new_abs
+
+
+def paraphrase_split(abs: list[Tuple[Example, str, str]], prop: float) -> Tuple[list[Tuple[Example, str, str]], list[Tuple[Example, str, str]]]:
+    np.random.shuffle(abs)  # type: ignore
+    num_original = int(len(abs) * prop)
+    original: list[Tuple[Example, str, str]] = abs[:num_original]
+    to_paraphrase: list[Tuple[Example, str, str]] = abs[num_original:]
+    paraphrased: list[Tuple[Example, str, str]] = paraphrase_ab(to_paraphrase)
+    assert len(original) + len(paraphrased) == len(abs)
+    IPython.embed()  # type: ignore
+    return original, paraphrased
+
+
 def ab_to_lines(abs: list[Tuple[Example, str, str]]) -> list[str]:
     result: list[str] = []
     for e, desc, src in abs:
@@ -550,5 +611,5 @@ def ab_to_lines_synthetic(ab: list[Tuple[Example, str, str]]) -> list[str]:
         #     f'{desc_src_to_line_human(desc, src)}         ~ {e.id}\n')
         skip = len('_ADDED_')
         prefix = e.id[skip:skip+len('disjunct')]
-        result.append(f'{prefix} ~ {desc_src_to_line_human(desc, src)}\n')
+        result.append(f'{desc_src_to_line_human(desc, src)} ~ {prefix}\n')
     return result
