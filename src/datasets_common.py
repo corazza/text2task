@@ -184,6 +184,9 @@ def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], nu
     eligible_pairs: list[Tuple[int, int]] = get_eligible_pairs(examples)
     eligible_single: list[int] = list(range(len(examples)))
 
+    if len(eligible_pairs) < 2 or len(eligible_single) < 1:
+        return []
+
     to_add_pairs: dict[str, int] = {
         'concat': round(ADD_CONCAT_P * ADD_P * num_abs),
         'disjunct': round(ADD_DISJUNCT_P * ADD_P * num_abs),
