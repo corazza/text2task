@@ -49,6 +49,8 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
     for load_path in load_from[1:]:
         examples.extend(load_examples(load_path))
 
+    print(f'original examples: {len(examples)}')
+
     if VALIDATE_RAW and not (VALIDATE_AUGMENTED or validate_all):
         validate_runs(examples)
     # HERE TODO don't pick whole examples to add to: add to all of them, then pick random samples from them in 0.2 proportion

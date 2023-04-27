@@ -284,6 +284,8 @@ def get_new_rewrites(example: Example, terms, to_take: int) -> list[list[Tuple[s
                     terms, right)
             else:
                 all_replacements[left] = [right]
+        for k in all_replacements:
+            np.random.shuffle(all_replacements[k])
         for combination in itertools.product(*all_replacements.values()):
             if counter == 0:
                 break
