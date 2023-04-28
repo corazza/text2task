@@ -4,6 +4,8 @@ Here is the full list of checkpoints on the hub that can be fine-tuned by this s
 https://huggingface.co/models?filter=text-generation
 """
 # You can also adapt this script on your own causal language modeling task. Pointers for this are left as comments.
+from torch.utils.tensorboard import SummaryWriter
+from transformers import TrainerCallback
 import IPython
 
 import logging
@@ -42,6 +44,9 @@ from transformers.utils.versions import require_version
 
 from training import *
 
+import consts
+
+
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
 
@@ -49,6 +54,16 @@ require_version("datasets>=1.8.0",
                 "To fix: pip install -r examples/pytorch/language-modeling/requirements.txt")
 
 logger = logging.getLogger(__name__)
+
+
+class CustomTensorBoardCallback(TrainerCallback):
+    def __init__(self, log_dir):
+        self.writer = SummaryWriter(log_dir)
+
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        for k, v in logs.items():
+            if isinstance(v, (int, float)):
+                self.writer.add_scalar(k, v, state.global_step)
 
 
 def main():
@@ -300,10 +315,14 @@ def main():
 
     # optimizer = Adafactor(model.parameters(), scale_parameter=True,
     #                       relative_step=True, warmup_init=True, lr=None)
-    lr = 0.0003
+    lr = consts.TRAIN_LR
     optimizer = Adafactor(model.parameters(), scale_parameter=False,
                           relative_step=False, warmup_init=False, lr=lr)
     lr_scheduler = AdafactorSchedule(optimizer, initial_lr=lr)
+
+    logging.get_verbosity = lambda: logging.NOTSET
+
+    tensorboard_callback = CustomTensorBoardCallback(log_dir="runs")
 
     # Initialize our Trainer
     trainer = Trainer(
@@ -320,6 +339,7 @@ def main():
         preprocess_logits_for_metrics=preprocess_logits_for_metrics  # type: ignore
         if training_args.do_eval and not is_torch_tpu_available()
         else None,
+        callbacks=[tensorboard_callback]
     )
 
     # IPython.embed()  # type: ignore

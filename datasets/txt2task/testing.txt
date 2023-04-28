@@ -1,0 +1,11 @@
+0 @ {}, {}, {}, {}
+1 @ {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$F'}, {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$F'}
+1 @ {}, {'$S'}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {'$F'}, {}, {}, {'$S'}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {'$F'}, {}
+=
+$S % PLACE, $A % PLACE, $B % PLACE, $C % PLACE, $F % PLACE
+=
+Start from the $S, then patrol the $A, $B, and $C. End at the $F.
+Start from the $S, then patrol the $A, $B, and $C. End at the $F.
+=
+(.)* > $S > ((.)* > $A > (.)* > $B > (.)* > $C)+ > (.)* > $F
