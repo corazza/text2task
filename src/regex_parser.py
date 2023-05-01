@@ -17,6 +17,7 @@ from regex_lexer import *
 
 # factor -> (expression)
 # factor -> (expression)+
+# factor -> (expression){symbol}
 # factor -> (expression)*
 # factor -> (expression)~
 # factor -> matcher
@@ -86,6 +87,14 @@ def parse_factor(lex: more_itertools.peekable) -> RENode:
         elif isinstance(token, PlusT):
             next(lex)
             return Plus(expression)
+        elif isinstance(token, OpenMulT):
+            next(lex)
+            token = next(lex)
+            assert isinstance(token, SymbolT)
+            number: int = int(token.symbol)
+            token = next(lex)
+            assert isinstance(token, CloseMulT)
+            return Multiple(expression, number)
         elif isinstance(token, ComplementT):
             next(lex)
             return Complement(expression)
@@ -104,6 +113,8 @@ def parse_matcher(lex: more_itertools.peekable, negated: bool) -> RENode:
         return Symbol(token.symbol, negated)
     elif isinstance(token, NonemptyT):
         return Nonempty(negated)
+    elif isinstance(token, NonappearT):
+        return Nonappear(negated)
     else:
         assert isinstance(token, AnyT), 'expected AnyT'
         return Any(negated)

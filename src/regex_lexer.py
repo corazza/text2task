@@ -49,9 +49,14 @@ class AnyT(Token):
         return '.'
 
 
-class NonemptyT(Token):
+class NonappearT(Token):
     def __repr__(self):
         return '_'
+
+
+class NonemptyT(Token):
+    def __repr__(self):
+        return ':'
 
 
 class ComplementT(Token):
@@ -74,6 +79,16 @@ class CloseT(Token):
         return ')'
 
 
+class OpenMulT(Token):
+    def __repr__(self):
+        return '{'
+
+
+class CloseMulT(Token):
+    def __repr__(self):
+        return '}'
+
+
 class EndT(Token):
     def __repr__(self):
         return 'End'
@@ -82,7 +97,7 @@ class EndT(Token):
 def lex(src: str) -> Iterator[Token]:
     symbol_buffer = []
     for c in src:
-        if isalpha(c) or c == '$' or ((c == '_' or c.isnumeric()) and len(symbol_buffer) > 0):
+        if isalpha(c) or c.isnumeric() or c == '$' or ((c == '_' or c == ':' or c.isnumeric()) and len(symbol_buffer) > 0):
             symbol_buffer.append(c)
         else:
             if len(symbol_buffer) > 0:
@@ -100,6 +115,8 @@ def lex(src: str) -> Iterator[Token]:
                 yield NotT()
             elif c == '.':
                 yield AnyT()
+            elif c == '_':
+                yield NonappearT()
             elif c == ':':
                 yield NonemptyT()
             elif c == '*':
@@ -112,6 +129,10 @@ def lex(src: str) -> Iterator[Token]:
                 yield OpenT()
             elif c == ')':
                 yield CloseT()
+            elif c == '{':
+                yield OpenMulT()
+            elif c == '}':
+                yield CloseMulT()
             else:
                 print(src)
                 raise ValueError(f'unrecognized character `{c}`')

@@ -534,6 +534,30 @@ class Plus(RENodeSing):
         return results
 
 
+class Multiple(RENodeSing):
+    def __init__(self, child: RENode, times: int):
+        super().__init__(child, name='Mul', con=f'{times}')
+        self.times = times
+        assert self.times > 1
+
+    def repetative(self) -> bool:
+        return True
+
+    def compile(self, node_creator: NodeCreator) -> CompileStateNFA:
+        children = [self.child.compile(node_creator)]
+        for i in range(self.times-1):
+            next_child = self.child.compile(node_creator)
+            children.append(next_child)
+            for child_terminal in children[i].terminal_states:
+                child_terminal.t(frozenset({'*'}), children[i+1].initial)
+        return CompileStateNFA(children[0].initial, children[-1].terminal_states)
+
+    def rewrites_with_rewritten_child(self, child: RENode) -> list[RENode]:
+        results: list[RENode] = []
+        results.append(Multiple(child, self.times))
+        return results
+
+
 class Complement(RENodeSing):
     def __init__(self, child: RENode):
         super().__init__(child, 'Complement', '~')
@@ -574,7 +598,7 @@ class Matcher(RENode):
         super().__init__()
         self.negated: bool = negated
 
-    def matches(self, input_symbol: frozenset[str]) -> bool:
+    def matches(self, input_symbol: frozenset[str], appears: frozenset[str]) -> bool:
         raise NotImplementedError()
 
     def repetative(self) -> bool:
@@ -586,7 +610,8 @@ class Matcher(RENode):
         initial = node_creator.new_nfa_node()
         for input_symbol in generate_inputs(node_creator.appears):
             terminal.t(input_symbol, sink)
-            if self.matches(input_symbol) and not self.negated or not self.matches(input_symbol) and self.negated:
+            does_match: bool = self.matches(input_symbol, node_creator.appears)
+            if does_match and not self.negated or not does_match and self.negated:
                 initial.t(input_symbol, terminal)
             else:
                 initial.t(input_symbol, sink)
@@ -610,7 +635,8 @@ class Symbol(Matcher):
     def appears(self) -> frozenset[str]:
         return frozenset({self.symbol})
 
-    def matches(self, input_symbol: frozenset[str]) -> bool:
+    @override
+    def matches(self, input_symbol: frozenset[str], appears: frozenset[str]) -> bool:
         return self.symbol in input_symbol
 
     def rewrites(self) -> list[RENode]:
@@ -632,7 +658,8 @@ class Nonempty(Matcher):
     def appears(self) -> frozenset[str]:
         return frozenset()
 
-    def matches(self, input_symbol: frozenset[str]) -> bool:
+    @override
+    def matches(self, input_symbol: frozenset[str], appears: frozenset[str]) -> bool:
         return len(input_symbol) > 0
 
     def rewrites(self) -> list[RENode]:
@@ -652,7 +679,8 @@ class Any(Matcher):
     def appears(self) -> frozenset[str]:
         return frozenset()
 
-    def matches(self, input_symbol: frozenset[str]) -> bool:
+    @override
+    def matches(self, input_symbol: frozenset[str], appears: frozenset[str]) -> bool:
         return True
 
     def rewrites(self) -> list[RENode]:
@@ -663,3 +691,27 @@ class Any(Matcher):
 
     def content(self) -> str:
         return '.'
+
+
+class Nonappear(Matcher):
+    def __init__(self, negated: bool):
+        super().__init__(negated)
+
+    def appears(self) -> frozenset[str]:
+        return frozenset()
+
+    @override
+    def matches(self, input_symbol: frozenset[str], appears: frozenset[str]) -> bool:
+        for var in input_symbol:
+            if var in appears:
+                return False
+        return True
+
+    def rewrites(self) -> list[RENode]:
+        return [self]
+
+    def __eq__(self, b) -> bool:
+        return isinstance(b, Any) and self.negated == b.negated
+
+    def content(self) -> str:
+        return '_'

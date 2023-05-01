@@ -3,13 +3,15 @@ PAD_SIZE = 256
 
 SOURCES = ['organic1',
            'organic2',
+           'organic1_loose',  # looser validation
+           'organic1_nonloose',  # moved from 1/2 after loose checking
            #   'organic3',
            'organic_words',
            'organic_interesting',
            'organic_asdf'
            ]
 
-SENTENCE_CAP = 40
+SENTENCE_CAP = 10
 
 COMBINATIONS_CUTOFF = 100
 
@@ -34,6 +36,6 @@ REWRITE_VALIDATION_EMPTY_PROB = 0.3
 AUGMENT_CHAR_LIST = ['P', 'Q', 'X', 'Y', 'Z', 'W']
 
 POSNEG_VALIDATION = True
-VALIDATE_RAW = False
+VALIDATE_RAW = True
 VALIDATE_AUGMENTED = False
 VALIDATE_AB_AUGMENTS = False

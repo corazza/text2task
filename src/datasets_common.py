@@ -164,7 +164,6 @@ def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filte
                 replacements.append((f'ADD{i}', adds[i]))
             new_descs.append(clean_desc(
                 apply_replacements(pattern_desc, replacements)))
-
     for chosen_srcs in src_combinations:
         for pattern_src in pattern.srcs:
             replacements: list[Tuple[str, str]] = []
@@ -174,7 +173,6 @@ def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filte
                 replacements.append((f'SRC{i}', src_i))
                 replacements.append((f'ADD{i}', adds[i]))
             new_srcs.append(apply_replacements(pattern_src, replacements))
-
     return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
 
 
@@ -184,7 +182,7 @@ def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], nu
     eligible_pairs: list[Tuple[int, int]] = get_eligible_pairs(examples)
     eligible_single: list[int] = list(range(len(examples)))
 
-    if len(eligible_pairs) < 2 or len(eligible_single) < 1:
+    if len(eligible_pairs) < 1 or len(eligible_single) < 1:
         return []
 
     to_add_pairs: dict[str, int] = {
@@ -198,7 +196,9 @@ def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], nu
         np.random.shuffle(eligible_pairs)
         for counter in range(pattern_num):
             pattern = random_from(patterns[pattern_id])
-            i, j = eligible_pairs[counter % len(eligible_pairs)]
+            ij_pair = list(eligible_pairs[counter % len(eligible_pairs)])
+            np.random.shuffle(ij_pair)
+            i, j = ij_pair
             example1 = examples[i]
             example2 = examples[j]
             example = apply_pattern(
@@ -398,6 +398,7 @@ def desc_src_to_line_human(a: str, b: str) -> str:
     return a.lower() + ' => ' + b.lower()
 
 
+# @profile(sort_by='tottime')
 def validate_runs(examples: list[Example]):
     for (i, example) in enumerate(examples):
         print(f'{i}/{len(examples)}')
@@ -418,10 +419,15 @@ def validate_runs(examples: list[Example]):
                 if tuple(run) not in rewards_sets:
                     rewards_sets[tuple(run)] = set()
                 rewards_sets[tuple(run)].add(tuple(rewards))
-                assert reward == sum(
-                    rewards), f'{reward} @ {run} failed for {src} -> {rewards}'
+                if POSNEG_VALIDATION:
+                    assert (reward > 0) == (sum(
+                        rewards) > 0), f'{reward} @ {run} failed for {src} -> {rewards}'
+                else:
+                    assert reward == sum(
+                        rewards), f'{reward} @ {run} failed for {src} -> {rewards}'
         for run, rewards_set in rewards_sets.items():
-            assert len(rewards_set) == 1, f'failed on run {run}'
+            assert len(
+                rewards_set) == 1, f'failed on run {run}, rewards {rewards_set}'
 
 
 def validate_equiv(examples: list[Example]):
@@ -551,7 +557,7 @@ def paraphrase_ab(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, st
     model_name = 'tuner007/pegasus_paraphrase'
     torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
     tokenizer = PegasusTokenizer.from_pretrained(model_name)
-    model = PegasusForConditionalGeneration.from_pretrained(
+    model = PegasusForConditionalGeneration.from_pretrained(  # type: ignore
         model_name).to(torch_device)  # type: ignore
 
     def get_response(input_text, num_return_sequences, num_beams) -> list[str]:

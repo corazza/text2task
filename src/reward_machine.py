@@ -26,14 +26,17 @@ class RewardMachine:
             return (current_state, 0)
         return self.transitions[current_state][input_symbol]
 
-    def multiple_transitions(self, current_state: int, input_symbols: list[frozenset[str]]) -> list[int]:
+    def multiple_transitions(self, current_state: int, input_symbols: list[frozenset[str]], states: bool = False) -> list[int]:
         """Used for demos/testing"""
         rs = []
         for input_symbol in input_symbols:
             current_state, r = self.transition(current_state, input_symbol)
-            rs.append(r)
+            if not states:
+                rs.append(r)
+            else:
+                rs.append((current_state, r))
         return rs
 
-    def __call__(self, *input_symbols: Iterable[str]) -> list[int]:
+    def __call__(self, *input_symbols: Iterable[str], states: bool = False) -> list[int]:
         """Just a nicer interface for RewardMachine.multiple_transitions"""
-        return self.multiple_transitions(0, [frozenset(x) for x in input_symbols])
+        return self.multiple_transitions(0, [frozenset(x) for x in input_symbols], states)

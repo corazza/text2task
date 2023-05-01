@@ -77,7 +77,8 @@ def test_compiler():
     # src = '((A)~)*'
     # src = '((.)* > ($A | $B | $C))+'
 
-    src = '((!equipment)* > equipment > (!wall)* > wall > (.)*)&((!mail)* > mail > (!door)* > door > (.)*)'
+    src = '(.)* > $S > ((.)* > $A > (.)* > $B > (.)* > $C){3} > (.)* > $F'
+    # src = 'A > (B){3} > C'
 
     # In [7]: rm({}, {'equipment'}, {}, {'mail'}, {}, {'wall'}, {}, {'door'})
     # Out[7]: [0, 0, 0, 0, 0, 0, 0, 1]
@@ -93,10 +94,6 @@ def test_compiler():
     # visualize_compilestate(nfa, src)
     dfa, _ = compiler_interface.get_dfa(src)
     rm = compiler_interface.compile(src)
-
-    #
-    #
-
     IPython.embed()  # type: ignore
 
 

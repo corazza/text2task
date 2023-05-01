@@ -1,0 +1,258 @@
+0 @ {}, {}, {}, {}
+0 @ {}, {}, {'door'}, {}, {'secret'}
+0 @ {}, {}, {'door'}, {'secret'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'base'}
+1 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {}, {'friendly', 'base'}
+0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {'detected'}, {}, {'friendly', 'base'}
+=
+=
+You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the secret documents back to our base.
+First find the secret door to the enemy base. In there, get the secret documents and bring them back to our base. Don't get detected!
+This is a stealth mission to find the secret enemy documents. Infiltrate their base through the secret door, and bring them back to ours. You better not get detected.
+This task is failed by detection. Infiltrate the enemy base (find the secret entrance) and then return to the friendly base.
+=
+((.)* > door&secret > (enemy&base)+ > enemy&base&documents&secret > (.)* > friendly&base) & (!detected)*
+
+0 @ {}, {}
+0 @ {}, {}, {'$A'}, {'rock'}, {}
+0 @ {}, {}, {'$A'}, {}, {'rock'}, {'$A'}, {'rock'}, {}
+0 @ {}, {}, {'$A'}, {'rock'}, {}
+1 @ {}, {}, {'$A'}, {}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'rock'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}
+2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock'}, {'rock', '$A'}, 
+2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock', '$A'}
+2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'$A'}, {'rock', '$A'}
+=
+$A % AREA
+$A % AREA, rock samples % empty cans, rock % can
+=
+Go to the $A and gather rock samples
+Go to the $A and gather rocks
+We need rock samples from the $A
+Once you get to the $A gather rock samples
+Find rock samples in the $A
+=
+(.)* > (($A)* > rock&$A)+
+(.)* > ($A)* > rock&$A > (($A)* > rock&$A)*
+
+0 @ {}, {}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {}, {'rock'}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}
+1 @ {}, {}, {'goldmine'}, {}, {'rock', 'goldmine'}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock'}, {'rock', 'goldmine'}, 
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
+2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+=
+goldmine % parking lot, gold mine % parking lot, rock samples % empty cans, rock % empty_can, rocks % cans
+goldmine % silver mine, gold mine % silver mine, rock samples % silver ore, rock % silver ore, rocks % silver ore samples
+=
+Go to the gold mine and gather rock samples, without leaving the goldmine.
+Go to the goldmine and avoid any rocks on the way there. In the gold mine, collect rock samples.
+There are many rocks in the goldmine. Go and collect them, but on the way to the goldmine avoid the rocks.
+=
+(!rock)* > ((goldmine)* > rock&goldmine)+
+
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
+=
+=
+Visit the first base, the second base, and the third base. Start from any of them, but respect that order. Never visit the same base twice.
+=
+(!base_1&!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 | (!base_1&!base_2&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 > (!base_1&!base_2&!base_3)* > base_1 | (!base_1&!base_2&!base_3)* > base_3 > (!base_1&!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > base_2
+
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
+1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
+1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {'base_2'}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
+1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {'base_2'}, {'base_2'}, {}, {'base_3'}, {'base_3'}, {'base_3'}, {}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
+=
+=
+Visit the first base, the second base, and the third base. Start from any of the bases, but respect that order.
+Visit the first base, the second base, and the third base. Start from any of the bases, but respect that order. You can visit the same base twice.
+Visit the first base, the second base, and the third base. You can repeat visits. Start from any of them, but respect that order.
+=
+(!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 | (!base_1&!base_3)* > (base_2)+ > (!base_1&!base_2)* > (base_3)+ > (!base_1&!base_2&!base_3)* > (base_1)+ | (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > (base_2)+
+
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
+0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
+0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
+=
+=
+Patrol the first base, second base, and third base in that order (start at base one)
+Patrol the three bases in order 1, 2, and 3 (beginning at 1)
+=
+((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+
+((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+
+
+0 @ {}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
+2 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
+2 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
+=
+=
+Patrol the first base, second base, and third base, starting from any of them. Cycle them.
+Patrol the three bases in order 1, 2, and 3 starting from any of them.
+=
+((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+ | ((!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1)+ | ((!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2)+
+((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+ | ((!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1)+ | ((!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2)+
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {'$B'}, {'$B'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}, {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+=
+$A % OBJECT, $B % PLACE
+=
+Find the $A, collect it, then bring it to the $B
+Collect the $A. Bring it to the $B
+Collect the $A. Bring the collected object to the $B
+=
+(!$A)* > $A > $A&collect > (!$B)* > $B
+=
+Find the $A, collect it, then bring it to the $B
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {'$B'}, {'$B'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}, {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+=
+$A % COLLECTABLE, $B % PLACE
+=
+Find a $A, collect it, then bring it to the $B
+Collect a $A. Bring it to the $B
+Collect a $A. Bring the collected object to the $B
+=
+(!$A)* > $A > $A&collect > (!$B)* > $B
+=
+Find the $A, collect it, then bring it to the $B
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$A', 'collect'}, {'$B'}, {'$B'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}, {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {'$B'}, {'$A', 'collect'}, {'$B'}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$A'}, {'$A', 'collect'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+=
+$A % NO_THE, $B % PLACE
+=
+Find $A, collect it, then bring it to the $B
+Collect $A. Bring it to the $B
+Collect $A. Bring the collected object to the $B
+=
+(!$A)* > $A > $A&collect > (!$B)* > $B
+=
+Find the $A, collect it, then bring it to the $B
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$A'}, {'$A', 'collect'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$A'}, {'$A', 'collect'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}, {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {'$B'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {'$B'}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}, {}, {'$B'}, {'$B'}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {'$B'}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}, {}, {'$B'}, {'$B'}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+=
+$A % OBJECT, $B % AREA
+=
+find the $A in the $B and collect it
+collect the $A from the $B
+go to the $B and collect the $A
+enter the $B. in there, find and collect the $A
+=
+(!$A)* > ($B&!$A)* > ($B&$A) > ($B&$A&collect)
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$A'}, {'$A', 'collect'}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$A'}, {'$A', 'collect'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$A'}, {'$A', 'collect'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+0 @ {}, {'$B'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {'$C'}, {'$C', 'drop'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {'$C'}, {'$C', 'drop'}, {'$C', 'drop'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {'$B', '$A', 'collect'}, {}, {'$C'}, {'$C', 'drop'}, {'$C', 'drop'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {'$C'}, {'$C', 'drop'}, {}, {'$C', 'drop'}, {}, {}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {'$B'}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {'$C'}, {'$C', 'drop'}, {'$C'}, {}, {}, {'$B'}, {}
+1 @ {}, {'$B'}, {'$B'}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {'$C'}, {'$C', 'drop'}, {'$C'}, {}, {}, {'$B'}, {}, {}, {'$B'}, {'$B'}, {'$B'}, {'$B', '$A'}, {'$B', '$A', 'collect'}, {}, {}, {'$C'}, {'$C', 'drop'}, {'$C'}, {}, {}, {'$B'}, {}
+=
+$A % OBJECT, $B % AREA, $C % PLACE
+=
+find the $A in the $B, then drop it at $C
+pick up the $A from the $B. leave it at $C
+go to the $B and pick up the $A to bring it to $C
+enter the $B. in there, find the $A. carry it to $C and drop it there
+=
+(!$A)* > ($B&!$A)* > ($B&$A) > ($B&$A&collect) > (!$C)* > $C > $C&drop
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'$A'}, {}, {'door'}, {}, {}, {}, {}, {}
+1 @ {}, {'$A'}, {}, {'door'}, {'door'}, {}, {}, {}, {}
+1 @ {}, {'$A'}, {'$A'}, {'door'}, {'door'}, {}, {}, {}, {}
+1 @ {'$A'}, {'door'}, {'$A'}, {'door'}, {'$A'}, {'door'}
+0 @ {}, {'$B'}, {}, {'door'}, {}, {}, {}, {}, {}
+0 @ {}, {'$B'}, {}, {'door'}, {'door'}, {}, {}, {}, {}
+0 @ {}, {'$B'}, {'$B'}, {'door'}, {'door'}, {}, {}, {}, {}
+0 @ {'$B'}, {'door'}, {'$B'}, {'door'}, {'$B'}, {'door'}
+=
+$A % OBJECT, $B % OBJECT
+=
+Pick up the $A and then go through the door
+First find the $A. Then, go through the door
+Get the $A, then get to the door
+=
+(!$A)* > $A > (!door)* > door

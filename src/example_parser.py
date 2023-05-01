@@ -82,7 +82,7 @@ def parse_example(lines: more_itertools.peekable) -> Example:
     while line == '':
         next(lines)
         line = lines.peek()
-    runs = parse_runs(lines)
+    runs: list[Tuple[int, list[frozenset[str]]]] = parse_runs(lines)
     parse_the_separator(lines, '=')
     example_rewrites = parse_example_rewrites(lines)
     parse_the_separator(lines, '=')

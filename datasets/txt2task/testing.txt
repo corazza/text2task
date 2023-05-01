@@ -1,11 +1,30 @@
 0 @ {}, {}, {}, {}
 1 @ {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$F'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$C'}, {'$F'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$B'}, {'$B'}, {'$C'}, {'$C'}, {'$F'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$A'}, {'$B'}, {'$B'}, {'$C'}, {'$C'}, {'$F'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$A'}, {'$B'}, {'$B'}, {'$C'}, {'$C'}, {'$F'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$B'}, {'$B'}, {'$C'}, {'$C'}, {'$F'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$C'}, {'$F'}, {'$F'}
+1 @ {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$F'}, {'$F'}
 1 @ {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$F'}, {'$S'}, {'$A'}, {'$B'}, {'$C'}, {'$F'}
+1 @ {}, {'$S'}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {'$F'}
 1 @ {}, {'$S'}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {'$F'}, {}, {}, {'$S'}, {}, {'$A'}, {}, {'$B'}, {}, {'$C'}, {}, {'$F'}, {}
+0 @ {}, {'$S'}, {}, {'$B'}, {}, {'$B'}, {}, {'$C'}, {}, {'$F'}
+0 @ {}, {'$S'}, {}, {'$B'}, {}, {'$B'}, {}, {'$B'}, {}, {'$F'}
+0 @ {}, {'$S'}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}, {}, {'$F'}
+0 @ {}, {'$S'}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}, {'$C'}, {'$B'}, {}, {'$F'}
+1 @ {}, {'$S'}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}, {'$C'}, {'$B'}, {'$C'}, {'$F'}
+1 @ {}, {'$S'}, {}, {'$B'}, {}, {'$C'}, {}, {'$A'}, {}, {'$C'}, {}, {'$B'}, {}, {'$A'}, {'$C'}, {'$F'}
 =
 $S % PLACE, $A % PLACE, $B % PLACE, $C % PLACE, $F % PLACE
 =
-Start from the $S, then patrol the $A, $B, and $C. End at the $F.
-Start from the $S, then patrol the $A, $B, and $C. End at the $F.
+Start from the $S, then patrol the $A, $B, and $C respectively three times. End at the $F
+Starting from the $S, patrol the $A, $B, and $C three times in that order. End at the $F
+Starting from the $S, circle the $A, $B, and $C 3 times (necessarily in that order), then finish at the $F
+Start at $S and end at $F. In between patrol the $A, the $B, and the $C (3 times)
+Patrol the $A, $B, and the $C 3 times, but start at $S and end at $F
+Find the $S and then patrol the $A, $B and the $C three times, then go to the $F
 =
-(.)* > $S > ((.)* > $A > (.)* > $B > (.)* > $C)+ > (.)* > $F
+(.)* > $S > ((.)* > $A > (.)* > $B > (.)* > $C){3} > (.)* > $F
