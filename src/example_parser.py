@@ -162,4 +162,4 @@ def parse_until_separator(lines: more_itertools.peekable, sep: set[str]) -> list
 
 def parse_the_separator(lines: more_itertools.peekable, sep: str):
     line = next(lines)
-    assert line == sep
+    assert line == sep, f'{line} === {sep}'

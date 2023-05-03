@@ -81,6 +81,7 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
     print(f'num_synthetic={len(synthetic_rewrites)}')
 
     ab = organic_rewrites + synthetic_rewrites
+    ab = ab_rewrites_num(ab)
 
     np.random.shuffle(ab)  # type: ignore
 

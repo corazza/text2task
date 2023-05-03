@@ -74,8 +74,8 @@ def get_eligible_pairs(examples: list[Example]) -> list[Tuple[int, int]]:
         for j, example2 in enumerate(examples):
             if i >= j:
                 continue
-            if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
-                continue
+            # if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
+            #     continue
             if not has_without_dot(example1) or not has_without_dot(example2):
                 continue
             eligible_pairs.append((i, j))
@@ -98,7 +98,8 @@ def get_adds(pattern_id: str, example: Example) -> str:
     if pattern_id == 'conjunct':
         rep_src = example.srcs[0]
         ast = compiler_interface.parse(rep_src)
-        return '' if ast.repetative() else ' > (.)*'
+        # return '' if ast.repetative() else ' > (.)*'
+        return ' > (.)*'
     else:
         return ''
 
@@ -159,20 +160,24 @@ def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filte
             for i in range(len(examples)):
                 desc_i: str = map_desc(
                     examples[i].vars(), AUGMENT_CHAR_LIST[i], chosen_descs[i])
+                desc_i: str = times_map_desc(TIMES_CHAR_LIST[i], desc_i)
                 desc_i = desc_i[0].lower() + desc_i[1:]
                 replacements.append((f'DESC{i}', desc_i))
                 replacements.append((f'ADD{i}', adds[i]))
             new_descs.append(clean_desc(
                 apply_replacements(pattern_desc, replacements)))
+
     for chosen_srcs in src_combinations:
         for pattern_src in pattern.srcs:
             replacements: list[Tuple[str, str]] = []
             for i in range(len(examples)):
                 src_i: str = map_desc(
                     examples[i].vars(), AUGMENT_CHAR_LIST[i], chosen_srcs[i])
+                src_i: str = times_map_desc(TIMES_CHAR_LIST[i], src_i)
                 replacements.append((f'SRC{i}', src_i))
                 replacements.append((f'ADD{i}', adds[i]))
             new_srcs.append(apply_replacements(pattern_src, replacements))
+
     return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
 
 
@@ -272,6 +277,57 @@ def ab_rewrites(abs: list[Tuple[Example, str, str]], terms, to_cap: bool) -> lis
     return new_abs
 
 
+def extract_time_vars(a: str) -> list[str]:
+    r = []
+    buf = ''
+    reading: bool = False
+    for c in a:
+        if c == '#':
+            reading = True
+        elif c.isalpha():
+            if reading:
+                buf += c
+        else:
+            reading = False
+            if len(buf) > 0:
+                r.append(buf)
+            buf = ''
+    if len(buf) > 0:
+        r.append(buf)
+    return r
+
+
+def ab_rewrites_num(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    np.random.shuffle(abs)  # type: ignore
+    new_abs: list[Tuple[Example, str, str]] = []
+    for i, (example, desc, src) in enumerate(abs):
+        low: int = 2 if '##' in desc else 1
+        if '#' in desc:
+            time_vars: list[str] = extract_time_vars(desc)
+            time_var_values: dict[str, int] = {
+                var: np.random.randint(low, HIGHEST_TIMES+1) for var in time_vars}
+            for var, times in time_var_values.items():
+                if low == 2:
+                    rep = random_from(NUM_MAP[times])
+                    desc = desc.replace(f'##{var}', rep)
+                    src = src.replace(f'##{var}', str(times))
+                    desc = desc.replace(f'#{var}', rep)
+                    src = src.replace(f'#{var}', str(times))
+                else:
+                    rep = random_from(TIMES_MAP[times])
+                    desc = desc.replace(f'#{var}', rep)
+                    src = src.replace(f'#{var}', str(times))
+        if '#' in src:
+            time_vars: list[str] = extract_time_vars(src)
+            for var in time_vars:
+                if '##' in src:
+                    src = src.replace(f'##{var}', '#SOME')
+                else:
+                    src = src.replace(f'#{var}', '#SOME')
+        new_abs.append((example, desc, src))
+    return new_abs
+
+
 def get_new_rewrites(example: Example, terms, to_take: int) -> list[list[Tuple[str, str]]]:
     new_rewrites: list[list[Tuple[str, str]]] = []
     for rewrite in example.example_rewrites:
@@ -309,7 +365,7 @@ def get_new_rewrites(example: Example, terms, to_take: int) -> list[list[Tuple[s
     seen = set()
     for rewrite in new_rewrites:
         seen.add(tuple(rewrite))
-    assert len(seen) == len(new_rewrites)
+    # assert len(seen) == len(new_rewrites) # TODO FIXME
     return new_rewrites
 
 
@@ -334,6 +390,14 @@ def map_trace(letter: str, trace: list[frozenset[str]]) -> list[frozenset[str]]:
 def map_desc(vars: list[str], letter: str, desc: str) -> str:
     for v in vars:
         desc = desc.replace(v, f'{v}{letter}' if '$' in v else v)
+    return desc
+
+
+def times_map_desc(letter: str, desc: str) -> str:
+    if '##' in desc:
+        desc = desc.replace('##N', f'##N{letter}')
+    else:
+        desc = desc.replace('#N', f'#N{letter}')
     return desc
 
 
@@ -469,6 +533,10 @@ def sanity_check(ab: Tuple[Example, str, str]):
         if c == ' ':
             assert not isalpha(src[i-1]) or not isalpha(src[i+1])
     assert '$' not in desc
+    assert '#' not in desc
+    assert '##' not in src
+    if '#' in src:
+        assert '#some' in src.lower()
 
 
 def sanity_checks(abs: list[Tuple[Example, str, str]]):

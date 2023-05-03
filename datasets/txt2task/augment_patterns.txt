@@ -2,9 +2,11 @@
 =
 =
 DESC0. Then DESC1
-There are two tasks. First DESC0. Second DESC1.
 First: DESC0. Second: DESC1
+First: DESC0. After that: DESC1
 There are two tasks. First DESC0. Second DESC1.
+DESC1, but before that DESC0
+DESC1, but not before DESC0
 =
 (SRC0) > (SRC1)
 =
@@ -15,6 +17,8 @@ concat
 =
 There are two tasks. Either DESC0, or DESC1
 Either DESC0. Or, DESC1
+DESC0, then DESC1. Or DESC1, then DESC0.
+Choose: DESC0, or, DESC1
 =
 (SRC0) | (SRC1)
 =
@@ -23,7 +27,7 @@ disjunct
 0 @ {}, {}
 =
 =
-There are two tasks and you must do both at the same time. {desc1} (first task), and {desc2} (second task).
+There are two tasks and you must do both at the same time. DESC0 (first task), and DESC1 (second task).
 DESC0. And at the same time, DESC1.
 DESC0. And, DESC1
 =

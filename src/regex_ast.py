@@ -535,17 +535,19 @@ class Plus(RENodeSing):
 
 
 class Multiple(RENodeSing):
-    def __init__(self, child: RENode, times: int):
-        super().__init__(child, name='Mul', con=f'{times}')
+    def __init__(self, child: RENode, times: str):
+        super().__init__(child, name='Mul', con='{' + f'{times}' + '}')
         self.times = times
-        assert self.times > 1
+        self.times_num = DEFAULT_TIMES if '#' in self.times else int(
+            self.times)
+        assert self.times_num > 0
 
     def repetative(self) -> bool:
         return True
 
     def compile(self, node_creator: NodeCreator) -> CompileStateNFA:
         children = [self.child.compile(node_creator)]
-        for i in range(self.times-1):
+        for i in range(self.times_num - 1):
             next_child = self.child.compile(node_creator)
             children.append(next_child)
             for child_terminal in children[i].terminal_states:

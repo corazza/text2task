@@ -91,7 +91,7 @@ def parse_factor(lex: more_itertools.peekable) -> RENode:
             next(lex)
             token = next(lex)
             assert isinstance(token, SymbolT)
-            number: int = int(token.symbol)
+            number: str = token.symbol
             token = next(lex)
             assert isinstance(token, CloseMulT)
             return Multiple(expression, number)

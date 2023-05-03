@@ -1,31 +1,33 @@
 0 @ {}, {}, {}, {}
-0 @ {}, {}, {'door'}, {}, {'secret'}
-0 @ {}, {}, {'door'}, {'secret'}
-0 @ {}, {}, {'door'}, {}, {'door', 'secret'}
-0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy'}
-0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'base'}
-1 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {}, {'friendly', 'base'}
-0 @ {}, {}, {'door'}, {}, {'door', 'secret'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents', 'secret'}, {}, {'detected'}, {}, {'friendly', 'base'}
+0 @ {}, {}, {'door'}, {}
+0 @ {}, {}, {'door'}, {}, {'door'}, {'enemy'}
+0 @ {}, {}, {'door'}, {}, {'door'}, {'base'}
+1 @ {}, {}, {'door'}, {}, {'door'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents'}, {}, {}, {'friendly', 'base'}
+0 @ {}, {}, {'door'}, {}, {'door'}, {'detected'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents'}, {}, {}, {'friendly', 'base'}
+0 @ {}, {}, {'door'}, {}, {'door'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base'}, {'enemy', 'base', 'documents'}, {}, {'detected'}, {}, {'friendly', 'base'}
 =
 =
-You must infiltrate the enemy base. To do this, you must find the secret door without being detected. Once inside, find the secret documents. Finally, bring the secret documents back to our base.
-First find the secret door to the enemy base. In there, get the secret documents and bring them back to our base. Don't get detected!
-This is a stealth mission to find the secret enemy documents. Infiltrate their base through the secret door, and bring them back to ours. You better not get detected.
-This task is failed by detection. Infiltrate the enemy base (find the secret entrance) and then return to the friendly base.
+Find the door to the enemy base without being detected. Once inside, find the documents. Finally, bring them back to the friendly base
+First find the door to the enemy base. In there, get the documents and bring them back to our base. Don't get detected!
+This is a stealth mission (don't get detected) to find the enemy documents. Infiltrate their base through the door, and bring their documents back to our base
+This task is failed by detection. Go inside the enemy base (find the door first), grab the documents there, and then return to the friendly base
 =
-((.)* > door&secret > (enemy&base)+ > enemy&base&documents&secret > (.)* > friendly&base) & (!detected)*
+((.)* > door > (enemy&base)* > enemy&base&documents > (.)* > friendly&base) & (!detected)*
+((.)* > door > ((.)* > documents > (.)*)&(enemy&base)* > (.)* > friendly&base) & (!detected)*
+
 
 0 @ {}, {}
 0 @ {}, {}, {'$A'}, {'rock'}, {}
 0 @ {}, {}, {'$A'}, {}, {'rock'}, {'$A'}, {'rock'}, {}
 0 @ {}, {}, {'$A'}, {'rock'}, {}
-1 @ {}, {}, {'$A'}, {}, {'rock', '$A'}
-1 @ {}, {}, {'$A'}, {'rock'}, {'rock', '$A'}
-1 @ {}, {}, {'$A'}, {'rock', '$A'}
-1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}
-2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock'}, {'rock', '$A'}, 
-2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock', '$A'}
-2 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {}, {'rock', '$A'}, {}, {'$A'}, {'$A', 'rock'}
+1 @ {}, {}, {'$A'}, {'rock'}, {'rock', '$A'}, {'$A'}, {'rock'}, {'rock', '$A'}
+0 @ {}, {}, {'$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'rock', '$A'}, {'$A'}, {'rock', '$A'}
+0 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock'}, {'rock', '$A'}, 
+1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'$A'}, {'rock', '$A'}
 =
 $A % AREA
 $A % AREA, rock samples % empty cans, rock % can
@@ -36,68 +38,83 @@ We need rock samples from the $A
 Once you get to the $A gather rock samples
 Find rock samples in the $A
 =
-(.)* > (($A)* > rock&$A)+
-(.)* > ($A)* > rock&$A > (($A)* > rock&$A)*
+((.)* > rock&$A){#N}
+=
+Go to the $A and gather rock samples
+
+0 @ {}, {}
+0 @ {}, {}, {'$A'}, {'rock'}, {}
+0 @ {}, {}, {'$A'}, {}, {'rock'}, {'$A'}, {'rock'}, {}
+0 @ {}, {}, {'$A'}, {'rock'}, {}
+1 @ {}, {}, {'$A'}, {}, {'rock', '$A'}, {}, {'$A'}, {'$A', 'rock'}
+1 @ {}, {}, {'$A'}, {'rock'}, {'rock', '$A'}, {'$A'}, {'rock'}, {'rock', '$A'}
+0 @ {}, {}, {'$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'rock', '$A'}, {'$A'}, {'rock', '$A'}
+0 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock'}, {'rock', '$A'}, 
+1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'rock', '$A'}
+1 @ {}, {}, {'$A'}, {'$A'}, {'rock', '$A'}, {'$A'}, {'rock', '$A'}
+=
+$A % AREA
+$A % AREA, rock samples % empty cans, rock % can
+=
+Go to the $A and gather ##N rock samples
+Go to the $A and gather ##N rocks
+We need ##N rock samples from the $A
+Once you get to the $A gather ##N rock samples
+Find ##N rock samples in the $A
+=
+((.)* > rock&$A){##N}
+=
+Go to the $A and gather rock samples
 
 0 @ {}, {}
 0 @ {}, {}, {'goldmine'}, {'rock'}, {}
 0 @ {}, {}, {'goldmine'}, {}, {'rock'}, {'goldmine'}, {'rock'}, {}
 0 @ {}, {}, {'goldmine'}, {'rock'}, {}
-1 @ {}, {}, {'goldmine'}, {}, {'rock', 'goldmine'}
-0 @ {}, {}, {'goldmine'}, {'rock'}, {'rock', 'goldmine'}
-1 @ {}, {}, {'goldmine'}, {'rock', 'goldmine'}
-1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
-1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock'}, {'rock', 'goldmine'}, 
-2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
-2 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {}, {'goldmine'}, {'rock'}, {}
+0 @ {}, {}, {'goldmine'}, {}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
+0 @ {}, {}, {'goldmine'}, {'rock'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+0 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
+0 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock'}, {'rock', 'goldmine'}, 
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'rock', 'goldmine'}
+1 @ {}, {}, {'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}, {'goldmine'}, {'rock', 'goldmine'}
 =
 goldmine % parking lot, gold mine % parking lot, rock samples % empty cans, rock % empty_can, rocks % cans
 goldmine % silver mine, gold mine % silver mine, rock samples % silver ore, rock % silver ore, rocks % silver ore samples
 =
 Go to the gold mine and gather rock samples, without leaving the goldmine.
-Go to the goldmine and avoid any rocks on the way there. In the gold mine, collect rock samples.
+Go to the goldmine and avoid any rocks on the way there, also don't leave it. In the gold mine, collect rock samples.
 There are many rocks in the goldmine. Go and collect them, but on the way to the goldmine avoid the rocks.
 =
-(!rock)* > ((goldmine)* > rock&goldmine)+
+(!rock&!goldmine)* > ((goldmine)* > rock&goldmine){#N}
+((!rock)* > ((.)* > rock&goldmine){#N}) & ((!goldmine)* > (goldmine)*)
 
 0 @ {}, {}, {}
 1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
-0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
-0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}
-0 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
-1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
-1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
-1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
-=
-=
-Visit the first base, the second base, and the third base. Start from any of them, but respect that order. Never visit the same base twice.
-=
-(!base_1&!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 | (!base_1&!base_2&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 > (!base_1&!base_2&!base_3)* > base_1 | (!base_1&!base_2&!base_3)* > base_3 > (!base_1&!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > base_2
-
-0 @ {}, {}, {}
-1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}
 1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
 1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_2'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}
 1 @ {}, {'base_1'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
-1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
-1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {'base_2'}, {'base_2'}, {}, {'base_3'}, {}, {'base_3'}, {}
-1 @ {}, {'base_1'}, {'base_1'}, {'base_1'}, {}, {'base_2'}, {'base_2'}, {'base_2'}, {}, {'base_3'}, {'base_3'}, {'base_3'}, {}
 1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
 1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
 1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}
 =
 =
-Visit the first base, the second base, and the third base. Start from any of the bases, but respect that order.
-Visit the first base, the second base, and the third base. Start from any of the bases, but respect that order. You can visit the same base twice.
-Visit the first base, the second base, and the third base. You can repeat visits. Start from any of them, but respect that order.
+Visit the first base, the second base, and the third base. Start from any of them, but respect that order
+Visit the first base, the second base, and the third base. Start from any of the bases, but respect that order. You can visit the same base twice
+Visit three bases. You can repeat visits. Start from any of them, but respect that order
 =
-(!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2&!base_3)* > base_3 | (!base_1&!base_3)* > (base_2)+ > (!base_1&!base_2)* > (base_3)+ > (!base_1&!base_2&!base_3)* > (base_1)+ | (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_2&!base_3)* > (base_2)+
+(.)* > base_1 > (.)* > base_2 > (.)* > base_3 | (.)* > base_2 > (.)* > base_3 > (.)* > base_1 | (.)* > base_3 > (.)* > base_1 > (.)* > base_2
 
 0 @ {}, {}, {}
-1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
 0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
 0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
-2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
 0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
 0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
 =
@@ -105,23 +122,22 @@ Visit the first base, the second base, and the third base. You can repeat visits
 Patrol the first base, second base, and third base in that order (start at base one)
 Patrol the three bases in order 1, 2, and 3 (beginning at 1)
 =
-((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+
-((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+
+((.)* > base_1 > (.)* > base_2 > (.)* > base_3){#N}
+((.)+ > base_1 > (.)+ > base_2 > (.)+ > base_3){#N}
 
 0 @ {}, {}, {}
-1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
-1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
-1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
-2 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {}
-2 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {}
-2 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {}
+0 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+1 @ {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}
+0 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+1 @ {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}
+0 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
+1 @ {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}, {}, {'base_3'}, {}, {'base_1'}, {}, {'base_2'}
 =
 =
-Patrol the first base, second base, and third base, starting from any of them. Cycle them.
-Patrol the three bases in order 1, 2, and 3 starting from any of them.
+Patrol the first base, second base, and third base, starting from any of them. Cycle them
+Patrol the three bases in order 1, 2, and 3 starting from any of them
 =
-((!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3)+ | ((!base_1&!base_3)* > base_2 > (!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1)+ | ((!base_1&!base_2)* > base_3 > (!base_2&!base_3)* > base_1 > (!base_1&!base_3)* > base_2)+
-((!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3)+ | ((!base_1&!base_3)+ > base_2 > (!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1)+ | ((!base_1&!base_2)+ > base_3 > (!base_2&!base_3)+ > base_1 > (!base_1&!base_3)+ > base_2)+
+((.)* > base_1 > (.)* > base_2 > (.)* > base_3){#N} | ((.)* > base_2 > (.)* > base_3 > (.)* > base_1){#N} | ((.)* > base_3 > (.)* > base_1 > (.)* > base_2){#N}
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
@@ -142,7 +158,7 @@ Find the $A, collect it, then bring it to the $B
 Collect the $A. Bring it to the $B
 Collect the $A. Bring the collected object to the $B
 =
-(!$A)* > $A > $A&collect > (!$B)* > $B
+(.)* > $A > $A&collect > (.)* > $B
 =
 Find the $A, collect it, then bring it to the $B
 
@@ -165,7 +181,7 @@ Find a $A, collect it, then bring it to the $B
 Collect a $A. Bring it to the $B
 Collect a $A. Bring the collected object to the $B
 =
-(!$A)* > $A > $A&collect > (!$B)* > $B
+(.)* > $A > $A&collect > (.)* > $B
 =
 Find the $A, collect it, then bring it to the $B
 
@@ -188,7 +204,7 @@ Find $A, collect it, then bring it to the $B
 Collect $A. Bring it to the $B
 Collect $A. Bring the collected object to the $B
 =
-(!$A)* > $A > $A&collect > (!$B)* > $B
+(.)* > $A > $A&collect > (.)* > $B
 =
 Find the $A, collect it, then bring it to the $B
 
@@ -214,7 +230,7 @@ collect the $A from the $B
 go to the $B and collect the $A
 enter the $B. in there, find and collect the $A
 =
-(!$A)* > ($B&!$A)* > ($B&$A) > ($B&$A&collect)
+(.)* > ($B&$A&collect)
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 0 @ {}, {'$A'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}, {}
@@ -237,7 +253,7 @@ pick up the $A from the $B. leave it at $C
 go to the $B and pick up the $A to bring it to $C
 enter the $B. in there, find the $A. carry it to $C and drop it there
 =
-(!$A)* > ($B&!$A)* > ($B&$A) > ($B&$A&collect) > (!$C)* > $C > $C&drop
+(.)* > $B&$A&collect > (.)* > $C&drop
 
 0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}
 1 @ {}, {'$A'}, {}, {'door'}, {}, {}, {}, {}, {}
@@ -253,6 +269,188 @@ $A % OBJECT, $B % OBJECT
 =
 Pick up the $A and then go through the door
 First find the $A. Then, go through the door
+First get the $A then go through the door
 Get the $A, then get to the door
 =
-(!$A)* > $A > (!door)* > door
+(.)* > $A > (.)* > door
+
+0 @ {}, {}, {}
+0 @ {}, {'lake'}, {}
+0 @ {}, {'lake'}, {}, {'fish'}
+0 @ {}, {'lake'}, {'lake'}, {'fish'}
+1 @ {}, {'lake'}, {'lake'}, {'lake', 'fish'}
+0 @ {}, {'lake'}, {'lake'}, {}, {'lake', 'fish'}
+1 @ {}, {'lake'}, {'lake'}, {'lake', 'fish'}, {'lake', 'fish'}, {'lake', 'fish'}
+1 @ {}, {'lake'}, {'lake'}, {'lake', 'fish'}, {'lake'}, {'lake'}, {'lake', 'fish'}, {'lake'}, {'lake'}, {'lake', 'fish'}, {'lake'}
+=
+=
+Reach the lake and catch a fish
+=
+(.)* > lake > (lake)* > lake&fish
+(.)* > (lake)+ > lake&fish
+=
+Reach the lake and catch a fish
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'key'}, {}, {'door'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {}, {}, {'key'}, {}, {'door'}, {'$A'}, {}, {}, {'key'}, {}, {'door'}, {'$A'}, {}
+0 @ {}, {'door'}, {}, {'key'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'door'}, {}, {'key'}, {}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'key'}, {}, {'door'}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {'key'}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+=
+$A % PLACE
+$A % AREA
+=
+Find the key, open the door, and enter the $A
+First, find the key. Then, open the door to the $A and enter it.
+You have to enter the $A, but to do that you will have to find the key and use it to open the doors to the $A
+=
+(.)* > key > (.)* > door > $A
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {}, {'$A'}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {}, {'$A'}, {'$A'}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {}, {'door'}, {'$A'}, {}, {}, {'key'}, {}, {'door'}, {'$A'}, {}, {}, {'key'}, {}, {'door'}, {'$A'}, {}
+1 @ {}, {'key'}, {}, {'door'}, {}, {'$A'}, {}, {}, {'key'}, {}, {'door'}, {}, {'$A'}, {}, {}, {'key'}, {}, {'door'}, {}, {'$A'}, {}
+0 @ {}, {'door'}, {}, {'key'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'door'}, {}, {'key'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'door'}, {}, {'key'}, {}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'door'}, {}, {'key'}, {}, {'door'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'key'}, {}, {'door'}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {'key'}, {'door'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'key'}, {'key'}, {'door'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}
+=
+$A % PLACE
+$A % AREA
+=
+Find the key and then open the door. Afterwards, enter the $A somewhere else unrelated to the door
+First, find the key. Then, open the door. And finally find the $A elsewhere and enter it
+You have to enter the $A, but to do that you will have to find the key and use it to open the doors to the $A
+Get the key, then get to the door, and then get to the $A
+Get to the $A (but before that, grab the key and get to the door)
+=
+(.)* > key > (.)* > door > (.)* > $A
+
+0 @ {}, {}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}
+0 @ {}, {}, {'orchard'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {'orchard'}, {'orchard'}, {}
+1 @ {}, {}, {'orchard'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}
+0 @ {}, {}, {'orchard'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}
+1 @ {}, {}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}
+=
+red apples % bananas, red_apple % banana
+red apples % mines, red_apple % mine, orchard % field
+red apples % targets, red_apple % target, the orchard % the red area, orchard % red_area
+=
+Find the red apples in the orchard, but don't leave the orchard once you enter it
+Find all the red apples in the orchard. Once you enter the orchard, don't leave it!
+=
+(!orchard)* > (orchard)* & ((.)* > red_apple){#N}
+(!orchard)* > ((orchard)* > orchard&red_apple){#N}
+
+0 @ {}, {}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}
+0 @ {}, {}, {'orchard'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}
+1 @ {}, {}, {'orchard'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}, {'orchard', 'red_apple'}, {'orchard'}, {}
+1 @ {}, {}, {'orchard'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}
+1 @ {}, {}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {'orchard', 'red_apple'}, {'orchard'}, {}, {'orchard'}, {'orchard', 'red_apple'}
+=
+red apples % bananas, red_apple % banana
+red apples % mines, red_apple % mine, orchard % field
+red apples % targets, red_apple % target, the orchard % the red area, orchard % red_area
+=
+Find the red apples in the orchard, but don't leave the orchard once you enter it
+Find all the red apples in the orchard. Once you enter the orchard, don't leave it!
+=
+((.)* > orchard&red_apple){#N}
+
+0 @ {}, {}
+0 @ {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station'}
+0 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station'}
+1 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}
+1 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}, {}
+1 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}, {}, {'gas_station', 'fill_up'}
+2 @ {}, {}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}, {}, {'gas_station'}, {'gas_station', 'fill_up'}
+2 @ {}, {'gas_station'}, {}, {'gas_station'}, {'gas_station'}, {'gas_station'}, {'gas_station', 'fill_up'}, {}, {'gas_station'}, {'gas_station', 'fill_up'}
+=
+=
+Drive to the gas station and fill up the car
+=
+(.)* > (gas_station)+ > gas_station&fill_up
+
+0 @ {}, {}, {}
+1 @ {}, {}, {'zoo'}
+1 @ {}, {}, {'park'}
+1 @ {}, {}, {'zoo', 'park'}
+1 @ {}, {}, {'zoo'}, {}
+1 @ {}, {}, {'park'}, {}
+1 @ {}, {}, {'zoo', 'park'}, {}
+1 @ {}, {}, {'park'}, {}, {'park'}
+1 @ {}, {}, {'park'}, {}, {'zoo', 'park'}
+=
+park % hospital, zoo % building
+park % parking lot, zoo % store
+park % store
+=
+Visit the park or the zoo
+=
+(.)* > (park | zoo)
+
+0 @ {}, {}, {}
+0 @ {}, {}, {'key'},
+0 @ {}, {}, {'key'}, {'key'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'house'}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {'house'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'house'}, {}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {}, {'house'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}
+1 @ {}, {}, {'key'}, {}, {}, {}, {'house', 'key'}, {}
+1 @ {}, {}, {'key'}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}, {}, {'house'}, {'house', 'key'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}, {}, {'house'}, {'apartment', 'key'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}
+1 @ {}, {}, {}, {}, {}, {}, {'house', 'key'}, {}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}, {'house', 'key'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}, {'apartment', 'key'}
+=
+=
+Enter the house or the apartment using the correct key
+=
+(.)* > (house | apartment) & key
+
+0 @ {}, {}, {}
+0 @ {}, {}, {'key'},
+0 @ {}, {}, {'key'}, {'key'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'house'}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {'house'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'house'}, {}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {}, {'apartment'}
+0 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment'}, {}, {'house'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}
+1 @ {}, {}, {'key'}, {}, {}, {}, {'house', 'key'}, {}
+1 @ {}, {}, {'key'}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}, {}, {'house'}, {'house', 'key'}
+1 @ {}, {}, {'key'}, {}, {'key'}, {}, {'apartment', 'key'}, {}, {'house'}, {'apartment', 'key'}
+0 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}
+0 @ {}, {}, {}, {}, {}, {}, {'house', 'key'}, {}
+0 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {'house'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {}, {'house', 'key'}
+1 @ {}, {}, {}, {}, {}, {}, {'apartment', 'key'}, {}, {}, {'apartment', 'key'}
+=
+=
+Enter the house or the apartment using the correct key. Collect the key before
+=
+(.)* > key > (.)* > (house | apartment) & key

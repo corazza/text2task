@@ -77,7 +77,7 @@ def test_compiler():
     # src = '((A)~)*'
     # src = '((.)* > ($A | $B | $C))+'
 
-    src = '(.)* > $S > ((.)* > $A > (.)* > $B > (.)* > $C){3} > (.)* > $F'
+    src = '(.)* > ((A)* > B&A){##N}'
     # src = 'A > (B){3} > C'
 
     # In [7]: rm({}, {'equipment'}, {}, {'mail'}, {}, {'wall'}, {}, {'door'})
