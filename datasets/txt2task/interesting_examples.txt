@@ -23,3 +23,48 @@ circle the building, office, and the house =>
 
 : circle the building, office, and the house
 ((.)* > building > (.)* > office > (.)* > house){#some}
+
+: either visit the house or go to the lake
+(.)* > (lake | house)
+
+: either visit the house or go to the lake, but avoid traps
+((.)* > house | (.)* > lake)&((.)* > trap > (.)*)~
+
+: visit the house, but always go down
+((.)* > house)&(down)*
+
+: visit the house, but always go down. and avoid traps!
+((down)+&(!trap)* > (.)*)&((!trap)* >!trap&trap&house > (.)*)
+
+: visit the house, but always go down. and avoid traps!
+((down))* > house&(down)+&(!trap)*
+
+: find many cans
+((.)* > can){#some}
+
+: find multiple cans
+((.)* > can){#some}
+
+: find a positive number of cans
+((.)* > can){#some}
+
+: find zero cans
+((.)* > can){#some}
+
+: find some cans
+((.)* > can){#some}
+
+: find several cans
+((.)* > can){#some}
+
+: find green cans
+((.)* > green&can){#some}
+
+: find green cans, but avoid mines
+((.)* > green&can){#some}&(!mine)*
+
+: go to the store. after that, pick up three cans
+(.)* > store > ((.)* > can){3}
+
+: find three coins or rocks
+((.)* > rock){3} | ((.)* > coin){3}

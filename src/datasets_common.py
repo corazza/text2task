@@ -56,14 +56,13 @@ def load_terms(path: str) -> dict[str, list[str]]:
     return parse_terms(lines)
 
 
-def augment_examples(examples: list[Example]) -> list[Example]:
-    examples = ast_rewrites(examples)
-    return examples
-
-
 def has_without_dot(example: Example) -> bool:
     for desc in example.descs:
-        if '.' not in desc:
+        found: bool = False
+        for dot in CANT_APPEAR_IN_SINGLE:
+            if dot in desc:
+                found = True
+        if not found:
             return True
     return False
 
@@ -78,7 +77,18 @@ def get_eligible_pairs(examples: list[Example]) -> list[Tuple[int, int]]:
             #     continue
             if not has_without_dot(example1) or not has_without_dot(example2):
                 continue
-            eligible_pairs.append((i, j))
+            has_eligible1: bool = False
+            for desc in example1.descs:
+                if eligible_desc_in_pair(desc):
+                    has_eligible1 = True
+                    break
+            has_eligible2: bool = False
+            for desc in example2.descs:
+                if eligible_desc_in_pair(desc):
+                    has_eligible2 = True
+                    break
+            if has_eligible1 and has_eligible2:
+                eligible_pairs.append((i, j))
     return eligible_pairs
 
 
@@ -111,16 +121,26 @@ def apply_replacements(original: str, which: list[Tuple[str, str]]) -> str:
 
 
 def eligible_combination_in_pair(pattern_desc: str, example_descs: list[str]) -> bool:
-    cant_appear_both = ['first', 'second', 'finally']
     for example_desc in example_descs:
-        for disallowed in cant_appear_both:
-            if disallowed in pattern_desc.lower() and example_desc.lower():
+        for disallowed in CANT_APPEAR_IN_BOTH:
+            if disallowed in pattern_desc.lower() and disallowed in example_desc.lower():
                 return False
+    # for example1_desc in example_descs:
+    #     for example2_desc in example_descs:
+    #         for disallowed in CANT_APPEAR_IN_BOTH:
+    #             if disallowed in example1_desc.lower() and disallowed in example2_desc.lower():
+    #                 return False
     return True
 
 
 def eligible_desc_in_pair(example_desc: str) -> bool:
-    return '.' not in example_desc
+    if '.' in example_desc:
+        return False
+    if ':' in example_desc:
+        return False
+    if len(example_desc) > DESC_LENGTH_LIMIT:
+        return False
+    return True
 
 
 def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filter, eligible_combination_filter) -> Example:
@@ -232,7 +252,9 @@ def get_single_ab(example: Example):
     np.random.shuffle(example.descs)
     np.random.shuffle(example.srcs)
     ast = compiler_interface.parse(example.srcs[0])
-    return example, example.descs[0], expr_to_str(ast)
+    rewrites_nodes = ast.rewrites()
+    np.random.shuffle(rewrites_nodes)  # type: ignore
+    return example, example.descs[0], expr_to_str(rewrites_nodes[0])
 
 
 def apply_text_rewrite_with_concat(x: str, rewrite: list[Tuple[str, str]], sep: str) -> str:

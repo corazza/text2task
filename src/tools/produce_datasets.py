@@ -31,7 +31,7 @@ def report_ab_statistics(statistics: dict[str, int]):
         print(f'{v}: {k}')
 
 
-def produce_datasets(output_name: str, load_from: list[str], validate_all: bool):
+def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool):
     model_args, data_args, training_args = get_args()
     tokenizer = get_tokenizer(model_args)
 
@@ -44,19 +44,20 @@ def produce_datasets(output_name: str, load_from: list[str], validate_all: bool)
     path_synthetic = create_if_doesnt_exist(
         'preprocessed_datasets/txt2task', 'synthetic', '.txt')
 
-    terms = load_terms('datasets/txt2task/terms.txt')
+    # terms = load_terms('datasets/txt2task/terms.txt')
+    terms = load_terms('datasets/txt2task/terms2.txt')
     examples = load_examples(load_from[0])
     for load_path in load_from[1:]:
         examples.extend(load_examples(load_path))
 
     print(f'original examples: {len(examples)}')
 
-    if VALIDATE_RAW and not (VALIDATE_AUGMENTED or validate_all):
+    if validate_raw and not VALIDATE_AUGMENTED:
         validate_runs(examples)
     # HERE TODO don't pick whole examples to add to: add to all of them, then pick random samples from them in 0.2 proportion
     print('augmenting examples...')
-    examples = augment_examples(examples)
-    if VALIDATE_AUGMENTED or validate_all:
+    examples = ast_rewrites(examples)
+    if VALIDATE_AUGMENTED:
         validate_runs(examples)
 
     print('converting to ab...')
@@ -116,7 +117,7 @@ def main():
     np.random.seed(42)
     random.seed(42)
     load_from = [f'datasets/txt2task/use/{x}.txt' for x in SOURCES]
-    produce_datasets('train', load_from, validate_all=False)
+    produce_datasets('train', load_from, validate_raw=False)
 
 
 if __name__ == '__main__':

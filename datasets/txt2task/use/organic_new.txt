@@ -1,0 +1,10 @@
+$A % PLACE, $B % PLACE, $C % OBJECT
+=
+Go to the $A. Then visit the $B. Then find the $C
+Go to the $A then visit the $B then find the $C
+Go to the $A. Then go to the $B. Then find the $C
+Go to the $A then go to the $B then find the $C
+Visit the $A. Then visit the $B. Then find the $C
+Visit the $A then visit the $B then find the $C
+=
+(.)* > $A > (.)* > $B > (.)* > $C

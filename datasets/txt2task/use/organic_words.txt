@@ -368,8 +368,8 @@ red apples % bananas, red_apple % banana
 red apples % mines, red_apple % mine, orchard % field
 red apples % targets, red_apple % target, the orchard % the red area, orchard % red_area
 =
-Find the red apples in the orchard, but don't leave the orchard once you enter it
-Find all the red apples in the orchard. Once you enter the orchard, don't leave it!
+Find the red apples in the orchard
+Find all the red apples in the orchard
 =
 ((.)* > orchard&red_apple){#N}
 

@@ -6,7 +6,6 @@ First: DESC0. Second: DESC1
 First: DESC0. After that: DESC1
 There are two tasks. First DESC0. Second DESC1.
 DESC1, but before that DESC0
-DESC1, but not before DESC0
 =
 (SRC0) > (SRC1)
 =
