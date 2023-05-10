@@ -68,3 +68,6 @@ circle the building, office, and the house =>
 
 : find three coins or rocks
 ((.)* > rock){3} | ((.)* > coin){3}
+
+NOT IN DATASET : bring a coin to the house
+(.)* > coin > (.)* > house

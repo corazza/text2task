@@ -1,10 +1,10 @@
 import IPython
 
 import compiler_interface
+from regex_printer import expr_to_str
 from regex_validation import equivalent
 from tools import produce_datasets
-from visualization import visualize_compilestate, visualize_rm, visualize_ast
-from regex_printer import expr_to_str
+from visualization import visualize_ast, visualize_compilestate, visualize_rm
 
 
 def test_rewrites_equivalence(src: str, n_rewrites: int):
@@ -77,7 +77,7 @@ def test_compiler():
     # src = '((A)~)*'
     # src = '((.)* > ($A | $B | $C))+'
 
-    src = '(.)* > ((A)* > B&A){##N}'
+    src = '(!forest)* > forest > (forest)* > ((((.)* > can){#some})~ | (.)* > rock > (.)*)~'
     # src = 'A > (B){3} > C'
 
     # In [7]: rm({}, {'equipment'}, {}, {'mail'}, {}, {'wall'}, {}, {'door'})

@@ -30,7 +30,7 @@ DESC_LENGTH_LIMIT = 50
 REWRITE_VALIDATION_EMPTY_PROB = 0.3
 
 AUGMENT_CHAR_LIST = ['P', 'Q', 'X', 'Y', 'Z', 'W']
-CANT_APPEAR_IN_BOTH = ['first', 'second', 'finally', ':']
+CANT_APPEAR_IN_BOTH = ['first', 'second', 'finally', ':', 'either']
 CANT_APPEAR_IN_SINGLE = ['.', ':']
 
 POSNEG_VALIDATION = True
@@ -53,3 +53,10 @@ NUM_MAP = {
     4: ["four", "4"],
     5: ["five", "5"]
 }
+
+DEFAULT_TERMS_PATH = 'datasets/txt2task/terms2.txt'
+DEFAULT_MAP_PATH = 'preprocessed_datasets/txt2task/map_test.txt'
+
+DEFAULT_AGENT = 'random'
+DEFAULT_STEPS = 100
+DEFAULT_EPISODES = 20

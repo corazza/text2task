@@ -1,8 +1,9 @@
 import random
-from transformers import pipeline, set_seed
 from typing import Tuple
+
 import IPython
 import numpy as np
+from transformers import pipeline, set_seed
 
 from consts import *
 from datasets_common import *
@@ -44,8 +45,7 @@ def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool)
     path_synthetic = create_if_doesnt_exist(
         'preprocessed_datasets/txt2task', 'synthetic', '.txt')
 
-    # terms = load_terms('datasets/txt2task/terms.txt')
-    terms = load_terms('datasets/txt2task/terms2.txt')
+    terms = load_terms(DEFAULT_TERMS_PATH)
     examples = load_examples(load_from[0])
     for load_path in load_from[1:]:
         examples.extend(load_examples(load_path))

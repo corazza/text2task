@@ -28,6 +28,7 @@ workshop PLACE
 forest AREA
 field AREA
 town AREA
+factory AREA
 
 coffee OBJECT NO_THE
 mail OBJECT NO_THE

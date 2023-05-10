@@ -1,4 +1,5 @@
 from typing import Iterable, Sequence, Tuple
+
 import IPython
 
 
@@ -22,8 +23,9 @@ class RewardMachine:
         if current_state not in self.transitions:
             assert current_state in self.terminal_states
             return (current_state, 0)
-        if input_symbol not in self.transitions[current_state]:
-            return (current_state, 0)
+        assert input_symbol in self.transitions[current_state]
+        # if input_symbol not in self.transitions[current_state]:
+        #     return (current_state, 0)
         return self.transitions[current_state][input_symbol]
 
     def multiple_transitions(self, current_state: int, input_symbols: list[frozenset[str]], states: bool = False) -> list[int]:
@@ -40,3 +42,15 @@ class RewardMachine:
     def __call__(self, *input_symbols: Iterable[str], states: bool = False) -> list[int]:
         """Just a nicer interface for RewardMachine.multiple_transitions"""
         return self.multiple_transitions(0, [frozenset(x) for x in input_symbols], states)
+
+
+class RewardMachineRunner():
+    def __init__(self, reward_machine: RewardMachine):
+        self.reward_machine: RewardMachine = reward_machine
+        self.current_state: int = 0
+
+    def transition(self, input_symbol: frozenset[str]) -> int:
+        next_state, reward = self.reward_machine.transition(
+            self.current_state, input_symbol)
+        self.current_state = next_state
+        return reward
