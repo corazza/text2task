@@ -1,7 +1,8 @@
+import copy
 import itertools
 from typing import Iterable, Tuple
+
 import IPython
-import copy
 
 from reward_machine import RewardMachine
 from rm_builder import Builder
@@ -264,10 +265,7 @@ def dfa_to_rm(dfa: CompileStateDFA, appears: frozenset[str]) -> RewardMachine:
     while len(to_visit) > 0:
         visiting: DFANode = to_visit.pop()
         visited.add(visiting)
-        terminal = True
         for transition, dfa_child in visiting.transitions.items():
-            if dfa_child != visiting:
-                terminal = False  # nodes which only have themselves as children also terminate the task
             if dfa_child in dfa.terminal_states:
                 r = 1
             else:
@@ -275,6 +273,6 @@ def dfa_to_rm(dfa: CompileStateDFA, appears: frozenset[str]) -> RewardMachine:
             builder = builder.t(visiting.id, dfa_child.id, transition, r)
             if dfa_child not in visited:
                 to_visit.add(dfa_child)
-        if terminal:
+        if visiting in dfa.terminal_states:
             builder = builder.terminal(visiting.id)
     return builder.build()

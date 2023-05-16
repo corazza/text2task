@@ -1,27 +1,27 @@
-import torch
-from transformers import PegasusForConditionalGeneration, PegasusTokenizer
-import math
+import copy
 import cProfile
 import itertools
-import numpy as np
-import copy
+import math
+import pstats
 from curses.ascii import isalpha
+from functools import wraps
 from pathlib import Path
 from typing import Iterator, Optional, Tuple
-import more_itertools
+
 import IPython
-import pstats
-from functools import wraps
+import more_itertools
+import numpy as np
+import torch
+from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 
-
+import compiler_interface
+from compiler_interface import compile
 from consts import *
+from example_parser import Example, parse_examples
+from parser_util import line_iter
 from regex_ast import RENode
 from regex_printer import expr_to_str
 from regex_validation import equivalent
-from example_parser import Example, parse_examples
-from parser_util import line_iter
-import compiler_interface
-from compiler_interface import compile
 from terms_parser import parse_terms
 from util import *
 
@@ -92,6 +92,37 @@ def get_eligible_pairs(examples: list[Example]) -> list[Tuple[int, int]]:
     return eligible_pairs
 
 
+def get_eligible_triplets(examples: list[Example]) -> list[Tuple[int, int, int]]:
+    eligible_triplets: list[Tuple[int, int, int]] = []
+    for i, example1 in enumerate(examples):
+        for j, example2 in enumerate(examples):
+            for k, example3 in enumerate(examples):
+                if i >= j or j >= k:
+                    continue
+                # if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
+                #     continue
+                if not has_without_dot(example1) or not has_without_dot(example2) or not has_without_dot(example3):
+                    continue
+                has_eligible1: bool = False
+                for desc in example1.descs:
+                    if eligible_desc_in_pair(desc):
+                        has_eligible1 = True
+                        break
+                has_eligible2: bool = False
+                for desc in example2.descs:
+                    if eligible_desc_in_pair(desc):
+                        has_eligible2 = True
+                        break
+                has_eligible3: bool = False
+                for desc in example3.descs:
+                    if eligible_desc_in_pair(desc):
+                        has_eligible3 = True
+                        break
+                if has_eligible1 and has_eligible2 and has_eligible3:
+                    eligible_triplets.append((i, j, k))
+    return eligible_triplets
+
+
 def load_patterns(path: str) -> dict[str, list[Example]]:
     as_examples: list[Example] = load_examples(path)
     result: dict[str, list[Example]] = dict()
@@ -125,21 +156,16 @@ def eligible_combination_in_pair(pattern_desc: str, example_descs: list[str]) ->
         for disallowed in CANT_APPEAR_IN_BOTH:
             if disallowed in pattern_desc.lower() and disallowed in example_desc.lower():
                 return False
-    # for example1_desc in example_descs:
-    #     for example2_desc in example_descs:
-    #         for disallowed in CANT_APPEAR_IN_BOTH:
-    #             if disallowed in example1_desc.lower() and disallowed in example2_desc.lower():
-    #                 return False
     return True
 
 
 def eligible_desc_in_pair(example_desc: str) -> bool:
-    if '.' in example_desc:
-        return False
-    if ':' in example_desc:
-        return False
     if len(example_desc) > DESC_LENGTH_LIMIT:
         return False
+    lower = example_desc.lower()
+    for each in CANT_APPEAR_IN_SINGLE:
+        if each in lower:
+            return False
     return True
 
 
@@ -201,19 +227,29 @@ def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filte
     return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
 
 
-def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], num_abs) -> list[Tuple[Example, str, str]]:
+def augmented_ab2(patterns: dict[str, list[Example]], abs: list[tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    num_abs: int = len(abs)
     new_abs: list[Tuple[Example, str, str]] = []
-    np.random.shuffle(examples)  # type: ignore
+    np.random.shuffle(abs)  # type: ignore
     eligible_pairs: list[Tuple[int, int]] = get_eligible_pairs(examples)
+    eligible_triplets: list[Tuple[int, int, int]
+                            ] = get_eligible_triplets(examples)
     eligible_single: list[int] = list(range(len(examples)))
 
     if len(eligible_pairs) < 1 or len(eligible_single) < 1:
         return []
 
     to_add_pairs: dict[str, int] = {
-        'concat': round(ADD_CONCAT_P * ADD_P * num_abs),
-        'disjunct': round(ADD_DISJUNCT_P * ADD_P * num_abs),
-        'conjunct': round(ADD_CONJUNCT_P * ADD_P * num_abs),
+        'concat': round(ADD_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
+        'disjunct': round(ADD_DISJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
+        'conjunct': round(ADD_CONJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
+        'concat_avoid': round(ADD_CONCAT_AVOID_P / ADD_TOTAL * ADD_P * num_abs),
+    }
+
+    to_add_triplets: dict[str, int] = {
+        'concat_concat': round(ADD_CONCAT_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
+        'disjunct_concat': round(ADD_DISJUNCT_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
+        'concat_disjunct': round(ADD_CONCAT_DISJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
     }
 
     for pattern_id, pattern_num in to_add_pairs.items():
@@ -230,8 +266,96 @@ def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], nu
                 pattern, [example1, example2], eligible_desc_in_pair, eligible_combination_in_pair)
             new_abs.append(get_single_ab(example))
 
+    for pattern_id, pattern_num in to_add_triplets.items():
+        print(f'adding {pattern_id}... ({pattern_num})')
+        np.random.shuffle(eligible_pairs)
+        for counter in range(pattern_num):
+            pattern = random_from(patterns[pattern_id])
+            ijk_triplet: list[int] = list(
+                eligible_triplets[counter % len(eligible_pairs)])
+            np.random.shuffle(ijk_triplet)
+            i, j, k = ijk_triplet
+            example1 = examples[i]
+            example2 = examples[j]
+            example3 = examples[k]
+            example = apply_pattern(
+                pattern, [example1, example2, example3], eligible_desc_in_pair, eligible_combination_in_pair)
+            new_abs.append(get_single_ab(example))
+
     to_add_single: dict[str, int] = {
-        'avoid': round(ADD_AVOIDANCE_P * ADD_P * num_abs)
+        'avoid': round(ADD_AVOIDANCE_P / ADD_TOTAL * ADD_P * num_abs)
+    }
+
+    for pattern_id, pattern_num in to_add_single.items():
+        print(f'adding {pattern_id}... ({pattern_num})')
+        np.random.shuffle(eligible_single)
+        for counter in range(pattern_num):
+            pattern = random_from(patterns[pattern_id])
+            i = eligible_single[counter % len(eligible_single)]
+            example = examples[i]
+            new_example = apply_pattern(
+                pattern, [example], lambda x: True, lambda x, y: True)
+            new_abs.append(get_single_ab(new_example))
+
+    return new_abs
+
+
+def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], num_abs) -> list[Tuple[Example, str, str]]:
+    new_abs: list[Tuple[Example, str, str]] = []
+    np.random.shuffle(examples)  # type: ignore
+    eligible_pairs: list[Tuple[int, int]] = get_eligible_pairs(examples)
+    eligible_triplets: list[Tuple[int, int, int]
+                            ] = get_eligible_triplets(examples)
+    eligible_single: list[int] = list(range(len(examples)))
+
+    if len(eligible_pairs) < 1 or len(eligible_single) < 1:
+        return []
+
+    to_add_pairs: dict[str, int] = {
+        'concat': round(ADD_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
+        'disjunct': round(ADD_DISJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
+        'conjunct': round(ADD_CONJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
+        'concat_avoid': round(ADD_CONCAT_AVOID_P / ADD_TOTAL * ADD_P * num_abs),
+    }
+
+    to_add_triplets: dict[str, int] = {
+        'concat_concat': round(ADD_CONCAT_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
+        'disjunct_concat': round(ADD_DISJUNCT_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
+        'concat_disjunct': round(ADD_CONCAT_DISJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
+    }
+
+    for pattern_id, pattern_num in to_add_pairs.items():
+        print(f'adding {pattern_id}... ({pattern_num})')
+        np.random.shuffle(eligible_pairs)
+        for counter in range(pattern_num):
+            pattern = random_from(patterns[pattern_id])
+            ij_pair = list(eligible_pairs[counter % len(eligible_pairs)])
+            np.random.shuffle(ij_pair)
+            i, j = ij_pair
+            example1 = examples[i]
+            example2 = examples[j]
+            example = apply_pattern(
+                pattern, [example1, example2], eligible_desc_in_pair, eligible_combination_in_pair)
+            new_abs.append(get_single_ab(example))
+
+    for pattern_id, pattern_num in to_add_triplets.items():
+        print(f'adding {pattern_id}... ({pattern_num})')
+        np.random.shuffle(eligible_pairs)
+        for counter in range(pattern_num):
+            pattern = random_from(patterns[pattern_id])
+            ijk_triplet: list[int] = list(
+                eligible_triplets[counter % len(eligible_pairs)])
+            np.random.shuffle(ijk_triplet)
+            i, j, k = ijk_triplet
+            example1 = examples[i]
+            example2 = examples[j]
+            example3 = examples[k]
+            example = apply_pattern(
+                pattern, [example1, example2, example3], eligible_desc_in_pair, eligible_combination_in_pair)
+            new_abs.append(get_single_ab(example))
+
+    to_add_single: dict[str, int] = {
+        'avoid': round(ADD_AVOIDANCE_P / ADD_TOTAL * ADD_P * num_abs)
     }
 
     for pattern_id, pattern_num in to_add_single.items():
@@ -276,20 +400,21 @@ def get_all_terms_from_tag(terms: dict[str, list[str]], term_tag: str) -> list[s
     return applicable
 
 
-def ab_rewrites(abs: list[Tuple[Example, str, str]], terms, to_cap: bool) -> list[Tuple[Example, str, str]]:
+# @profile(sort_by='tottime')
+def ab_rewrites(abs: list[Tuple[Example, str, str]], terms: dict[str, list[str]], to_cap: bool) -> list[Tuple[Example, str, str]]:
     np.random.shuffle(abs)  # type: ignore
     statistics = ab_statistics(abs)
     new_abs: list[Tuple[Example, str, str]] = []
     for i, (example, desc, src) in enumerate(abs):
-        # if i % 250 == 0:
-        #     print(f'{i}/{len(abs)}')
-        r = example.representative()
         if not to_cap:
             to_take = 1
         else:
             id = example.representative() + '|' + desc
             to_take = max(1, round(SENTENCE_CAP / statistics[id]))
-        new_rewrites = get_new_rewrites(example, terms, to_take)[:to_take]
+        new_rewrites: list[list[Tuple[str, str]]] = []
+        if len(example.example_rewrites) > 0:
+            for j in range(to_take):
+                new_rewrites.append(get_new_rewrite(example, terms))
         for rewrite in new_rewrites:
             r_desc = apply_text_rewrite_with_concat(desc, rewrite, ' ')
             r_src = apply_text_rewrite_with_concat(src, rewrite, '_')
@@ -350,45 +475,20 @@ def ab_rewrites_num(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, 
     return new_abs
 
 
-def get_new_rewrites(example: Example, terms, to_take: int) -> list[list[Tuple[str, str]]]:
-    new_rewrites: list[list[Tuple[str, str]]] = []
-    for rewrite in example.example_rewrites:
-        counter: int = to_take
-        new_versions: list[list[Tuple[str, str]]] = []
-        all_replacements: dict[str, list[str]] = dict()
-        for left, right in rewrite:
-            if right.isupper():
-                all_replacements[left] = get_all_terms_from_tag(
-                    terms, right)
-            else:
-                all_replacements[left] = [right]
-        for k in all_replacements:
-            np.random.shuffle(all_replacements[k])
-        for combination in itertools.product(*all_replacements.values()):
-            if counter == 0:
-                break
-            if len(combination) != len(set(combination)):
-                continue
-            new_dict = {k: v for k, v in zip(
-                all_replacements.keys(), combination)}
-            new_versions.append(list(new_dict.items()))
-            counter -= 1
-        if len(new_versions) > 0:
-            new_rewrites.extend(new_versions)
+def get_new_rewrite(example: Example, terms) -> list[Tuple[str, str]]:
+    rewrite: list[Tuple[str, str]] = random_from(example.example_rewrites)
+    all_replacements: dict[str, list[str]] = dict()
+    for left, right in rewrite:
+        if right.isupper():
+            all_replacements[left] = get_all_terms_from_tag(terms, right)
         else:
-            has_vars = False
-            for left, right in rewrite:
-                if right.isupper():
-                    has_vars = True
-            if not has_vars:
-                new_rewrites.append(rewrite)
-
-    np.random.shuffle(new_rewrites)
-    seen = set()
-    for rewrite in new_rewrites:
-        seen.add(tuple(rewrite))
-    # assert len(seen) == len(new_rewrites) # TODO FIXME
-    return new_rewrites
+            all_replacements[left] = [right]
+    for k in all_replacements:
+        np.random.shuffle(all_replacements[k])
+    combination = next(itertools.product(*all_replacements.values()))
+    new_dict = {k: v for k, v in zip(
+        all_replacements.keys(), combination)}
+    return list(new_dict.items())
 
 
 def clean_desc(desc: str) -> str:
@@ -711,6 +811,6 @@ def ab_to_lines_synthetic(ab: list[Tuple[Example, str, str]]) -> list[str]:
         # result.append(
         #     f'{desc_src_to_line_human(desc, src)}         ~ {e.id}\n')
         skip = len('_ADDED_')
-        prefix = e.id[skip:skip+len('disjunct')]
+        prefix = e.id[skip:skip+len('disjunct_disjunct')]
         result.append(f'{desc_src_to_line_human(desc, src)} ~ {prefix}\n')
     return result

@@ -1,10 +1,50 @@
 0 @ {}, {}
 =
 =
+DESC0. Then DESC1. Then DESC2
+DESC0. Then DESC1. Finally DESC2
+DESC0. After that DESC1. Finally DESC2
+DESC0. After that: DESC1. Finally: DESC2
+First DESC0. Second DESC1. Third DESC2
+=
+(SRC0) > (SRC1) > (SRC2)
+=
+concat_concat
+
+0 @ {}, {}
+=
+=
+Either DESC0, or DESC1. Finally, DESC2
+Either DESC0. Or, DESC1. Lastly DESC2
+DESC0, then DESC2. Or DESC1, then DESC2
+DESC0, or, DESC1. But then DESC2
+=
+((SRC0) | (SRC1)) > SRC2
+(SRC0) > (SRC2) | (SRC1) > (SRC2)
+=
+disjunct_concat
+
+0 @ {}, {}
+=
+=
+First DESC2. Then DESC0, or DESC1
+DESC2. Then either DESC0, or DESC1
+DESC2, then DESC0. Or DESC2, then DESC1
+DESC0, or, DESC1. But before, DESC2
+=
+SRC2 > ((SRC0) | (SRC1))
+(SRC2) > (SRC0) | (SRC2) > (SRC1)
+=
+concat_disjunct
+
+0 @ {}, {}
+=
+=
 DESC0. Then DESC1
+DESC0. Finally, DESC1
 First: DESC0. Second: DESC1
-First: DESC0. After that: DESC1
-There are two tasks. First DESC0. Second DESC1.
+First DESC0. Second DESC1
+DESC0. After that: DESC1
 DESC1, but before that DESC0
 =
 (SRC0) > (SRC1)
@@ -14,7 +54,7 @@ concat
 0 @ {}, {}
 =
 =
-There are two tasks. Either DESC0, or DESC1
+Either DESC0, or DESC1
 Either DESC0. Or, DESC1
 DESC0, then DESC1. Or DESC1, then DESC0.
 Choose: DESC0, or, DESC1
@@ -52,13 +92,12 @@ avoid
 0 @ {}, {}
 =
 $Z % AVOID
-$Z % OBJECT_A
 =
-Avoid $Zs. DESC0
-Do the following task, but avoid $Zs: DESC0
-DESC0. Avoid $Zs
-DESC0, and avoid $Zs
-DESC0. Don't get near $Zs
+Avoid the $Z. DESC0
+Do the following task, but avoid the $Z: DESC0
+DESC0. Avoid the $Z
+DESC0, and avoid the $Z
+DESC0. Don't get near the $Zs
 =
 (SRC0) & (!$Z)*
 (SRC0) & ((.)* > $Z > (.)*)~
@@ -67,7 +106,6 @@ avoid
 
 0 @ {}, {}
 =
-$Z % AVOID
 $Z % OBJECT_A
 =
 Avoid $Zs. DESC0
@@ -122,3 +160,48 @@ DESC0. Don't hit a $Z.
 (SRC0) & ((.)* > $Z > (.)*)~
 =
 avoid
+
+0 @ {}, {}
+=
+$Z % NO_THE
+=
+Avoid $Z. DESC0, then DESC1
+DESC0. Then, DESC1. Avoid $Z
+Don't get near $Z: DESC0, then DESC1
+DESC0. Then DESC1. Avoid $Z
+DESC0. Then, DESC1. Don't approach $Z
+=
+((SRC0) > (SRC1)) & (!$Z)*
+((SRC0) > (SRC1)) & ((.)* > $Z > (.)*)~
+=
+concat_avoid
+
+0 @ {}, {}
+=
+$Z % AVOID
+=
+Avoid the $Z. DESC0, then DESC1
+DESC0. Then, DESC1. Avoid the $Z
+Don't get near the $Z: DESC0, then DESC1
+DESC0. Then DESC1. Avoid the $Z
+DESC0. Then, DESC1. Don't approach the $Z
+=
+((SRC0) > (SRC1)) & (!$Z)*
+((SRC0) > (SRC1)) & ((.)* > $Z > (.)*)~
+=
+concat_avoid
+
+0 @ {}, {}
+=
+$Z % OBJECT_A
+=
+Avoid $Zs. DESC0, then DESC1
+DESC0. Then, DESC1. Avoid $Zs
+Don't get near $Zs: DESC0, then DESC1
+DESC0. Then DESC1. Avoid $Zs
+DESC0. Then, DESC1. Don't approach $Zs
+=
+((SRC0) > (SRC1)) & (!$Z)*
+((SRC0) > (SRC1)) & ((.)* > $Z > (.)*)~
+=
+concat_avoid

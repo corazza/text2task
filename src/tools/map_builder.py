@@ -4,22 +4,30 @@ from typing import Iterable
 
 import IPython
 import numpy as np
-from transformers import set_seed
 
 from consts import *
 from datasets_common import (create_if_doesnt_exist, get_all_terms_from_tag,
                              load_terms)
 from maps import *
+from util import set_all_seeds
 
 
 class MapBuilder():
     def __init__(self, size: int, terms: dict[str, list[str]]):
         self.size: int = size
+        self.terms = terms
         self.content: list[list[set[str]]] = [
             [set() for j in range(size)] for i in range(size)]
-        self.terms = terms
         self.spawn_type: str = 'random'
         self.spawn_location: tuple[int, int] = (0, 0)
+
+    @staticmethod
+    def from_map(map: Map) -> 'MapBuilder':
+        result: MapBuilder = MapBuilder(map.size, map.terms)
+        result.content = [[set(vars) for vars in row] for row in map.content]
+        result.spawn_type = map.spawn_type
+        result.spawn_location = map.spawn_location
+        return result
 
     def add(self, var: str, i: int, j: int):
         self.content[i][j].add(var)
@@ -38,6 +46,39 @@ class MapBuilder():
         for h in range(hw[0]):
             for w in range(hw[1]):
                 self.remove(var, i+h, j+w)
+
+    def appears(self) -> frozenset[str]:
+        result: set[str] = set()
+        for row in self.content:
+            for vars in row:
+                result.update(vars)
+        return frozenset(result)
+
+    def fill_with_vars_that_dont_appear(self, vars: frozenset[str], times: int = 1):
+        appears: frozenset[str] = self.appears()
+        to_add: frozenset[str] = frozenset(
+            [var for var in vars if var not in appears])
+        for var in to_add:
+            self.add_to_random_location(var)
+        return self
+
+    def free_to_add_at(self, i: int, j: int) -> bool:
+        return 'wall' not in self.content[i][j]
+
+    def get_random_free_coordinates(self) -> tuple[int, int]:
+        i: int = np.random.randint(0, self.size)
+        j: int = np.random.randint(0, self.size)
+        while not self.free_to_add_at(i, j):
+            i = np.random.randint(0, self.size)
+            i = np.random.randint(0, self.size)
+        return i, j
+
+    def add_to_random_location(self, var: str):
+        """Mutates the original map."""
+        i: int
+        j: int
+        i, j = self.get_random_free_coordinates()
+        self.content[i][j].add(var)
 
     def add_wall(self, start: tuple[int, int], delta: tuple[int, int]):
         length: int = abs(delta[0]) + abs(delta[1])
@@ -106,7 +147,7 @@ class VarPicker():
 
 def example_map_1() -> Map:
     config: MapConfig = MapConfig(
-        size=100,
+        size=20,
         p_object=0.1,
         p_color_object=0.2,
         p_place=0.05,
@@ -174,9 +215,7 @@ def map_builder(output_name: str):
 
 
 def main():
-    set_seed(42)
-    np.random.seed(42)
-    random.seed(42)
+    set_all_seeds(SEED)
     map_builder('map_test')
 
 

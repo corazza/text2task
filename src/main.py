@@ -77,7 +77,7 @@ def test_compiler():
     # src = '((A)~)*'
     # src = '((.)* > ($A | $B | $C))+'
 
-    src = '(!forest)* > forest > (forest)* > ((((.)* > can){#some})~ | (.)* > rock > (.)*)~'
+    # src = '(!forest)* > forest > (forest)* > ((((.)* > can){#some})~ | (.)* > rock > (.)*)~'
     # src = 'A > (B){3} > C'
 
     # In [7]: rm({}, {'equipment'}, {}, {'mail'}, {}, {'wall'}, {}, {'door'})
@@ -88,6 +88,8 @@ def test_compiler():
 
     # In [5]: rm({}, {'equipment'}, {}, {'wall'}, {}, {'mail'}, {}, {'door'})
     # Out[5]: [0, 0, 0, 0, 0, 0, 0, 1]
+
+    src = '(.)* > office > (.)* > mail'
 
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)

@@ -101,7 +101,7 @@ Start from the $S, then patrol the $A, $B, and $C respectively #N. End at the $F
 Starting from the $S, patrol the $A, $B, and $C #N in that order. End at the $F
 Starting from the $S, circle the $A, $B, and $C #N (necessarily in that order), then finish at the $F
 Start at $S and end at $F. In between patrol the $A, the $B, and the $C (#N)
-Patrol the $A, $B, and the $C #N, but start at $S and end at $F
+Patrol the $A, $B, and the $C #N, but start at the $S and end at the $F
 Find the $S and then patrol the $A, $B and the $C #N, then go to the $F
 =
 (.)* > $S > ((.)* > $A > (.)* > $B > (.)* > $C){#N} > (.)* > $F
@@ -133,7 +133,7 @@ Start from the $S, then patrol the $A, $B, and $C respectively. End at the $F
 Starting from the $S, patrol the $A, $B, and $C in that order. End at the $F
 Starting from the $S, circle the $A, $B, and $C (necessarily in that order), then finish at the $F
 Start at $S and end at $F. In between patrol the $A, the $B, and the $C
-Patrol the $A, $B, and the $C, but start at $S and end at $F
+Patrol the $A, $B, and the $C, but start at the $S and end at the $F
 Find the $S and then patrol the $A, $B and the $C, then go to the $F
 =
 (.)* > $S > ((.)* > $A > (.)* > $B > (.)* > $C){#N} > (.)* > $F
@@ -170,7 +170,7 @@ Start from the $S, then patrol the $A, $B, and $C in any order. End at the $F
 Starting from the $S, patrol the $A, $B, and $C in whichever order. End at the $F
 Starting from the $S, circle the $A, $B, and $C (not necessarily in that order), then finish at the $F
 Start at $S and end at $F. In between patrol the $A, the $B, and the $C in whatever order
-Patrol the $A, $B, and the $C (not necessarily in that order), but start at $S and end at $F
+Patrol the $A, $B, and the $C (not necessarily in that order), but start at the $S and end at the $F
 Find the $S and then patrol the $A, $B and the $C in any order, then go to the $F
 =
 (.)* > $S > ((.)* > $A > (.)* > $B > (.)* > $C | (.)* > $B > (.)* > $C > (.)* > $A | (.)* > $C > (.)* > $A > (.)* > $B | (.)* > $C > (.)* > $B > (.)* > $A | (.)* > $A > (.)* > $C > (.)* > $B | (.)* > $B > (.)* > $A > (.)* > $C){#N} > (.)* > $F
@@ -505,10 +505,24 @@ Go to the $A, then find the $C, then find the $D, then go to the $B
 =
 $A % PLACE, $B % OBJECT, $C % AVOID
 =
-get the $B then go to the $A all the while avoding $Cs
+get the $B then go to the $A all the while avoiding the $C
+before exiting through the $A, grab the $B! avoid the $C
+while avoiding the $C: collect the $B and get to the $A
+(in reverse order) get to the $A (avoid the $C) then get the $B (also avoid the $C)
+=
+(!$C)* > $B&!$C > (!$C)* > $A&!$C
+((.)* > $B > (.)* > $A) & (!$C)*
+=
 before exiting through the $A, grab the $B! avoid $Cs
-while avoiding $Cs: collect the $B and get to the $A
-(in reverse order) get to the $A (avoid $Cs) then get the $B (also avoid $Cs)
+
+0 @ {}, {'$C'}, {'$B'}, {}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}
+=
+$A % PLACE, $B % OBJECT, $C % OBJECT_A
+=
+get the $B then go to the $A all the while avoiding $Cs
+before exiting through the $A, grab the $B! don't approach $Cs
+while avoiding the $C: collect the $B and get to the $A
+(in reverse order) get to the $A (avoid the $Cs) then get the $B (also avoid $Cs)
 =
 (!$C)* > $B&!$C > (!$C)* > $A&!$C
 ((.)* > $B > (.)* > $A) & (!$C)*
@@ -1073,9 +1087,9 @@ before going to the $D, get the $B and the $C in any order, but beware not to hi
 =
 $A % AVOID, $B % NO_THE, $C % NO_THE, $D % PLACE
 =
-first get $B and $C (avoid $As), and then bring them both to the $D
-while avoiding $As, bring $B and $C to the $D
-first: get $B. second: get $C. third: carry them to the $D. but most most importantly never collide with $As
+first get $B and $C (avoid the $A), and then bring them both to the $D
+while avoiding the $A, bring $B and $C to the $D
+first: get $B. second: get $C. third: carry them to the $D. but most most importantly avoid the $A
 =
 ((.)* > $B > (.)* > $C > (.)* > $D | (.)* > $C > (.)* > $B > (.)* > $D) & (!$A)*
 ((((.)* > $B > (.)* > $C | (.)* > $C > (.)* > $B)) > (.)* > $D) & (!$A)*
@@ -1097,8 +1111,33 @@ first: get $B. second: get $C. third: carry them to the $D. but most most import
 =
 $A % AVOID, $B % AVOID, $C % PLACE, $D % PLACE, $E %PLACE
 =
-go to the $C, the $D, then the $E. finally, return to the $D. avoid the $As and $Bs
-Start from $C and find the $D. Then, find the $E. Finally, return to $D. Avoid $As and the $Bs
+go to the $C, the $D, then the $E. finally, return to the $D. avoid the $A and the $B
+Start from $C and find the $D. Then, find the $E. Finally, return to $D. Avoid the $A and the $B
+=
+(!$A&!$B)* > $C&!$A&!$B > (!$A&!$B)* > $D&!$A&!$B > (!$A&!$B)* > $E&!$A&!$B > (!$A&!$B)* > $D&!$A&!$B
+((.)* > $C > (.)* > $D > (.)* > $E > (.)* > $D) & (!$A & !$B)*
+((.)* > $C > (.)* > $D > (.)* > $E > (.)* > $D) & (!$A & !$B)+
+((.)* > $C > (.)* > $D > (.)* > $E > (.)* > $D) & ((.)* > ($A | $B) > (.)*)~
+=
+never fall in a $A and avoid the $B. visit the $C then $D then $E. return to $D
+
+0 @ {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {}, {}, {}, {'$D'}, {}, {'$E'}, {'$C'}, {}, {'$D'}, {}, {}, {}, {}, {}
+1 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'$C'}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {'$A'}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {'$B'}, {'$C'}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {'$A'}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+0 @ {}, {'$C'}, {'$D'}, {'$B'}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+1 @ {}, {'$C'}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
+=
+$A % OBJECT_A, $B % OBJECT_A, $C % PLACE, $D % PLACE, $E %PLACE
+=
+go to the $C, the $D, then the $E. finally, return to the $D. avoid $As and $Bs
+Start from $C and find the $D. Then, find the $E. Finally, return to $D. Avoid $As and $Bs
+Start from $C and find the $D. Then, find the $E. Finally, return to $D. Don't get near $As and $Bs
 =
 (!$A&!$B)* > $C&!$A&!$B > (!$A&!$B)* > $D&!$A&!$B > (!$A&!$B)* > $E&!$A&!$B > (!$A&!$B)* > $D&!$A&!$B
 ((.)* > $C > (.)* > $D > (.)* > $E > (.)* > $D) & (!$A & !$B)*
@@ -1563,6 +1602,22 @@ Pick up all the $As on the path
 2 @ {'$A'}, {'$A'}, {'$A'}, {'$B'}
 =
 $A % COLLECTABLE, $B % AVOID
+=
+Pick up all the $As on the path while avoiding the $B
+Collect the $As and avoid the $B
+Find the $As and avoid the $B
+Get the $As, and avoid the $B
+Get as many $As as possible (avoid the $B)
+=
+((.)* > $A){#N} & (!$B)*
+((.)* > $A){#N} & ((.)* > $B > (.)*)~
+((!$B)* > $A&!$B){#N}
+=
+Pick up all the $As on the path while avoiding $Bs
+
+2 @ {'$A'}, {'$A'}, {'$A'}, {'$B'}
+=
+$A % COLLECTABLE, $B % OBJECT_A
 =
 Pick up all the $As on the path while avoiding $Bs
 Collect the $As and avoid all $Bs

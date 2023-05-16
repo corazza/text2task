@@ -3,11 +3,6 @@ Fine-tuning the library models for causal language modeling (GPT, GPT-2, CTRL, .
 Here is the full list of checkpoints on the hub that can be fine-tuned by this script:
 https://huggingface.co/models?filter=text-generation
 """
-# You can also adapt this script on your own causal language modeling task. Pointers for this are left as comments.
-from torch.utils.tensorboard import SummaryWriter
-from transformers import TrainerCallback
-import IPython
-
 import logging
 import math
 import os
@@ -16,36 +11,29 @@ from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
 
-from transformers.optimization import Adafactor, AdafactorSchedule
-import datasets
 import evaluate
+import IPython
 import torch
-from datasets import load_dataset
-
 import transformers
-from transformers import (
-    CONFIG_MAPPING,
-    MODEL_FOR_CAUSAL_LM_MAPPING,
-    AutoConfig,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    HfArgumentParser,
-    Trainer,
-    TrainingArguments,
-    DataCollatorForSeq2Seq,
-    default_data_collator,
-    is_torch_tpu_available,
-    set_seed,
-)
+# You can also adapt this script on your own causal language modeling task. Pointers for this are left as comments.
+from torch.utils.tensorboard import SummaryWriter  # type: ignore
+from transformers import (CONFIG_MAPPING, MODEL_FOR_CAUSAL_LM_MAPPING,
+                          AutoConfig, AutoModelForCausalLM, AutoTokenizer,
+                          DataCollatorForSeq2Seq, HfArgumentParser, Trainer,
+                          TrainerCallback, TrainingArguments,
+                          default_data_collator, is_torch_tpu_available,
+                          set_seed)
+from transformers.optimization import Adafactor, AdafactorSchedule
 from transformers.testing_utils import CaptureLogger
-from transformers.trainer_utils import get_last_checkpoint
+from transformers.trainer_utils import EvalLoopOutput, get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 
-from training import *
-
 import consts
-
+import datasets
+from datasets import load_dataset
+from training import *
+from util import set_all_seeds
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.27.0.dev0")
@@ -61,13 +49,40 @@ class CustomTensorBoardCallback(TrainerCallback):
         self.writer = SummaryWriter(log_dir)
 
     def on_log(self, args, state, control, logs=None, **kwargs):
-        for k, v in logs.items():
+        for k, v in logs.items():  # type: ignore
             if isinstance(v, (int, float)):
                 self.writer.add_scalar(k, v, state.global_step)
 
 
+class CustomTrainer(Trainer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.step_counter = 0
+
+    def evaluation_loop(
+        self,
+        dataloader,
+        description: str,
+        prediction_loss_only: bool = False,
+        ignore_keys: Optional[list[str]] = None,
+        metric_key_prefix: str = "eval",
+    ):
+        self.step_counter += 1
+        if self.step_counter > consts.EVAL_STEPS_WARMUP and self.step_counter % consts.EVAL_STEPS_OVERWRITE != 0:
+            return EvalLoopOutput(predictions=[], label_ids=[],
+                                  metrics={}, num_samples=0)
+        return super().evaluation_loop(
+            dataloader,
+            description,
+            prediction_loss_only,
+            ignore_keys,
+            metric_key_prefix,
+        )
+
+
 def main():
     model_args, data_args, training_args = get_args()
+    set_all_seeds(training_args.seed)
 
     # Setup logging
     logging.basicConfig(
@@ -110,7 +125,7 @@ def main():
             )
 
     # Set seed before initializing model.
-    set_seed(training_args.seed)
+    # set_seed(training_args.seed)
 
     # Get the datasets: you can either provide your own CSV/JSON/TXT training and evaluation files (see below)
     # or just provide the name of one of the public datasets available on the hub at https://huggingface.co/datasets/
@@ -320,11 +335,28 @@ def main():
                           relative_step=False, warmup_init=False, lr=lr)
     lr_scheduler = AdafactorSchedule(optimizer, initial_lr=lr)
 
-    logging.get_verbosity = lambda: logging.NOTSET
+    logging.get_verbosity = lambda: logging.NOTSET  # type: ignore
 
     tensorboard_callback = CustomTensorBoardCallback(log_dir="runs")
 
-    # Initialize our Trainer
+    # training_args.eval_steps = 1
+    # trainer = CustomTrainer(
+    #     model=model,
+    #     args=training_args,
+    #     optimizers=(optimizer, lr_scheduler),  # type: ignore
+    #     train_dataset=train_dataset if training_args.do_train else None,  # type: ignore
+    #     eval_dataset=eval_dataset if training_args.do_eval else None,  # type: ignore
+    #     tokenizer=tokenizer,
+    #     # Data collator will default to DataCollatorWithPadding, so we change it.
+    #     data_collator=data_collator,
+    #     compute_metrics=compute_metrics if training_args.do_eval and not is_torch_tpu_available(  # type: ignore
+    #     ) else None,
+    #     preprocess_logits_for_metrics=preprocess_logits_for_metrics  # type: ignore
+    #     if training_args.do_eval and not is_torch_tpu_available()
+    #     else None,
+    #     callbacks=[tensorboard_callback],
+    # )
+
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -339,10 +371,11 @@ def main():
         preprocess_logits_for_metrics=preprocess_logits_for_metrics  # type: ignore
         if training_args.do_eval and not is_torch_tpu_available()
         else None,
-        callbacks=[tensorboard_callback]
+        callbacks=[tensorboard_callback],
     )
-
     # IPython.embed()  # type: ignore
+
+    trainer.evaluate()
 
     # Training
     if training_args.do_train:
@@ -379,7 +412,8 @@ def main():
             max_eval_samples, len(eval_dataset))  # type: ignore
         try:
             perplexity = math.exp(metrics["eval_loss"])
-        except OverflowError:
+        # except OverflowError:
+        except:
             perplexity = float("inf")
         metrics["perplexity"] = perplexity
 

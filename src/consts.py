@@ -1,4 +1,7 @@
 TRAIN_LR = 1e-3
+EVAL_STEPS_WARMUP = 20
+EVAL_STEPS_OVERWRITE = 10
+SEED = 42
 PAD_SIZE = 256
 
 SOURCES = [
@@ -7,31 +10,43 @@ SOURCES = [
     'organic_words',
 ]
 
-SENTENCE_CAP = 20
+SENTENCE_CAP = 10
 
 COMBINATIONS_CUTOFF = 100
 
 TAKE_DEMORGANS = 1
 TAKE_OTHERS = 50
-DEMORGANS_P = 0.3
+DEMORGANS_P = 0.001
 
-ADD_AVOIDANCE_P = 0.35
-ADD_CONCAT_P = 0.35
-ADD_DISJUNCT_P = 0.2
-ADD_CONJUNCT_P = 0.1
-ADD_P = 2
-PARAP_P = 0.99
-assert abs(ADD_AVOIDANCE_P + ADD_CONCAT_P +
-           ADD_DISJUNCT_P + ADD_CONJUNCT_P - 1) < 1e-9
+ADD_CONCAT_P = 4
+ADD_AVOIDANCE_P = 3
+ADD_CONCAT_AVOID_P = 3
+ADD_CONCAT_CONCAT_P = 3
+ADD_DISJUNCT_P = 2
+ADD_CONJUNCT_P = 1
+ADD_DISJUNCT_CONCAT_P = 1
+ADD_CONCAT_DISJUNCT_P = 1
+
+ADD_P = 15
+
+ADD_TOTAL = ADD_AVOIDANCE_P + ADD_CONCAT_P + ADD_CONCAT_AVOID_P + \
+    ADD_DISJUNCT_P + ADD_CONJUNCT_P + ADD_CONCAT_CONCAT_P + ADD_DISJUNCT_CONCAT_P + \
+    ADD_CONCAT_DISJUNCT_P
+
+# PARAP_P = 0.99
+# assert abs(ADD_AVOIDANCE_P + ADD_CONCAT_P + ADD_CONCAT_AVOID_P +
+#            ADD_DISJUNCT_P + ADD_CONJUNCT_P + ADD_CONCAT_CONCAT_P + ADD_DISJUNCT_CONCAT_P +
+#            ADD_CONCAT_DISJUNCT_P - 1) < 1e-9
 
 AUGMENT_PREFER_BEFORE = 0.4
-DESC_LENGTH_LIMIT = 50
+DESC_LENGTH_LIMIT = 100
 
 REWRITE_VALIDATION_EMPTY_PROB = 0.3
 
 AUGMENT_CHAR_LIST = ['P', 'Q', 'X', 'Y', 'Z', 'W']
 CANT_APPEAR_IN_BOTH = ['first', 'second', 'finally', ':', 'either']
-CANT_APPEAR_IN_SINGLE = ['.', ':']
+CANT_APPEAR_IN_SINGLE = ['.', ':', 'never',
+                         "don't", 'do not', 'allowed', 'whatever']
 
 POSNEG_VALIDATION = True
 VALIDATE_AUGMENTED = False
@@ -57,6 +72,24 @@ NUM_MAP = {
 DEFAULT_TERMS_PATH = 'datasets/txt2task/terms2.txt'
 DEFAULT_MAP_PATH = 'preprocessed_datasets/txt2task/map_test.txt'
 
-DEFAULT_AGENT = 'random'
-DEFAULT_STEPS = 100
-DEFAULT_EPISODES = 20
+DEFAULT_AGENT: str = 'qrm'
+DEFAULT_STEPS: int = int(1e+06)
+DEFAULT_Q_INIT: float = 0.2
+
+# DEFAULT_USE_MODEL_PATH: str = '/mnt/e/work_dirs/text2task_distilgpt2/'
+DEFAULT_USE_MODEL_PATH: str = '/mnt/e/work_dirs/text2task_gpt2/'
+
+MODEL_TEST_TEMPERATURE: float = 1.2
+MODEL_NUM_RETURN_SEQUENCES: int = 10
+SEMANTIC_SIMILARITY_NUM_CLUSTERS: int = 3
+SEMANTIC_SIMILARITY_MAX_LENGTH: int = 50
+SEMANTIC_SIMILARITY_NUM_SAMPLES: int = 500
+SEMANTIC_SIMILARITY_SAMPLES_REDUNDANCY: int = 10
+SEMANTIC_SIMILARITY_EMPTY_PROB: float = 0.7
+
+
+# go to the house. then, find a coin in the town
+# go to the town. then, find green cans in the forest. but avoid mines -> DIFFICULT
+
+# find a positive number of cans -> CURRENTLY CAN'T
+# find several cans -> CAN do

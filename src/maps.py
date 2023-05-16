@@ -6,13 +6,10 @@ import gym
 import IPython
 import numpy as np
 from gym import spaces
-from transformers import set_seed
 
 from consts import *
-from datasets_common import (create_if_doesnt_exist, get_all_terms_from_tag,
-                             load_terms)
+from datasets_common import get_all_terms_from_tag
 from maps import *
-from reward_machine import RewardMachine, RewardMachineRunner
 
 
 class FrozensetEncoder(json.JSONEncoder):
@@ -43,7 +40,13 @@ class Map():
 
     def get_new_spawn(self) -> tuple[int, int]:
         if self.spawn_type == 'random':
-            return (np.random.randint(self.size), np.random.randint(self.size))
+            new_loc: tuple[int, int] = (np.random.randint(self.size),
+                                        np.random.randint(self.size))
+            while 'wall' in self.content[new_loc[0]][new_loc[1]]:
+                new_loc = (np.random.randint(self.size),
+                           np.random.randint(self.size))
+            return new_loc
+
         elif self.spawn_type == 'location':
             return self.spawn_location
         else:
@@ -60,16 +63,6 @@ class Map():
             code = f.read()
             return Map.from_json(code)
 
-    @staticmethod
-    def pretty_row(row: list[frozenset[str]]) -> str:
-        return ' '.join([''.join([var[0] for var in vars]) for vars in row])
-
-    def pretty_rows(self) -> list[str]:
-        result: list[str] = []
-        for row in self.content:
-            result.append(Map.pretty_row(row))
-        return result
-
 
 def action_map(terms: dict[str, list[str]]) -> tuple[dict[str, int], dict[int, str]]:
     all_actions: list[str] = get_all_terms_from_tag(terms, 'ACTION')
@@ -79,13 +72,10 @@ def action_map(terms: dict[str, list[str]]) -> tuple[dict[str, int], dict[int, s
 
 
 class MapEnv(gym.Env):
-    def __init__(self, map: Map, reward_machine: RewardMachine):
+    def __init__(self, map: Map, src: str):
         super().__init__()
         self.map: Map = map
-        self.reward_machine: RewardMachine = reward_machine
-        self.runner: RewardMachineRunner = RewardMachineRunner(
-            self.reward_machine)
-        self.label_history: list[frozenset[str]] = []
+        self.src: str = src
         self.num_actions: int = len(
             get_all_terms_from_tag(self.map.terms, 'ACTION'))
         self.action_to_id: dict[str, int]
@@ -93,8 +83,8 @@ class MapEnv(gym.Env):
         self.action_to_id, self.id_to_action = action_map(map.terms)
 
         self.action_space = spaces.Discrete(self.num_actions)
-        self.observation_space = spaces.MultiDiscrete(
-            [self.map.size, self.map.size])
+        self.observation_space = spaces.Box(low=0, high=max(  # type: ignore
+            [self.map.size, self.map.size]), shape=(2,), dtype=np.uint8)  # type: ignore
 
         self.reset()
 
@@ -128,17 +118,37 @@ class MapEnv(gym.Env):
 
         self.label_history.append(labels)
 
-        reward = float(self.runner.transition(labels))
-        done = reward > 0.0
+        reward: int = 0
+        terminated: bool = False
+        truncated: bool = False
 
-        return self.state, reward, done, {}
+        return self.state, reward, terminated, truncated, {}
+
+    def get_events(self) -> frozenset[str]:
+        return self.label_history[-1]
 
     def reset(self):
         self.state: list[int] = list(self.map.get_new_spawn())
         assert 'wall' not in self.map.content[self.state[0]][self.state[1]]
-        self.runner = RewardMachineRunner(self.reward_machine)
         self.label_history: list[frozenset[str]] = []
         return self.state
 
+    def single_symbol(self, vars: frozenset[str]) -> str:
+        if 'wall' in vars:
+            return 'x'
+        for var in vars:
+            if var in self.src:
+                return var[0].upper()
+        return ' '
+
+    def pretty_row(self, row: list[frozenset[str]]) -> list[str]:
+        return ['.'] + [self.single_symbol(vars) for vars in row] + ['.']
+
     def render(self):
-        print(self.state)
+        pretty_rows: list[list[str]] = [
+            self.pretty_row(row) for row in self.map.content]
+        pretty_rows[self.state[0]][self.state[1]] = '@'
+        print(' '.join(['.']*(self.map.size+2)))
+        for row in pretty_rows:
+            print(' '.join(row))
+        print(' '.join(['.']*(self.map.size+2)))

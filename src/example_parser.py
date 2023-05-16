@@ -1,10 +1,11 @@
+import copy
 from functools import cmp_to_key
+from typing import Iterator, Optional, Tuple
+
 import IPython
 import more_itertools
-from typing import Iterator, Optional, Tuple
-from compiler_interface import compile
-import copy
 
+from compiler_interface import compile
 from parser_util import *
 
 # examples -> example
@@ -64,7 +65,7 @@ class Example:
         if self.id == '-1':
             return self.descs[0]
         else:
-            return str(self.id)
+            return self.id
 
 
 def parse_examples(lines: more_itertools.peekable) -> list[Example]:

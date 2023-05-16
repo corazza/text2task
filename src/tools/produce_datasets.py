@@ -3,7 +3,6 @@ from typing import Tuple
 
 import IPython
 import numpy as np
-from transformers import pipeline, set_seed
 
 from consts import *
 from datasets_common import *
@@ -64,12 +63,13 @@ def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool)
     organic_ab = examples_to_ab(examples)
     organic_ab = apply_cap(organic_ab, SENTENCE_CAP)
     print('applying organic rewrites...')
-    organic_rewrites = ab_rewrites(organic_ab, terms, True)
+    organic_rewrites = ab_rewrites(organic_ab, terms, to_cap=True)
     print(f'num_organic={len(organic_rewrites)}')
     statistics = ab_statistics(organic_ab)
 
     print('augmenting ab...')
     patterns = load_patterns('datasets/txt2task/augment_patterns.txt')
+    # weighted_examples: list[Example] = [x[0] for x in organic_rewrites]
     synthetic_ab = augmented_ab(patterns, examples, len(organic_rewrites))
 
     # print('paraphrasing synthetic...')
@@ -78,7 +78,8 @@ def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool)
     # synthetic_ab = synthetic_original + synthetic_paraphrased
 
     print('applying synthetic rewrites...')
-    synthetic_rewrites = ab_rewrites(synthetic_ab, terms, False)
+    synthetic_rewrites = ab_rewrites(synthetic_ab, terms, to_cap=False)
+
     print(f'num_synthetic={len(synthetic_rewrites)}')
 
     ab = organic_rewrites + synthetic_rewrites
@@ -113,9 +114,7 @@ def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool)
 
 
 def main():
-    set_seed(42)
-    np.random.seed(42)
-    random.seed(42)
+    set_all_seeds(SEED)
     load_from = [f'datasets/txt2task/use/{x}.txt' for x in SOURCES]
     produce_datasets('train', load_from, validate_raw=False)
 

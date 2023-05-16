@@ -157,9 +157,22 @@ You can do anything as long as you keep going $A
 =
 $A % DIRECTION, $B % AVOID
 =
+Always go $A, but avoid the $B
+You can do anything as long as you keep going $A and avoiding the $B
+(Keep going $A) do whatever but don't get near the $B
+=
+(($A)+) & (!$B)*
+(($A&!$B)+)
+=
+Always go $A, but avoid $Bs
+
+2 @ {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
+=
+$A % DIRECTION, $B % OBJECT_A
+=
 Always go $A, but avoid $Bs
 You can do anything as long as you keep going $A and avoiding $Bs
-(Keep going $A) do whatever but avoid $Bs
+(Keep going $A) do whatever but don't get near $Bs
 =
 (($A)+) & (!$B)*
 (($A&!$B)+)
