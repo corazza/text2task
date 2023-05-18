@@ -13,7 +13,7 @@
     "seed": 42,
     "report_to": "tensorboard",
     "evaluation_strategy": "steps",
-    "eval_steps": 10,
+    "eval_steps": 100,
     "logging_strategy": "steps",
     "logging_steps": 10,
     "weight_decay": 0.0001,

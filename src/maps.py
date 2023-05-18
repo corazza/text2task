@@ -4,8 +4,11 @@ from typing import Iterable
 
 import gym
 import IPython
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
 import numpy as np
 from gym import spaces
+from matplotlib.patches import Rectangle
 
 from consts import *
 from datasets_common import get_all_terms_from_tag
@@ -144,7 +147,43 @@ class MapEnv(gym.Env):
     def pretty_row(self, row: list[frozenset[str]]) -> list[str]:
         return ['.'] + [self.single_symbol(vars) for vars in row] + ['.']
 
-    def render(self):
+    def initialize_color_map(self) -> list[list[str]]:
+        raise NotImplementedError()
+
+    def initialize_text_map(self) -> list[list[str]]:
+        raise NotImplementedError()
+
+    def start_render(self):
+        """Initializes human-mode rendering"""
+        self.fig, self.ax = plt.subplots()
+        self.color_map: list[list[str]] = self.initialize_color_map()
+        self.text_map: list[list[str]] = self.initialize_text_map()
+        self.rects = [[patches.Rectangle([j, i], 1, 1, facecolor=self.color_map[i][j],
+                                         edgecolor='none', zorder=0) for j in range(self.map.size)] for i in range(self.map.size)]
+        self.texts = [[self.ax.text(j, i, self.text_map[i][j], ha='center', va='center', zorder=1)
+                       for j in range(self.map.size)] for i in range(self.map.size)]
+
+        for i in range(self.map.size):
+            for j in range(self.map.size):
+                self.ax.add_patch(self.rects[i][j])
+
+        self.ax.set_xlim(0, self.map.size)
+        self.ax.set_ylim(0, self.map.size)
+        self.ax.set_aspect('equal')
+
+        self.fig.canvas.mpl_connect('key_press_event', lambda event: plt.close(
+            self.fig) if event.key == 'escape' else None)
+
+    def render_human(self):
+        for i in range(self.map.size):
+            for j in range(self.map.size):
+                self.rects[i][j].set_facecolor(self.color_map[i][j])
+                self.texts[i][j].set_text(self.text_map[i][j])
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+        plt.pause(0.1)
+
+    def render_text(self):
         pretty_rows: list[list[str]] = [
             self.pretty_row(row) for row in self.map.content]
         pretty_rows[self.state[0]][self.state[1]] = '@'
@@ -152,3 +191,9 @@ class MapEnv(gym.Env):
         for row in pretty_rows:
             print(' '.join(row))
         print(' '.join(['.']*(self.map.size+2)))
+
+    def render(self, mode='human'):
+        if mode == 'human':
+            self.render_human()
+        elif mode == 'text':
+            self.render_text()

@@ -65,12 +65,11 @@ def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool)
     print('applying organic rewrites...')
     organic_rewrites = ab_rewrites(organic_ab, terms, to_cap=True)
     print(f'num_organic={len(organic_rewrites)}')
-    statistics = ab_statistics(organic_ab)
+    statistics = ab_statistics(organic_rewrites, only_example=True)
 
     print('augmenting ab...')
     patterns = load_patterns('datasets/txt2task/augment_patterns.txt')
-    # weighted_examples: list[Example] = [x[0] for x in organic_rewrites]
-    synthetic_ab = augmented_ab(patterns, examples, len(organic_rewrites))
+    synthetic_ab = augmented_ab(patterns, organic_rewrites)
 
     # print('paraphrasing synthetic...')
     # synthetic_original, synthetic_paraphrased = paraphrase_split(

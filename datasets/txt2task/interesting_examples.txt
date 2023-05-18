@@ -57,6 +57,9 @@ circle the building, office, and the house =>
 : find several cans
 ((.)* > can){#some}
 
+: find several bottles
+((.)* > can){#some}
+
 : find green cans
 ((.)* > green&can){#some}
 

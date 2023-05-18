@@ -33,21 +33,22 @@ def run(config: RunConfig, env):
     return learn(env=env, total_timesteps=config.step_limit)
 
 
-def demo(Q, env):
-    actions = list(range(env.action_space.n))
+def demo(Q, env: RMEnvWrapper):
+    env.start_render()
+    actions = list(range(env.action_space.n))  # type: ignore
 
     reward_total = 0
     step = 0
     num_episodes = 0
-    actions = list(range(env.action_space.n))
+    actions = list(range(env.action_space.n))  # type: ignore
 
     s = tuple(env.reset())
-    env.render()
+    env.render(mode='human')
     while True:
         a = rl_agents.qrm.get_best_action(Q, s, actions, DEFAULT_Q_INIT)
         sn, r, done, info = env.step(a)
         sn = tuple(sn)
-        env.render()
+        env.render(mode='human')
         reward_total += r
         step += 1
         if done:
@@ -61,7 +62,8 @@ def main():
     reward_machine: RewardMachine
     desc: str
     src: str
-    reward_machine, desc, src = query_loop(DEFAULT_USE_MODEL_PATH)
+    reward_machine, desc, src = query_loop(
+        DEFAULT_USE_MODEL_PATH, do_cluster=True)
     config: RunConfig = RunConfig(
         agent_name=DEFAULT_AGENT,
         map_path=DEFAULT_MAP_PATH,

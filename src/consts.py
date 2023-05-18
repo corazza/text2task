@@ -1,18 +1,16 @@
-TRAIN_LR = 1e-3
-EVAL_STEPS_WARMUP = 20
-EVAL_STEPS_OVERWRITE = 10
+# ========== COMMON ==============
 SEED = 42
-PAD_SIZE = 256
 
+# ========== DATA AGUMENTATION ==============
 SOURCES = [
     'organic1_loose',  # looser validation
     'organic1_nonloose',  # moved from 1/2 after loose checking
+    'organic_nonverified',
     'organic_words',
 ]
 
-SENTENCE_CAP = 10
-
 COMBINATIONS_CUTOFF = 100
+SENTENCE_CAP = 10
 
 TAKE_DEMORGANS = 1
 TAKE_OTHERS = 50
@@ -27,18 +25,12 @@ ADD_CONJUNCT_P = 1
 ADD_DISJUNCT_CONCAT_P = 1
 ADD_CONCAT_DISJUNCT_P = 1
 
-ADD_P = 15
+ADD_P = 20
 
 ADD_TOTAL = ADD_AVOIDANCE_P + ADD_CONCAT_P + ADD_CONCAT_AVOID_P + \
     ADD_DISJUNCT_P + ADD_CONJUNCT_P + ADD_CONCAT_CONCAT_P + ADD_DISJUNCT_CONCAT_P + \
     ADD_CONCAT_DISJUNCT_P
 
-# PARAP_P = 0.99
-# assert abs(ADD_AVOIDANCE_P + ADD_CONCAT_P + ADD_CONCAT_AVOID_P +
-#            ADD_DISJUNCT_P + ADD_CONJUNCT_P + ADD_CONCAT_CONCAT_P + ADD_DISJUNCT_CONCAT_P +
-#            ADD_CONCAT_DISJUNCT_P - 1) < 1e-9
-
-AUGMENT_PREFER_BEFORE = 0.4
 DESC_LENGTH_LIMIT = 100
 
 REWRITE_VALIDATION_EMPTY_PROB = 0.3
@@ -70,23 +62,34 @@ NUM_MAP = {
 }
 
 DEFAULT_TERMS_PATH = 'datasets/txt2task/terms2.txt'
-DEFAULT_MAP_PATH = 'preprocessed_datasets/txt2task/map_test.txt'
+PAD_SIZE = 256
 
-DEFAULT_AGENT: str = 'qrm'
-DEFAULT_STEPS: int = int(1e+06)
-DEFAULT_Q_INIT: float = 0.2
 
+# ========== TRANSFORMER ==============
+TRAIN_LR = 1e-3
+EVAL_STEPS_WARMUP = 20
+EVAL_STEPS_OVERWRITE = 10
+
+
+# ========== MODEL USAGE ==============
 # DEFAULT_USE_MODEL_PATH: str = '/mnt/e/work_dirs/text2task_distilgpt2/'
 DEFAULT_USE_MODEL_PATH: str = '/mnt/e/work_dirs/text2task_gpt2/'
-
 MODEL_TEST_TEMPERATURE: float = 1.2
-MODEL_NUM_RETURN_SEQUENCES: int = 10
+
+MODEL_NUM_RETURN_SEQUENCES: int = 50
 SEMANTIC_SIMILARITY_NUM_CLUSTERS: int = 3
 SEMANTIC_SIMILARITY_MAX_LENGTH: int = 50
 SEMANTIC_SIMILARITY_NUM_SAMPLES: int = 500
 SEMANTIC_SIMILARITY_SAMPLES_REDUNDANCY: int = 10
 SEMANTIC_SIMILARITY_EMPTY_PROB: float = 0.7
 
+# ========== REINFORCEMENT LEARNING ==============
+DEFAULT_MAP_PATH = 'preprocessed_datasets/txt2task/map_test.txt'
+DEFAULT_AGENT: str = 'qrm'
+DEFAULT_STEPS: int = int(1e+04)
+DEFAULT_Q_INIT: float = 0.2
+
+# =================
 
 # go to the house. then, find a coin in the town
 # go to the town. then, find green cans in the forest. but avoid mines -> DIFFICULT

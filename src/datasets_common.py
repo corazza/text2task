@@ -67,8 +67,22 @@ def has_without_dot(example: Example) -> bool:
     return False
 
 
-def get_eligible_pairs(examples: list[Example]) -> list[Tuple[int, int]]:
-    eligible_pairs: list[Tuple[int, int]] = []
+def get_eligible_single(examples: list[Example]) -> Iterator[Example]:
+    """Expects shuffled list."""
+    counter_i: int = 0
+    num_examples: int = len(examples)
+    while True:
+        example1: Example = examples[counter_i % num_examples]
+        counter_i += 1
+        # if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
+        #     continue
+        if not has_without_dot(example1):
+            continue
+        yield example1
+
+
+def get_eligible_pairs(examples: list[Example]) -> Iterator[tuple[Example, Example]]:
+    """Expects shuffled list."""
     for i, example1 in enumerate(examples):
         for j, example2 in enumerate(examples):
             if i >= j:
@@ -88,12 +102,13 @@ def get_eligible_pairs(examples: list[Example]) -> list[Tuple[int, int]]:
                     has_eligible2 = True
                     break
             if has_eligible1 and has_eligible2:
-                eligible_pairs.append((i, j))
-    return eligible_pairs
+                to_yield: list[Example] = [example1, example2]
+                np.random.shuffle(to_yield)  # type: ignore
+                yield (to_yield[0], to_yield[1])
 
 
-def get_eligible_triplets(examples: list[Example]) -> list[Tuple[int, int, int]]:
-    eligible_triplets: list[Tuple[int, int, int]] = []
+def get_eligible_triplets(examples: list[Example]) -> Iterator[tuple[Example, Example, Example]]:
+    """Expects shuffled list."""
     for i, example1 in enumerate(examples):
         for j, example2 in enumerate(examples):
             for k, example3 in enumerate(examples):
@@ -119,8 +134,9 @@ def get_eligible_triplets(examples: list[Example]) -> list[Tuple[int, int, int]]
                         has_eligible3 = True
                         break
                 if has_eligible1 and has_eligible2 and has_eligible3:
-                    eligible_triplets.append((i, j, k))
-    return eligible_triplets
+                    to_yield: list[Example] = [example1, example2, example3]
+                    np.random.shuffle(to_yield)  # type: ignore
+                    yield (to_yield[0], to_yield[1], to_yield[2])
 
 
 def load_patterns(path: str) -> dict[str, list[Example]]:
@@ -227,17 +243,13 @@ def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filte
     return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
 
 
-def augmented_ab2(patterns: dict[str, list[Example]], abs: list[tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+def augmented_ab(patterns: dict[str, list[Example]], abs: list[tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
     num_abs: int = len(abs)
     new_abs: list[Tuple[Example, str, str]] = []
-    np.random.shuffle(abs)  # type: ignore
-    eligible_pairs: list[Tuple[int, int]] = get_eligible_pairs(examples)
-    eligible_triplets: list[Tuple[int, int, int]
-                            ] = get_eligible_triplets(examples)
-    eligible_single: list[int] = list(range(len(examples)))
 
-    if len(eligible_pairs) < 1 or len(eligible_single) < 1:
-        return []
+    to_add_single: dict[str, int] = {
+        'avoid': round(ADD_AVOIDANCE_P / ADD_TOTAL * ADD_P * num_abs)
+    }
 
     to_add_pairs: dict[str, int] = {
         'concat': round(ADD_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
@@ -252,122 +264,45 @@ def augmented_ab2(patterns: dict[str, list[Example]], abs: list[tuple[Example, s
         'concat_disjunct': round(ADD_CONCAT_DISJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
     }
 
-    for pattern_id, pattern_num in to_add_pairs.items():
-        print(f'adding {pattern_id}... ({pattern_num})')
-        np.random.shuffle(eligible_pairs)
-        for counter in range(pattern_num):
-            pattern = random_from(patterns[pattern_id])
-            ij_pair = list(eligible_pairs[counter % len(eligible_pairs)])
-            np.random.shuffle(ij_pair)
-            i, j = ij_pair
-            example1 = examples[i]
-            example2 = examples[j]
-            example = apply_pattern(
-                pattern, [example1, example2], eligible_desc_in_pair, eligible_combination_in_pair)
-            new_abs.append(get_single_ab(example))
+    examples: list[Example] = [x[0] for x in abs]
 
-    for pattern_id, pattern_num in to_add_triplets.items():
-        print(f'adding {pattern_id}... ({pattern_num})')
-        np.random.shuffle(eligible_pairs)
-        for counter in range(pattern_num):
-            pattern = random_from(patterns[pattern_id])
-            ijk_triplet: list[int] = list(
-                eligible_triplets[counter % len(eligible_pairs)])
-            np.random.shuffle(ijk_triplet)
-            i, j, k = ijk_triplet
-            example1 = examples[i]
-            example2 = examples[j]
-            example3 = examples[k]
-            example = apply_pattern(
-                pattern, [example1, example2, example3], eligible_desc_in_pair, eligible_combination_in_pair)
-            new_abs.append(get_single_ab(example))
-
-    to_add_single: dict[str, int] = {
-        'avoid': round(ADD_AVOIDANCE_P / ADD_TOTAL * ADD_P * num_abs)
-    }
-
-    for pattern_id, pattern_num in to_add_single.items():
-        print(f'adding {pattern_id}... ({pattern_num})')
-        np.random.shuffle(eligible_single)
-        for counter in range(pattern_num):
-            pattern = random_from(patterns[pattern_id])
-            i = eligible_single[counter % len(eligible_single)]
-            example = examples[i]
-            new_example = apply_pattern(
-                pattern, [example], lambda x: True, lambda x, y: True)
-            new_abs.append(get_single_ab(new_example))
-
-    return new_abs
-
-
-def augmented_ab(patterns: dict[str, list[Example]], examples: list[Example], num_abs) -> list[Tuple[Example, str, str]]:
-    new_abs: list[Tuple[Example, str, str]] = []
     np.random.shuffle(examples)  # type: ignore
-    eligible_pairs: list[Tuple[int, int]] = get_eligible_pairs(examples)
-    eligible_triplets: list[Tuple[int, int, int]
-                            ] = get_eligible_triplets(examples)
-    eligible_single: list[int] = list(range(len(examples)))
+    eligible_single: Iterator[Example] = get_eligible_single(examples)
 
-    if len(eligible_pairs) < 1 or len(eligible_single) < 1:
-        return []
+    for pattern_id, pattern_num in to_add_single.items():
+        print(f'adding {pattern_id}... ({pattern_num})')
+        for counter in range(pattern_num):
+            pattern = random_from(patterns[pattern_id])
+            example = next(eligible_single)
+            new_example = apply_pattern(
+                pattern, [example], lambda x: True, lambda x, y: True)
+            new_abs.append(get_single_ab(new_example))
 
-    to_add_pairs: dict[str, int] = {
-        'concat': round(ADD_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
-        'disjunct': round(ADD_DISJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
-        'conjunct': round(ADD_CONJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
-        'concat_avoid': round(ADD_CONCAT_AVOID_P / ADD_TOTAL * ADD_P * num_abs),
-    }
-
-    to_add_triplets: dict[str, int] = {
-        'concat_concat': round(ADD_CONCAT_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
-        'disjunct_concat': round(ADD_DISJUNCT_CONCAT_P / ADD_TOTAL * ADD_P * num_abs),
-        'concat_disjunct': round(ADD_CONCAT_DISJUNCT_P / ADD_TOTAL * ADD_P * num_abs),
-    }
+    np.random.shuffle(examples)  # type: ignore
+    eligible_pairs: Iterator[Tuple[Example, Example]
+                             ] = get_eligible_pairs(examples)
 
     for pattern_id, pattern_num in to_add_pairs.items():
         print(f'adding {pattern_id}... ({pattern_num})')
-        np.random.shuffle(eligible_pairs)
         for counter in range(pattern_num):
             pattern = random_from(patterns[pattern_id])
-            ij_pair = list(eligible_pairs[counter % len(eligible_pairs)])
-            np.random.shuffle(ij_pair)
-            i, j = ij_pair
-            example1 = examples[i]
-            example2 = examples[j]
+            example1, example2 = next(eligible_pairs)
             example = apply_pattern(
                 pattern, [example1, example2], eligible_desc_in_pair, eligible_combination_in_pair)
             new_abs.append(get_single_ab(example))
 
+    np.random.shuffle(examples)  # type: ignore
+    eligible_triplets: Iterator[Tuple[Example, Example,
+                                      Example]] = get_eligible_triplets(examples)
+
     for pattern_id, pattern_num in to_add_triplets.items():
         print(f'adding {pattern_id}... ({pattern_num})')
-        np.random.shuffle(eligible_pairs)
         for counter in range(pattern_num):
             pattern = random_from(patterns[pattern_id])
-            ijk_triplet: list[int] = list(
-                eligible_triplets[counter % len(eligible_pairs)])
-            np.random.shuffle(ijk_triplet)
-            i, j, k = ijk_triplet
-            example1 = examples[i]
-            example2 = examples[j]
-            example3 = examples[k]
+            example1, example2, example3 = next(eligible_triplets)
             example = apply_pattern(
                 pattern, [example1, example2, example3], eligible_desc_in_pair, eligible_combination_in_pair)
             new_abs.append(get_single_ab(example))
-
-    to_add_single: dict[str, int] = {
-        'avoid': round(ADD_AVOIDANCE_P / ADD_TOTAL * ADD_P * num_abs)
-    }
-
-    for pattern_id, pattern_num in to_add_single.items():
-        print(f'adding {pattern_id}... ({pattern_num})')
-        np.random.shuffle(eligible_single)
-        for counter in range(pattern_num):
-            pattern = random_from(patterns[pattern_id])
-            i = eligible_single[counter % len(eligible_single)]
-            example = examples[i]
-            new_example = apply_pattern(
-                pattern, [example], lambda x: True, lambda x, y: True)
-            new_abs.append(get_single_ab(new_example))
 
     return new_abs
 
@@ -707,13 +642,16 @@ def examples_statistics(examples: list[Example]) -> list[dict[str, int | str]]:
     return [example_statistics(example) for example in examples]
 
 
-def ab_statistics(abs: list[Tuple[Example, str, str]]) -> dict[str, int]:
+def ab_statistics(abs: list[Tuple[Example, str, str]], only_example: bool = False) -> dict[str, int]:
     result = dict()
     synthetic = 0
     for e, desc, src in abs:
         if e.synthetic:
             synthetic += 1
-        representative = e.representative() + '|' + desc
+        if only_example:
+            representative = e.representative()
+        else:
+            representative = e.representative() + '|' + desc
         if representative not in result:
             result[representative] = 0
         result[representative] += 1

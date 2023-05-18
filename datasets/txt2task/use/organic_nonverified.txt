@@ -1,0 +1,38 @@
+0 @ {}, {}, {}
+1 @ {}, {'$B'}, {}, {'$A'}
+1 @ {}, {'$C'}, {}, {'$A'}
+1 @ {}, {'$B', '$C'}, {}, {'$A'}
+0 @ {'$A'}, {'$B', '$C'}, {}
+=
+$A % PLACE, $B % OBJECT_A, $C % OBJECT_A
+$A % AREA, $B % OBJECT_A, $C % OBJECT_A
+=
+Bring either a $B or a $C to the $A
+Bring a $B or a $C to the $A
+Go to the $A, but find $B or $C before that
+Find a $B or find a $C and then go to the $A
+Find a $B or a $C and bring them to the $A
+Take a $B and a $C to the $A
+=
+(.)* > ($B | $C) > (.)* > $A
+=
+Bring either a $B or a $C to the $A
+
+0 @ {}, {}, {}
+1 @ {}, {'$B'}, {}, {'$A'}
+1 @ {}, {'$C'}, {}, {'$A'}
+1 @ {}, {'$B', '$C'}, {}, {'$A'}
+0 @ {'$A'}, {'$B', '$C'}, {}
+=
+$A % PLACE, $B % OBJECT, $C % OBJECT
+$A % AREA, $B % OBJECT, $C % OBJECT
+=
+Bring the $B or the $C to the $A
+Go to the $A, but find the $B or the $C before that
+Find the $B or find the $C and then go to the $A
+Find the $B or the $C and bring them to the $A
+Take the $B and the $C to the $A
+=
+(.)* > ($B | $C) > (.)* > $A
+=
+Bring either a $B or a $C to the $A

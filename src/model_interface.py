@@ -18,25 +18,25 @@ def get_generator(model_path: str):
     return pipeline('text-generation', model=model_path)
 
 
-def answer_query_single(model_path: str) -> tuple[RewardMachine, str, str]:
+def answer_query_single(model_path: str, do_cluster: bool) -> tuple[RewardMachine, str, str]:
     generator = get_generator(model_path)
-    return answer_query(generator)
+    return answer_query(generator, do_cluster)
 
 
-def answer_query(generator) -> tuple[RewardMachine, str, str]:
+def answer_query(generator, do_cluster: bool) -> tuple[RewardMachine, str, str]:
     desc: str = input(': ')
     rm: RewardMachine
     src: str
-    rm, src = get_rm(generator, desc)
+    rm, src = get_rm(generator, desc, do_cluster)
     return rm, desc, src
 
 
-def query_loop(model_path: str) -> tuple[RewardMachine, str, str]:
+def query_loop(model_path: str, do_cluster: bool) -> tuple[RewardMachine, str, str]:
     generator = get_generator(model_path)
     print('Please input the task')
     reward_machine: RewardMachine
     src: str
-    reward_machine, desc, src = answer_query(generator)
+    reward_machine, desc, src = answer_query(generator, do_cluster)
     print(f'{src}')
     return reward_machine, desc, src
 
@@ -152,7 +152,7 @@ def cluster(outputs: list[tuple[RewardMachine, str]], distance_f) -> tuple[Rewar
     assert False, "typing, this shouldn't ever happen"
 
 
-def synthesize(generator, desc: str) -> str:
+def synthesize(generator, desc: str, do_cluster: bool) -> str:
     prompt = f'<|bos|>{desc}<|sep|>'
     print('calling model...')
     model_outputs = generator(prompt,
@@ -185,12 +185,15 @@ def synthesize(generator, desc: str) -> str:
     top_brass: list[tuple[RewardMachine, str]] = [
         (x[0], x[1]) for x in top_brass_with_score]
     # IPython.embed()
-    return cluster(top_brass, semantic_distance)[1]
+    if do_cluster:
+        return cluster(top_brass, semantic_distance)[1]
+    else:
+        return top_brass[0][1]
 
 
-def get_rm(generator, desc: str) -> Tuple[RewardMachine, str]:
+def get_rm(generator, desc: str, do_cluster: bool) -> Tuple[RewardMachine, str]:
     for i in range(10):
-        src = synthesize(generator, desc)
+        src = synthesize(generator, desc, do_cluster)
         ast = compiler_interface.parse(src)
         nfa, _ = compiler_interface.get_nfa(src)
         dfa, _ = compiler_interface.get_dfa(src)
