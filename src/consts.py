@@ -1,16 +1,21 @@
 # ========== COMMON ==============
-SEED = 42
+SEED: int = 42
 
 # ========== DATA AGUMENTATION ==============
-SOURCES = [
+SOURCES: list[str] = [
     'organic1_loose',  # looser validation
     'organic1_nonloose',  # moved from 1/2 after loose checking
     'organic_nonverified',
     'organic_words',
 ]
 
+SOURCES_SINGLE_LINE: list[str] = [
+    '1',
+]
+
+
 COMBINATIONS_CUTOFF = 100
-SENTENCE_CAP = 10
+SENTENCE_CAP = 3
 
 TAKE_DEMORGANS = 1
 TAKE_OTHERS = 50
@@ -18,6 +23,7 @@ DEMORGANS_P = 0.001
 
 ADD_CONCAT_P = 4
 ADD_AVOIDANCE_P = 3
+ADD_AVOIDANCE_BOTH_P = 1
 ADD_CONCAT_AVOID_P = 3
 ADD_CONCAT_CONCAT_P = 3
 ADD_DISJUNCT_P = 2
@@ -27,16 +33,14 @@ ADD_CONCAT_DISJUNCT_P = 1
 
 ADD_P = 20
 
-ADD_TOTAL = ADD_AVOIDANCE_P + ADD_CONCAT_P + ADD_CONCAT_AVOID_P + \
+ADD_TOTAL = ADD_AVOIDANCE_P + ADD_AVOIDANCE_BOTH_P + ADD_CONCAT_P + ADD_CONCAT_AVOID_P + \
     ADD_DISJUNCT_P + ADD_CONJUNCT_P + ADD_CONCAT_CONCAT_P + ADD_DISJUNCT_CONCAT_P + \
     ADD_CONCAT_DISJUNCT_P
-
-DESC_LENGTH_LIMIT = 100
 
 REWRITE_VALIDATION_EMPTY_PROB = 0.3
 
 AUGMENT_CHAR_LIST = ['P', 'Q', 'X', 'Y', 'Z', 'W']
-CANT_APPEAR_IN_BOTH = ['first', 'second', 'finally', ':', 'either']
+CANT_APPEAR_IN_BOTH = ['first', 'second', 'finally', ':', 'either', 'lastly']
 CANT_APPEAR_IN_SINGLE = ['.', ':', 'never',
                          "don't", 'do not', 'allowed', 'whatever']
 
@@ -66,7 +70,7 @@ PAD_SIZE = 256
 
 
 # ========== TRANSFORMER ==============
-TRAIN_LR = 1e-3
+TRAIN_LR = 0.5e-3
 EVAL_STEPS_WARMUP = 20
 EVAL_STEPS_OVERWRITE = 10
 
@@ -86,13 +90,28 @@ SEMANTIC_SIMILARITY_EMPTY_PROB: float = 0.7
 # ========== REINFORCEMENT LEARNING ==============
 DEFAULT_MAP_PATH = 'preprocessed_datasets/txt2task/map_test.txt'
 DEFAULT_AGENT: str = 'qrm'
-DEFAULT_STEPS: int = int(1e+04)
+DEFAULT_STEPS: int = int(1e+05)
+PER_EPISODE_STEPS: int = int(1e+03)
 DEFAULT_Q_INIT: float = 0.2
+
+N_DEMO_EPISODES: int = 10
+N_DEMO_MAX_STEPS: int = 1000
+SHOW_COMPLETION: bool = True
+
+NETURAL_COLOR = (0.5, 0.5, 0.5)
 
 # =================
 
 # go to the house. then, find a coin in the town
-# go to the town. then, find green cans in the forest. but avoid mines -> DIFFICULT
+# go to the town. then, find green cans in the forest. but avoid mines -> CAN, but no green
 
-# find a positive number of cans -> CURRENTLY CAN'T
-# find several cans -> CAN do
+# find zero cans -> CAN
+# find no cans -> CAN
+# don't find cans -> CAN
+# find a positive number of cans -> CAN
+# find several cans -> CAN
+
+# find a garden in the town, but avoid traps 5
+# patrol the hospital and the building three times 6
+
+# go to the store, but avoid mines and traps. then, find a coin in the town

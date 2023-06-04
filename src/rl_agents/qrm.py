@@ -7,7 +7,7 @@ import time
 
 import IPython
 
-import baselines_logger as logger
+# import baselines_logger as logger
 from consts import *
 
 # from baselines import logger
@@ -26,7 +26,9 @@ def get_best_action(Q, s, actions, q_init):
 
 
 def learn(env,
+          displayer=None,
           network=None,
+          add_message: str = '',
           lr=0.1,
           total_timesteps=DEFAULT_STEPS,
           epsilon=0.1,
@@ -93,11 +95,18 @@ def learn(env,
             reward_total += r
             step += 1
             if step % print_freq == 0:
-                logger.record_tabular("steps", step)
-                logger.record_tabular("episodes", num_episodes)
-                logger.record_tabular(
-                    "reward per step", reward_total / print_freq)
-                logger.dump_tabular()
+                logs: list[tuple[str, str]] = []
+                message: str = 'Training for:\n\n"' + add_message + '"\n\n'
+                logs.append(
+                    ("Steps", f'{step}/{total_timesteps} ({(step/total_timesteps)*100:.2f}%)'))
+                logs.append(("Episodes", f'{num_episodes}'))
+                logs.append(
+                    ("Reward per step", f'{reward_total / print_freq:.5f}'))
+                for log in logs:
+                    # logger.record_tabular(log[0], log[1])
+                    message = message + f'\n{log[0]}: {log[1]}'
+                # logger.dump_tabular()
+                displayer.display_message(message)  # type: ignore
                 reward_total = 0
             if done:
                 num_episodes += 1

@@ -27,6 +27,12 @@ from parser_util import *
 # srcs -> src srcs
 
 
+def clean_desc(d: str) -> str:
+    if d[-1] == '.':
+        return d[:-1]
+    return d
+
+
 class Example:
     def __init__(self, synthetic: bool, example_rewrites: list[list[Tuple[str, str]]], runs: list[Tuple[int, list[frozenset[str]]]], descs: list[str], srcs: list[str], id: str):
         self.synthetic = synthetic
@@ -35,6 +41,12 @@ class Example:
         self.runs = runs
         self.example_rewrites: list[list[Tuple[str, str]]] = example_rewrites
         self.id: str = id
+        self.hard_cap_one: bool = False
+
+        self._clean_descs()
+
+    def _clean_descs(self):
+        self.descs = [clean_desc(x) for x in self.descs]
 
     def average_desc_length(self):
         return float(sum([len(desc) for desc in self.descs])) / len(self.descs)
@@ -68,6 +80,16 @@ class Example:
             return self.id
 
 
+def parse_single_line_examples(lines: more_itertools.peekable) -> list[Example]:
+    examples = [parse_single_line_example(lines)]
+    while True:
+        try:
+            rest = parse_single_line_example(lines)
+            examples.append(rest)
+        except StopIteration:
+            return examples
+
+
 def parse_examples(lines: more_itertools.peekable) -> list[Example]:
     examples = [parse_example(lines)]
     while True:
@@ -97,6 +119,23 @@ def parse_example(lines: more_itertools.peekable) -> Example:
     else:
         id = '-1'
     parse_the_separator(lines, '')
+    ex = Example(False, example_rewrites, runs, descs, srcs, id)
+    ex.hard_cap_one = True
+    return ex
+
+
+def parse_single_line_example(lines: more_itertools.peekable) -> Example:
+    line: str = next(lines)
+    while line == '':
+        line = next(lines)
+    print(line)
+    rew_str, desc, src = line.split('=>')
+    example_rewrites: list[list[tuple[str, str]]] = [
+        line_to_rewrite(rew_str.strip())]
+    descs: list[str] = [desc.strip()]
+    srcs: list[str] = [src.strip()]
+    id: str = '-1'
+    runs: list = []
     return Example(False, example_rewrites, runs, descs, srcs, id)
 
 

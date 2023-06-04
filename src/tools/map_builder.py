@@ -35,6 +35,15 @@ class MapBuilder():
     def remove(self, var: str, i: int, j: int):
         self.content[i][j].remove(var)
 
+    def clear_nonarea(self, i: int, j: int):
+        all_areas = get_all_terms_from_tag(self.terms, 'AREA')
+        to_remove: set[str] = set()
+        for var in self.content[i][j]:
+            if var not in all_areas:
+                to_remove.add(var)
+        for var in to_remove:
+            self.remove(var, i, j)
+
     def add_area(self, var: str, ij: tuple[int, int], hw: tuple[int, int]):
         i, j = ij
         for h in range(hw[0]):
@@ -100,6 +109,7 @@ class MapBuilder():
                     i += k
                 else:
                     i -= k
+            self.clear_nonarea(i, j)
             self.add('wall', i, j)
 
     def build(self) -> Map:
@@ -147,11 +157,11 @@ class VarPicker():
 
 def example_map_1() -> Map:
     config: MapConfig = MapConfig(
-        size=20,
-        p_object=0.1,
+        size=10,
+        p_object=0.3,
         p_color_object=0.2,
-        p_place=0.05,
-        p_color=0.025,
+        p_place=0.3,
+        p_color=0.01,
     )
     terms: dict[str, list[str]] = load_terms(DEFAULT_TERMS_PATH)
 
@@ -194,9 +204,9 @@ def example_map_1() -> Map:
                 map.add(to_add, i, j)
 
     map.add_wall((int(config.size/2), int(config.size/4)),
-                 (0, int(config.size/2)))
+                 (0, int(config.size/2)+1))
     map.add_wall((int(config.size/4), int(config.size/2)),
-                 (int(config.size/2), 0))
+                 (int(config.size/2)+1, 0))
 
     return map.build()
 

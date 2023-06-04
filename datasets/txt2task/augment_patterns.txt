@@ -3,7 +3,7 @@
 =
 DESC0. Then DESC1. Then DESC2
 DESC0. Then DESC1. Finally DESC2
-DESC0. After that DESC1. Finally DESC2
+DESC0. After that DESC1. Then DESC2
 DESC0. After that: DESC1. Finally: DESC2
 First DESC0. Second DESC1. Third DESC2
 =
@@ -76,6 +76,28 @@ conjunct
 
 0 @ {}, {}
 =
+$Z % OBJECT, $Y % OBJECT
+=
+Avoid $Zs and $Ys. DESC0
+Avoid $Zs. Also avoid $Ys. DESC0
+Avoid $Zs. DESC0. Also avoid $Ys
+Avoid $Zs. DESC0. And avoid $Ys
+Avoid $Zs or $Ys. DESC0
+DESC0. Avoid $Zs and $Ys
+DESC0, and avoid $Zs and $Ys
+DESC0. Don't get near $Zs and $Ys
+Avoid $Ys. DESC0. Don't get near $Zs
+=
+(SRC0) & (!$Z&!$Y)*
+(SRC0) & ((.)* > ($Z | $Y) > (.)*)~
+(SRC0) & (!$Z)* & (!$Y)*
+(SRC0) & ((.)* > ($Z | $Y) > (.)*)~
+(SRC0) & ((.)* > ($Z) > (.)*)~ & ((.)* > ($Y) > (.)*)~
+=
+avoid_both
+
+0 @ {}, {}
+=
 $Z % NO_THE
 =
 Avoid $Z. DESC0
@@ -106,7 +128,7 @@ avoid
 
 0 @ {}, {}
 =
-$Z % OBJECT_A
+$Z % OBJECT
 =
 Avoid $Zs. DESC0
 Do the following task, but avoid $Zs: DESC0
@@ -193,7 +215,7 @@ concat_avoid
 
 0 @ {}, {}
 =
-$Z % OBJECT_A
+$Z % OBJECT
 =
 Avoid $Zs. DESC0, then DESC1
 DESC0. Then, DESC1. Avoid $Zs

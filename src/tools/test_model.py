@@ -12,8 +12,7 @@ def test_model():
         rm: RewardMachine
         desc: str
         src: str
-        rm, desc, src = model_interface.answer_query(generator, True)
-        print(src)
+        rm, desc, src = model_interface.answer_query(generator, True, print)
         IPython.embed()
 
 

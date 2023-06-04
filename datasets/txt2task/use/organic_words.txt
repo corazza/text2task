@@ -175,7 +175,7 @@ Find the $A, collect it, then bring it to the $B
 1 @ {}, {'$A'}, {'$A', 'collect'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
 0 @ {}, {'$B'}, {}, {'$B'}, {'$B'}, {}, {}, {}, {}, {}, {}, {}, {}, {'$B'}, {}
 =
-$A % COLLECTABLE, $B % PLACE
+$A % OBJECT_A, $B % PLACE
 =
 Find a $A, collect it, then bring it to the $B
 Collect a $A. Bring it to the $B

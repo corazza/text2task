@@ -1,4 +1,5 @@
 import gym
+import IPython
 import numpy as np
 from gym import spaces
 
@@ -42,7 +43,6 @@ class RMEnvWrapper(gym.Wrapper):
         next_obs, original_reward, env_terminated, env_truncated, info = self.env.step(
             action)
         env_done: bool = env_terminated or env_truncated
-        assert not env_done  # this is specific to my project
 
         true_props: frozenset[str] = self.env.get_events()  # type: ignore
         self.crm_params = self.obs, action, next_obs, env_done, true_props

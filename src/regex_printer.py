@@ -48,6 +48,8 @@ def child_to_str(op: str, parent: RENode, child: RENode) -> str:
 
 def expr_to_str(expr: RENode) -> str:
     if isinstance(expr, RENodeMul):
+        if len(expr.exprs) == 0:
+            IPython.embed()
         sep = '' if isinstance(expr, And) else ' '
         return children_to_str(sep + expr.con + sep, expr, expr.exprs)
     elif isinstance(expr, RENodeSing):

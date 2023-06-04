@@ -1,4 +1,5 @@
 import IPython
+import language_tool_python
 
 import compiler_interface
 from regex_printer import expr_to_str
@@ -22,6 +23,11 @@ def test_rewrites_equivalence(src: str, n_rewrites: int):
             print(f'failed: {src_b}')
             for evidence in ineq_evidence:
                 print(evidence)
+
+
+def correct_grammar(sentence: str) -> str:
+    tool = language_tool_python.LanguageTool('en-US')
+    return tool.correct(sentence)
 
 
 def test_compiler():
@@ -89,7 +95,7 @@ def test_compiler():
     # In [5]: rm({}, {'equipment'}, {}, {'wall'}, {}, {'mail'}, {}, {'door'})
     # Out[5]: [0, 0, 0, 0, 0, 0, 0, 1]
 
-    src = '(.)* > office > (.)* > mail'
+    src = '($A&(!$B)){##N}'
 
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)

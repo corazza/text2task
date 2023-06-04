@@ -18,25 +18,25 @@ def get_generator(model_path: str):
     return pipeline('text-generation', model=model_path)
 
 
-def answer_query_single(model_path: str, do_cluster: bool) -> tuple[RewardMachine, str, str]:
+def answer_query_single(model_path: str, do_cluster: bool, displayer) -> tuple[RewardMachine, str, str]:
     generator = get_generator(model_path)
-    return answer_query(generator, do_cluster)
+    return answer_query(generator, do_cluster, displayer)
 
 
-def answer_query(generator, do_cluster: bool) -> tuple[RewardMachine, str, str]:
+def answer_query(generator, do_cluster: bool, displayer) -> tuple[RewardMachine, str, str]:
     desc: str = input(': ')
     rm: RewardMachine
     src: str
-    rm, src = get_rm(generator, desc, do_cluster)
+    rm, src = get_rm(generator, desc, do_cluster, displayer)
     return rm, desc, src
 
 
-def query_loop(model_path: str, do_cluster: bool) -> tuple[RewardMachine, str, str]:
+def query_loop(model_path: str, do_cluster: bool, displayer) -> tuple[RewardMachine, str, str]:
     generator = get_generator(model_path)
     print('Please input the task')
     reward_machine: RewardMachine
     src: str
-    reward_machine, desc, src = answer_query(generator, do_cluster)
+    reward_machine, desc, src = answer_query(generator, do_cluster, displayer)
     print(f'{src}')
     return reward_machine, desc, src
 
@@ -87,14 +87,14 @@ def score_trace(rms: list[RewardMachine], trace: list[frozenset[str]]) -> float:
     return abs(0.5 - float(num_pos)/float(len(rms)))
 
 
-def get_traces(rms: list[RewardMachine]) -> list[list[frozenset[str]]]:
-    print('getting traces for semantic clustering...')
+def get_traces(rms: list[RewardMachine], displayer) -> list[list[frozenset[str]]]:
+    displayer('[SEMANTIC CLUSTERING]\ngetting traces...')
     appears: frozenset[str] = get_appears(rms)
     traces: list[list[frozenset[str]]] = []
     for i in range(SEMANTIC_SIMILARITY_SAMPLES_REDUNDANCY*SEMANTIC_SIMILARITY_NUM_SAMPLES):
         trace: list[frozenset[str]] = generate_trace(appears)
         traces.append(trace)
-    print('scoring traces...')
+    displayer('[SEMANTIC CLUSTERING]\nscoring traces...')
     scored_traces: list[tuple[list[frozenset[str]], float]] = [
         (trace, score_trace(rms, trace)) for trace in traces]
     sorted_traces: list[tuple[list[frozenset[str]], float]] = sorted(
@@ -125,18 +125,18 @@ def get_appears(outputs: list[RewardMachine]) -> frozenset[str]:
     return frozenset(result)
 
 
-def cluster(outputs: list[tuple[RewardMachine, str]], distance_f) -> tuple[RewardMachine, str]:
+def cluster(outputs: list[tuple[RewardMachine, str]], distance_f, displayer) -> tuple[RewardMachine, str]:
     if len(outputs) == 1:
         return outputs[0]
     rms: list[RewardMachine] = [o[0] for o in outputs]
-    traces = get_traces(rms)
+    traces = get_traces(rms, displayer)
     dist_matrix = np.zeros((len(outputs), len(outputs)))
-    print('computing distance matrix...')
+    displayer('[SEMANTIC CLUSTERING]\ncomputing distance matrix...')
     for i in range(len(outputs)):
         for j in range(i+1, len(outputs)):
             dist_matrix[i, j] = distance_f(traces, outputs[i], outputs[j])
             dist_matrix[j, i] = dist_matrix[i, j]
-    print('clustering...')
+    displayer('[SEMANTIC CLUSTERING]\nclustering...')
     num_clusters: int = min(SEMANTIC_SIMILARITY_NUM_CLUSTERS, len(outputs))
     cluster_model = AgglomerativeClustering(
         n_clusters=num_clusters, affinity='precomputed', linkage='average')
@@ -152,9 +152,9 @@ def cluster(outputs: list[tuple[RewardMachine, str]], distance_f) -> tuple[Rewar
     assert False, "typing, this shouldn't ever happen"
 
 
-def synthesize(generator, desc: str, do_cluster: bool) -> str:
+def synthesize(generator, desc: str, do_cluster: bool, displayer) -> str:
     prompt = f'<|bos|>{desc}<|sep|>'
-    print('calling model...')
+    displayer('[MODEL]\ncalling model...')
     model_outputs = generator(prompt,
                               max_new_tokens=300,
                               bos_token_id=generator.tokenizer.sep_token_id,
@@ -186,14 +186,15 @@ def synthesize(generator, desc: str, do_cluster: bool) -> str:
         (x[0], x[1]) for x in top_brass_with_score]
     # IPython.embed()
     if do_cluster:
-        return cluster(top_brass, semantic_distance)[1]
+        return cluster(top_brass, semantic_distance, displayer)[1]
     else:
         return top_brass[0][1]
 
 
-def get_rm(generator, desc: str, do_cluster: bool) -> Tuple[RewardMachine, str]:
+def get_rm(generator, desc: str, do_cluster: bool, displayer) -> Tuple[RewardMachine, str]:
     for i in range(10):
-        src = synthesize(generator, desc, do_cluster)
+        src = synthesize(generator, desc, do_cluster, displayer)
+        displayer(f'[MODEL]\n{src}')
         ast = compiler_interface.parse(src)
         nfa, _ = compiler_interface.get_nfa(src)
         dfa, _ = compiler_interface.get_dfa(src)

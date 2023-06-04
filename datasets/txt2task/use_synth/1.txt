@@ -1,0 +1,122 @@
+$B % DIRECTION, $A % OBJECT => First, find the $A then go $B => (.)* > $A > $B
+$A % OBJECT, $B % AREA => Find all the $As in the $B => (.)* > (($B)* > $A&$B){##N}
+$B % PLACE, $A % PLACE => Start at the $A, then proceed to the $B => (.)* > $A > (.)* > $B
+$C % PLACE, $B % DIRECTION, $A % DIRECTION => Go $A, then go $B, alternate them, and finally reach the $C => ($A > $B)* > $C
+$C % PLACE, $B % OBJECT, $A % OBJECT => Collect either the $A or the $B, then go to the $C => (.)* > ($A | $B) > (.)* > $C
+$A % OBJECT, $B % PLACE => Pick up the $A and take it to the $B => (.)* > $A > (.)* > $B
+$B % DIRECTION, $A % PLACE => Go to the $A and then go $B => (.)* > $A > ($B)+
+$C % PLACE, $B % DIRECTION, $A % DIRECTION => Travel $A then $B to reach the $C => ($A > $B)* > $C
+$A % PLACE, $B % PLACE => Move from the $A to the $B => (.)* > $A > (.)* > $B
+$C % PLACE, $B % OBJECT, $A % OBJECT => Collect either $A or $B then proceed to $C => ((.)* > ($A | $B)) > (.)* > $C
+
+$A % DIRECTION => Go $A five times in a row => $A > $A > $A > $A > $A
+$C % PLACE, $B % OBJECT, $A % OBJECT => Secure $A and $B then proceed to $C. Respect any order => ((.)* > $A > (.)* > $B | (.)* > $B > (.)* > $A) > (.)* > $C
+$C % OBJECT, $B % PLACE, $A % PLACE => Pick up a $C from $A and then proceed to $B => (.)* > $A > $C > (.)* > $B
+$B % DIRECTION, $A % OBJECT => Find the $A, then go $B => (.)* > $A > ($B)+
+$B % OBJECT, $A % PLACE => Go to $A and secure all $Bs => (.)* > $A > ((.)* > $B){##N}
+$B % PLACE, $A % DIRECTION => Start from $B and then go $A => (.)* > $B > ($A)+
+$C % PLACE, $B % PLACE, $A % OBJECT => Go to the $A at $B and then proceed to $C => (.)* > $B&$A > (.)* > $C
+$B % OBJECT, $A % PLACE => From any location, find the $B and take it to the $A => (.)* > $B > (.)* > $A
+$C % DIRECTION, $B % DIRECTION, $A % DIRECTION => Proceed $A, then $B, finally $C in sequence => $A > $B > $C
+
+$B % OBJECT, $A % PLACE => Find the $B at the $A => (.)* > $B&$A
+$C % DIRECTION, $B % OBJECT, $A % PLACE => Carry $B in the $C direction until you reach $A => (.)* > $B&collect > ($C)* > $A
+$D % OBJECT, $C % OBJECT, $B % PLACE, $A % PLACE => Move from $A to $B while avoiding $C and collecting $D => (.)* > $A > (!$C)* > $D&collect > (!$C)* > $B
+$B % AREA, $A % OBJECT => Find the $A, then stay inside the $B => (.)* > $A > ($B)+
+$C % PLACE, $B % OBJECT, $A % DIRECTION => Start from the $C, then go in the $A direction while collecting $B => (.)* > $C > (($A)* > $B)+
+$C % DIRECTION, $B % OBJECT, $A % OBJECT => Find $A and then move in the direction $C, then get $B => (.)* > $A > $C > (.)* > $B
+$D % OBJECT, $C % PLACE, $B % PLACE, $A % PLACE => Start at $A, find $D, then go to $B, and finally to $C => (.)* > $A > (.)* > $D > (.)* > $B > (.)* > $C
+$C % OBJECT, $B % DIRECTION, $A % PLACE => Starting at the $A, go $B while avoiding $C => (.)* > $A > ($B&!$C)*
+$D % DIRECTION, $C % OBJECT, $B % PLACE, $A % PLACE => Move $C from $A to $B, then keep going in the $D direction => (.)* > $C > (.)* > $A > (.)* > $B > ($D)*
+$C % PLACE, $B % OBJECT, $A % OBJECT => Get $A or $B, and then go to $C => (.)* > ($A | $B) > (.)* > $C
+
+$A % OBJECT, $B % PLACE => Retrieve all $As from the $B => ((.)* > $A&$B){#N}
+$A % AREA, $B % OBJECT_PLURAL => In the $A, find and collect $B => (.)* > $A&$B&collect
+$B % OBJECT, $A % DIRECTION => Go $A until you find a $B => ($A)* > $B
+$C % PLACE, $B % OBJECT, $A % OBJECT => Retrieve the $A, then the $B and finally go to $C => (.)* > $A > (.)* > $B > (.)* > $C
+$A % PLACE => Go to the $A and stay there => (.)* > $A > ($A)*
+$C % COLOR, $B % COLOR, $A % OBJECT_PLURAL => Collect as many $As of color $B or $C => ((.)* > $A&($B|$C)){#N}
+$B % PLACE, $A % OBJECT => Do anything, but end in the $B with the $A => (.)* > $A > (.)* > $B
+$B % DIRECTION, $A % DIRECTION => Alternate between going $A and $B => ($A > $B)+
+$A % PLACE => Avoid $A at all costs => (!$A)*
+$B % PLACE, $A % OBJECT => Fetch the $A then head to the $B, but never return to the $B after leaving => (.)* > $A > (.)* > $B > (!$B)*
+
+$A % OBJECT, $B % PLACE => Locate the $A in the $B => (.)* > ($A&$B)
+$A % PLACE, $B % OBJECT => Pick up the $B and deliver it to the $A => (.)* > $B&collect > (.)* > $A&drop
+$A % DIRECTION, $B % OBJECT => Move in the $A direction without colliding with any $B => (($A)&(!$B))+
+$A % PLACE, $B % PLACE => Transition between $A and $B indefinitely => (.)* > (($A > (.)* > $B) | ($B > (.)* > $A))+
+$A % AREA, $B % AREA => Transition between $A and $B indefinitely => (.)* > (($A > (.)* > $B) | ($B > (.)* > $A))+
+$A % DIRECTION, $B % DIRECTION => Switch between moving $A and $B => (($A > $B)|($B > $A))+
+$A % PLACE => Visit $A three times => (!$A)* > $A > (!$A)+ > $A > (!$A)+ > $A
+$A % PLACE, $B % OBJECT => Find the $B but avoid entering the $A => (!$A)* > $B&!$A > (!$A)*
+$A % DIRECTION => Make two consecutive moves in the $A direction => $A > $A
+$A % OBJECT, $B % PLACE => Retrieve $A from the $B => (.)* > $B&$A
+$A % PLACE => Perform any task, but end at the $A => (.)* > $A
+
+$B % OBJECT, $A % PLACE => From your starting location, get the $B and proceed to $A => (.)* > $B > (.)* > $A
+$D % DIRECTION, $C % DIRECTION, $B % PLACE, $A % PLACE => Move from $A to $B alternating between $C and $D directions => ($C > $D)* > $B & (.)* > $A
+$C % OBJECT, $B % OBJECT, $A % PLACE => Pick up $B then $C and deliver them to $A => ((.)* > $B > (.)* > $C) > (.)* > $A
+$C % AREA, $B % PLACE, $A % PLACE => Start at the $A, visit the $B and return to the $C without revisiting the $A => (.)* > $A > (.)* > $B > (!$A)* > $C
+$C % OBJECT, $B % AREA, $A % PLACE => Gather the $C from $B and then go to $A => ((.)* > $B&$C) > (.)* > $A
+$B % DIRECTION, $A % PLACE => Keep going in the $B direction until you reach the $A => ($B)* > $A
+$B % OBJECT, $A % PLACE => Locate the $A and then retrieve the $B => (.)* > $A > (.)* > $B
+$C % OBJECT, $B % OBJECT, $A % PLACE => Find either $B or $C, then head to the $A => (.)* > ($B | $C) > (.)* > $A
+$D % DIRECTION, $C % DIRECTION, $B % DIRECTION, $A % DIRECTION => Go in the sequence of $A, $B, $C, and $D directions => $A > $B > $C > $D
+
+$B % OBJECT, $A % DIRECTION => Move $A without touching the $B => ($A&!$B)+
+$C % PLACE, $B % AREA, $A % OBJECT => Gather $A from $B then go to $C => (.)* > $A&$B > (.)* > $C
+$C % COLOR, $B % OBJECT_A, $A % AREA => Find a $B in the $A that is $C => (.)* > $A&$B&$C
+$B % PLACE, $A % PLACE => Go to $A then $B, back and forth #N => ($A > $B){#N}
+$C % OBJECT, $B % AREA, $A % DIRECTION => Go $A, pick $C from $B => ($A)* > $B&$C
+$C % PLACE, $B % COLOR, $A % OBJECT_PLURAL => Collect all $B $As and deliver to the $C => (.)* > ($A&$B){#N} > (.)* > $C
+$B % DIRECTION, $A % PLACE => Keep going $B until you reach $A => ($B)+ > $A
+$C % PLACE, $B % PLACE, $A % PLACE => Visit $A, $B, $C in any order => (.)* > $A > (.)* > $B > (.)* > $C | (.)* > $A > (.)* > $C > (.)* > $B | (.)* > $B > (.)* > $A > (.)* > $C | (.)* > $B > (.)* > $C > (.)* > $A | (.)* > $C > (.)* > $A > (.)* > $B | (.)* > $C > (.)* > $B > (.)* > $A
+$B % OBJECT, $A % AREA => Avoid $Bs while in $A => ($A&!$B)*
+$C % OBJECT, $B % DIRECTION, $A % PLACE => Go $B until you find $C and then head to the $A => (($B)* > $C > (.)* > $A)
+
+$C % OBJECT, $B % AREA, $A % DIRECTION => Gather all the $Cs in the $B by going $A => ((.)* > $A > $C&$B){#N}
+$A % PLACE, $B % PLACE, $C % OBJECT_SINGULAR => Go from the $A to the $B while avoiding $C => (.)* > $A > (!$C)* > $B
+$A % OBJECT, $B % AREA, $C % PLACE => Collect the $A from the $B and go to the $C => (.)* > $A&$B > (.)* > $C
+$C % OBJECT, $B % OBJECT, $A % PLACE => Obtain $C then $B in the $A => (.)* > $C&$A > (.)* > $B&$A
+$B % OBJECT, $A % PLACE => Find $B in the $A then leave the $A => (.)* > $B&$A > (.)* > (!$A)+
+$C % PLACE, $B % OBJECT_A, $A % OBJECT => Retrieve the $A, then go to the $C, then pick up a $B => (.)* > $A > (.)* > $C > (.)* > $B
+$B % AREA, $A % PLACE => Start at the $A, then go to the $B and stay there => (.)* > $A > (.)* > ($B)+
+$A % OBJECT_A => Find a $A and don't find it again => (!$A)* > $A > (!$A)+
+$B % PLACE, $A % PLACE => Find the $A, go to the $B, and don't return to the $A => (.)* > $A > (.)* > $B > (!$A)*
+$C % NONDIRECTION, $B % NONDIRECTION, $A % NONDIRECTION => Perform actions in this order: $A, $B, then $C. Repeat four times => ($A > $B > $C){4}
+
+$A % OBJECT_PLURAL => Find zero $As => (!$A)+
+$A % OBJECT_PLURAL => Find zero $As => ((.)* > $A > (.)*)~
+
+$D % OBJECT, $C % AREA, $B % PLACE, $A % DIRECTION => Walk $A until reaching a $B in the $C. Along the way, collect $Ds => ($A)*&((.)* > $D){#N} > $B&$C
+$C % AREA, $B % OBJECT, $A % OBJECT => In the $C, find $A before finding $B => (!$B)* > $C&$A > (.)* > $C&$B
+$D % PLACE, $C % OBJECT, $B % OBJECT, $A % DIRECTION => Travel $A and get $B or $C. After, go to the $D => ($A)* > ($B | $C) > (.)* > $D
+$C % OBJECT_PLURAL, $B % OBJECT, $A % PLACE => Get the $B, then go to the $A. Beware not to touch $Cs => (.)* > $B > (.)* > $A & (!$C)*
+$C % PLACE, $B % AREA, $A % DIRECTION => Go $A once, move into $B, and end at the $C => $A > (.)* > $B > (.)* > $C
+$C % OBJECT, $B % OBJECT, $A % PLACE => Gather $Bs but not $Cs in $A => ((.)* > ($B&$A)){##N} & (!$C)*
+$A % DIRECTION, $B % OBJECT => Go $A until you see $B => ($A)* > $B
+$D % PLACE, $C % PLACE, $B % PLACE, $A % OBJECT => Visit the $D, then go to $C. Find the $A then head to the $B => (.)* > $D > (.)* > $C > (.)* > $A > (.)* > $B
+$C % OBJECT, $B % PLACE, $A % DIRECTION => Go $A and find a $C in the $B => ($A)* > $C&$B
+$D % AREA, $C % PLACE, $B % OBJECT_PLURAL, $A % PLACE => Go to the $A, then enter $D. Find $C but not before gathering $Bs => (.)* > $A > (.)* > $D > ((!$C)* > $B){##N} > (.)* > $C
+
+$B % OBJECT, $A % PLACE => Take the $B to the $A without any detours => (.)* > $B > (.)* > $A
+$D % AREA, $C % OBJECT, $B % PLACE, $A % DIRECTION => Gather $C from $D and carry them to $B by moving $A => (.)* > $D&$C > ($A)* > $B
+$E % PLACE, $D % PLACE, $C % PLACE, $B % OBJECT_PLURAL, $A % OBJECT_PLURAL => Avoid $As and $Bs while moving from $C to $D and finally to $E => ((.)* > $C > (.)* > $D > (.)* > $E) & (!$A & !$B)*
+$C % AREA, $B % OBJECT, $A % OBJECT => Retrieve the $A and the $B from the $C area => (.)* > $C&$A > (.)* > $C&$B
+$C % OBJECT, $B % PLACE, $A % PLACE => Find the $C, then proceed to the $A, and finally go to the $B => (.)* > $C > (.)* > $A > (.)* > $B
+$C % PLACE, $B % OBJECT, $A % OBJECT => Collect the $A, then the $B, and take both to the $C => (.)* > $A > (.)* > $B > (.)* > $C
+$C % PLACE, $B % OBJECT_PLURAL, $A % PLACE => Move $B from the $A to the $C => (.)* > $A&$B > (.)* > $C&drop
+$C % OBJECT_A, $B % PLACE, $A % PLACE => Either go to the $A, the $B, or find a $C => (.)* > ($A | $B | $C)
+$B % PLACE, $A % OBJECT => First locate the $A, then proceed to the $B => (.)* > $A > (.)* > $B
+$C % PLACE, $B % OBJECT, $A % OBJECT => Take either $A or $B to the $C => ((.)* > $A | (.)* > $B) > (.)* > $C
+
+$C % DIRECTION, $B % DIRECTION, $A % OBJECT => Find the $A and then move $B followed by $C => (.)* > $A > ($B > $C)
+$B % OBJECT_A, $A % PLACE => Bring a $B to the $A => ((.)* > $B) > ((.)* > $A)
+$C % COLOR, $B % OBJECT_PLURAL, $A % AREA => In the $A, collect objects of $C color and avoid $Bs => ((.)* > $C&$A) & (!$B)*
+$C % PLACE, $B % PLACE, $A % DIRECTION => Start at the $C, go $A until reaching $B => (!$C)* > $C > (($A)* > $B)
+$B % OBJECT_A, $A % AREA => Go to the $A and collect all $Bs => (.)* > $A > ((.)* > $B&$A){##N}
+$C % PLACE, $B % OBJECT, $A % OBJECT => Collect a $B and a $C and bring them to the $A => (.)* > ($B > (.)* > $C | $C > (.)* > $B) > (.)* > $A
+$B % AREA, $A % DIRECTION => Keep moving in $A direction until you reach the $B => ($A)* > $B
+$B % OBJECT, $A % OBJECT_A => Find a $A and avoid $Bs => ((.)* > $A) & (!$B)*
+$C % OBJECT_A, $B % AREA, $A % PLACE => Collect a $C from the $B and bring it to the $A => (.)* > $B&$C > (.)* > $A
+$B % OBJECT_PLURAL, $A % DIRECTION => Keep going $A and do not pick up any $Bs => ($A&(!$B)){##N}

@@ -315,15 +315,41 @@ def main():
                 logits = logits[0]
             return logits.argmax(dim=-1)
 
-        metric = evaluate.load("accuracy")
+        bleu_metric = evaluate.load("bleu")
+        accuracy_metric = evaluate.load("accuracy")
+        f1_metric = evaluate.load("f1")
+
+        # def compute_metrics(eval_preds):
+        #     preds, labels = eval_preds
+        #     # preds have the same shape as the labels, after the argmax(-1) has been calculated
+        #     # by preprocess_logits_for_metrics but we need to shift the labels
+        #     labels = labels[:, 1:].reshape(-1)
+        #     preds = preds[:, :-1].reshape(-1)
+        #     return metric.compute(predictions=preds, references=labels)
 
         def compute_metrics(eval_preds):
             preds, labels = eval_preds
-            # preds have the same shape as the labels, after the argmax(-1) has been calculated
-            # by preprocess_logits_for_metrics but we need to shift the labels
-            labels = labels[:, 1:].reshape(-1)
-            preds = preds[:, :-1].reshape(-1)
-            return metric.compute(predictions=preds, references=labels)
+
+            preds_strings = []
+            labels_strings = []
+            preds_list = []
+            labels_list = []
+
+            for pred, label in zip(preds, labels):
+                valid_mask = label != -100
+                pred_non_ignore = pred[valid_mask]
+                label_non_ignore = label[valid_mask]
+
+                preds_strings.append(tokenizer.decode(
+                    pred_non_ignore, skip_special_tokens=True))
+                labels_strings.append(tokenizer.decode(
+                    label_non_ignore, skip_special_tokens=True))
+
+                preds_list.extend(pred_non_ignore.tolist())
+                labels_list.extend(label_non_ignore.tolist())
+
+            return bleu_metric.compute(
+                predictions=preds_strings, references=labels_strings)
 
     data_collator = DataCollatorForSeq2Seq(
         tokenizer, model=model, padding=True)
@@ -373,7 +399,6 @@ def main():
         else None,
         callbacks=[tensorboard_callback],
     )
-    # IPython.embed()  # type: ignore
 
     trainer.evaluate()
 

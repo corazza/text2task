@@ -1,7 +1,5 @@
-import copy
 import cProfile
 import itertools
-import math
 import pstats
 from curses.ascii import isalpha
 from functools import wraps
@@ -9,15 +7,21 @@ from pathlib import Path
 from typing import Iterator, Optional, Tuple
 
 import IPython
+import language_tool_python
 import more_itertools
 import numpy as np
 import torch
-from transformers import PegasusForConditionalGeneration, PegasusTokenizer
+from happytransformer import HappyTextToText, TTSettings
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from transformers import (AutoModel, AutoModelForSeq2SeqLM, AutoTokenizer,
+                          PegasusForConditionalGeneration, PegasusTokenizer)
 
 import compiler_interface
 from compiler_interface import compile
 from consts import *
-from example_parser import Example, parse_examples
+from datasets import Dataset, load_dataset
+from example_parser import Example, parse_examples, parse_single_line_examples
 from parser_util import line_iter
 from regex_ast import RENode
 from regex_printer import expr_to_str
@@ -51,6 +55,11 @@ def load_examples(path: str) -> list[Example]:
     return parse_examples(lines)
 
 
+def load_examples_single_line(path: str) -> list[Example]:
+    lines = more_itertools.peekable(line_iter(path))
+    return parse_single_line_examples(lines)
+
+
 def load_terms(path: str) -> dict[str, list[str]]:
     lines = more_itertools.peekable(line_iter(path))
     return parse_terms(lines)
@@ -74,8 +83,6 @@ def get_eligible_single(examples: list[Example]) -> Iterator[Example]:
     while True:
         example1: Example = examples[counter_i % num_examples]
         counter_i += 1
-        # if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
-        #     continue
         if not has_without_dot(example1):
             continue
         yield example1
@@ -87,8 +94,6 @@ def get_eligible_pairs(examples: list[Example]) -> Iterator[tuple[Example, Examp
         for j, example2 in enumerate(examples):
             if i >= j:
                 continue
-            # if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
-            #     continue
             if not has_without_dot(example1) or not has_without_dot(example2):
                 continue
             has_eligible1: bool = False
@@ -114,8 +119,6 @@ def get_eligible_triplets(examples: list[Example]) -> Iterator[tuple[Example, Ex
             for k, example3 in enumerate(examples):
                 if i >= j or j >= k:
                     continue
-                # if example1.average_desc_length() > DESC_LENGTH_LIMIT or example2.average_desc_length() > DESC_LENGTH_LIMIT:
-                #     continue
                 if not has_without_dot(example1) or not has_without_dot(example2) or not has_without_dot(example3):
                     continue
                 has_eligible1: bool = False
@@ -176,8 +179,6 @@ def eligible_combination_in_pair(pattern_desc: str, example_descs: list[str]) ->
 
 
 def eligible_desc_in_pair(example_desc: str) -> bool:
-    if len(example_desc) > DESC_LENGTH_LIMIT:
-        return False
     lower = example_desc.lower()
     for each in CANT_APPEAR_IN_SINGLE:
         if each in lower:
@@ -185,7 +186,7 @@ def eligible_desc_in_pair(example_desc: str) -> bool:
     return True
 
 
-def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filter, eligible_combination_filter) -> Example:
+def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filter, eligible_combination_filter) -> list[Example]:
     representatives: list[str] = [x.representative() for x in examples]
     new_example_rewrites: list[list[Tuple[str, str]]] = []
     new_runs: list[Tuple[int, list[frozenset[str]]]] = []
@@ -202,45 +203,55 @@ def apply_pattern(pattern: Example, examples: list[Example], eligible_desc_filte
         new_example_rewrites = merged_rewrites
 
     src_candidates: list[list[str]] = [x.srcs for x in examples]
+    for candidate in src_candidates:
+        np.random.shuffle(candidate)
+
     desc_candidates: list[list[str]] = [
         list(filter(eligible_desc_filter, x.descs)) for x in examples]
+    for candidate in desc_candidates:
+        np.random.shuffle(candidate)
 
-    desc_combinations: list[list[str]] = list(
-        itertools.product(*desc_candidates))
-    src_combinations: list[list[str]] = list(
-        itertools.product(*src_candidates))
+    desc_combinations = itertools.product(*desc_candidates)  # type: ignore
+    chosen_srcs: list[str] = next(
+        itertools.product(*src_candidates))  # type: ignore
 
-    assert len(desc_combinations) > 0
+    # assert len(desc_combinations) > 0
 
     adds: list[str] = [get_adds(pattern.id, x) for x in examples]
 
-    for chosen_descs in desc_combinations:
-        for pattern_desc in pattern.descs:
-            if not eligible_combination_filter(pattern_desc, chosen_descs):
-                continue
-            replacements: list[Tuple[str, str]] = []
-            for i in range(len(examples)):
-                desc_i: str = map_desc(
-                    examples[i].vars(), AUGMENT_CHAR_LIST[i], chosen_descs[i])
-                desc_i: str = times_map_desc(TIMES_CHAR_LIST[i], desc_i)
-                desc_i = desc_i[0].lower() + desc_i[1:]
-                replacements.append((f'DESC{i}', desc_i))
-                replacements.append((f'ADD{i}', adds[i]))
-            new_descs.append(clean_desc(
-                apply_replacements(pattern_desc, replacements)))
+    pattern_desc: str = random_from(pattern.descs)
 
-    for chosen_srcs in src_combinations:
-        for pattern_src in pattern.srcs:
-            replacements: list[Tuple[str, str]] = []
-            for i in range(len(examples)):
-                src_i: str = map_desc(
-                    examples[i].vars(), AUGMENT_CHAR_LIST[i], chosen_srcs[i])
-                src_i: str = times_map_desc(TIMES_CHAR_LIST[i], src_i)
-                replacements.append((f'SRC{i}', src_i))
-                replacements.append((f'ADD{i}', adds[i]))
-            new_srcs.append(apply_replacements(pattern_src, replacements))
+    chosen_descs: list[str] = []
+    for desc_combination in desc_combinations:
+        if not eligible_combination_filter(pattern_desc, desc_combination):
+            continue
+        chosen_descs = desc_combination  # type: ignore
+        break
+    if chosen_descs == []:
+        return []
 
-    return Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)
+    replacements: list[Tuple[str, str]] = []
+    for i in range(len(examples)):
+        desc_i: str = map_desc(
+            examples[i].vars(), AUGMENT_CHAR_LIST[i], chosen_descs[i])
+        desc_i: str = times_map_desc(TIMES_CHAR_LIST[i], desc_i)
+        desc_i = desc_i[0].lower() + desc_i[1:]
+        replacements.append((f'DESC{i}', desc_i))
+        replacements.append((f'ADD{i}', adds[i]))
+    new_descs.append(clean_desc(
+        apply_replacements(pattern_desc, replacements)))
+
+    pattern_src: str = random_from(pattern.srcs)
+    replacements: list[Tuple[str, str]] = []
+    for i in range(len(examples)):
+        src_i: str = map_desc(
+            examples[i].vars(), AUGMENT_CHAR_LIST[i], chosen_srcs[i])
+        src_i: str = times_map_desc(TIMES_CHAR_LIST[i], src_i)
+        replacements.append((f'SRC{i}', src_i))
+        replacements.append((f'ADD{i}', adds[i]))
+    new_srcs.append(apply_replacements(pattern_src, replacements))
+
+    return [Example(True, new_example_rewrites, new_runs, new_descs, new_srcs, new_id)]
 
 
 def augmented_ab(patterns: dict[str, list[Example]], abs: list[tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
@@ -248,7 +259,8 @@ def augmented_ab(patterns: dict[str, list[Example]], abs: list[tuple[Example, st
     new_abs: list[Tuple[Example, str, str]] = []
 
     to_add_single: dict[str, int] = {
-        'avoid': round(ADD_AVOIDANCE_P / ADD_TOTAL * ADD_P * num_abs)
+        'avoid': round(ADD_AVOIDANCE_P / ADD_TOTAL * ADD_P * num_abs),
+        'avoid_both': round(ADD_AVOIDANCE_BOTH_P / ADD_TOTAL * ADD_P * num_abs),
     }
 
     to_add_pairs: dict[str, int] = {
@@ -270,50 +282,50 @@ def augmented_ab(patterns: dict[str, list[Example]], abs: list[tuple[Example, st
     eligible_single: Iterator[Example] = get_eligible_single(examples)
 
     for pattern_id, pattern_num in to_add_single.items():
-        print(f'adding {pattern_id}... ({pattern_num})')
-        for counter in range(pattern_num):
+        for counter in tqdm(range(pattern_num), pattern_id):
             pattern = random_from(patterns[pattern_id])
             example = next(eligible_single)
             new_example = apply_pattern(
                 pattern, [example], lambda x: True, lambda x, y: True)
-            new_abs.append(get_single_ab(new_example))
+            new_abs.extend(get_single_ab(new_example))
 
     np.random.shuffle(examples)  # type: ignore
     eligible_pairs: Iterator[Tuple[Example, Example]
                              ] = get_eligible_pairs(examples)
 
     for pattern_id, pattern_num in to_add_pairs.items():
-        print(f'adding {pattern_id}... ({pattern_num})')
-        for counter in range(pattern_num):
+        for counter in tqdm(range(pattern_num), pattern_id):
             pattern = random_from(patterns[pattern_id])
             example1, example2 = next(eligible_pairs)
             example = apply_pattern(
                 pattern, [example1, example2], eligible_desc_in_pair, eligible_combination_in_pair)
-            new_abs.append(get_single_ab(example))
+            new_abs.extend(get_single_ab(example))
 
     np.random.shuffle(examples)  # type: ignore
     eligible_triplets: Iterator[Tuple[Example, Example,
                                       Example]] = get_eligible_triplets(examples)
 
     for pattern_id, pattern_num in to_add_triplets.items():
-        print(f'adding {pattern_id}... ({pattern_num})')
-        for counter in range(pattern_num):
+        for counter in tqdm(range(pattern_num), pattern_id):
             pattern = random_from(patterns[pattern_id])
             example1, example2, example3 = next(eligible_triplets)
             example = apply_pattern(
                 pattern, [example1, example2, example3], eligible_desc_in_pair, eligible_combination_in_pair)
-            new_abs.append(get_single_ab(example))
+            new_abs.extend(get_single_ab(example))
 
     return new_abs
 
 
-def get_single_ab(example: Example):
+def get_single_ab(examples: list[Example]):
+    if len(examples) == 0:
+        return []
+    example = examples[0]
     np.random.shuffle(example.descs)
     np.random.shuffle(example.srcs)
     ast = compiler_interface.parse(example.srcs[0])
     rewrites_nodes = ast.rewrites()
     np.random.shuffle(rewrites_nodes)  # type: ignore
-    return example, example.descs[0], expr_to_str(rewrites_nodes[0])
+    return [(example, example.descs[0], expr_to_str(rewrites_nodes[0]))]
 
 
 def apply_text_rewrite_with_concat(x: str, rewrite: list[Tuple[str, str]], sep: str) -> str:
@@ -582,31 +594,60 @@ def filter_length(abs: list[Tuple[Example, str, str]], tokenizer):
     return result
 
 
-def sanity_check(ab: Tuple[Example, str, str]):
-    e, desc, src = ab
-    for i, c in enumerate(src):
-        if i == 0 or i == len(src) - 1:
-            continue
-        if c == ' ':
-            assert not isalpha(src[i-1]) or not isalpha(src[i+1])
-    assert '$' not in desc
-    assert '#' not in desc
-    assert '##' not in src
-    if '#' in src:
-        assert '#some' in src.lower()
-
-
 def sanity_checks(abs: list[Tuple[Example, str, str]]):
+    def sanity_check(ab: Tuple[Example, str, str]):
+        e, desc, src = ab
+        for i, c in enumerate(src):
+            if i == 0 or i == len(src) - 1:
+                continue
+            if c == ' ':
+                assert not isalpha(src[i-1]) or not isalpha(src[i+1])
+        assert '$' not in desc
+        assert '#' not in desc
+        assert '##' not in src
+        try:
+            assert 'ss ' not in desc.lower()
+        except:
+            IPython.embed()
+        src_lower = src.lower()
+        if '#' in src:
+            assert '#some' in src_lower
     for ab in abs:
         sanity_check(ab)
 
 
-def remove_residuals(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+def manual_fixes(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    def manually_fix(ab: Tuple[Example, str, str]) -> Tuple[Example, str, str]:
+        ex: Example
+        desc: str
+        src: str
+        replacements: list[tuple[str, str]] = [
+            ('all the coffees', 'coffee'),
+            ('all coffees', 'coffee'),
+            ('coffees', 'coffee'),
+            ('mails', 'mail'),
+            ('breads', 'bread'),
+            ('equipments', 'equipment'),
+            ('all the petrols', 'petrol'),
+            ('all petrols', 'petrol'),
+            ('petrols', 'petrol'),
+            ('toolss', 'tools'),
+            ('bookss', 'books'),
+            ('glassess', 'glasses'),
+            ('shoess', 'shoes'),
+            ('giftss', 'gifts'),
+            ('glovess', 'gloves'),
+            ('foods', 'food'),
+            ('fishs', 'fish'),
+        ]
+        (ex, desc, src) = ab
+        for left, right in replacements:
+            desc = desc.replace(left, right)
+        return (ex, desc, src)
+
     result: list[Tuple[Example, str, str]] = []
-    for e, a, b in abs:
-        if '$' in a or '$' in b:
-            continue
-        result.append((e, a, b))
+    for ab in abs:
+        result.append(manually_fix(ab))
     return result
 
 
@@ -678,6 +719,58 @@ def apply_cap(abs: list[Tuple[Example, str, str]], cap: int) -> list[Tuple[Examp
             result.append((e, desc, src))
             taken[representative] += 1
     return result
+
+
+def text_tool_correction(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    tool = language_tool_python.LanguageTool('en-US')
+    new_abs: list[Tuple[Example, str, str]] = []
+    for (ex, desc, src) in tqdm(abs, "Text-tool correction"):
+        corrected: str = tool.correct(desc)
+        new_abs.append((ex, corrected, src))
+    return new_abs
+
+
+def correct_ab(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:
+    num_abs: int = len(abs)
+    new_abs: list[Tuple[Example, str, str]] = []
+    torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # model_name = 'pszemraj/flan-t5-large-grammar-synthesis'
+    # model_name = 'pszemraj/grammar-synthesis-small'
+    model_name = 'vennify/t5-base-grammar-correction'  # grammar
+    # model_name = 'leslyarun/grammatical-error-correction'  # grammar
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name).to(torch_device)
+
+    sentences: list[str] = [f'grammar: {x[1]}' for x in abs]
+    # sentences: list[str] = [x[1] for x in abs]
+
+    data = {'sentences': sentences}
+    dataset = Dataset.from_dict(data)
+
+    tokenized_dataset = dataset.map(lambda x: tokenizer(
+        x['sentences'], truncation=True, padding='longest'), batched=True)
+    tokenized_dataset.set_format(type='torch')
+
+    loader = DataLoader(tokenized_dataset, batch_size=16)  # type: ignore
+
+    corrected_sentences: list[str] = []
+
+    for batch in tqdm(loader, "Grammar correction"):
+        with torch.no_grad():
+            inputs = batch['input_ids'].to(torch_device)
+            attention_mask = batch['attention_mask'].to(
+                torch_device)
+            outputs = model.generate(input_ids=inputs,
+                                     attention_mask=attention_mask, num_beams=5, min_length=1, max_length=300)
+            for output in outputs:
+                corrected_sentence = tokenizer.decode(
+                    output, skip_special_tokens=True)
+                corrected_sentences.append(corrected_sentence)
+
+    new_abs: list[tuple[Example, str, str]] = [
+        (x[0], c, x[2]) for x, c in zip(abs, corrected_sentences)]
+
+    return new_abs
 
 
 def paraphrase_ab(abs: list[Tuple[Example, str, str]]) -> list[Tuple[Example, str, str]]:

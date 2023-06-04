@@ -1,7 +1,9 @@
 from functools import cmp_to_key
+from typing import Iterator, Optional, Tuple
+
 import IPython
 import more_itertools
-from typing import Iterator, Optional, Tuple
+
 from compiler_interface import compile
 
 
@@ -11,6 +13,9 @@ def parse_terms(lines: more_itertools.peekable) -> dict[str, list[str]]:
     while True:
         try:
             rest, rest_tags = parse_term(lines)
+            if rest in terms:
+                print(f'duplicate: {rest}')
+                continue
             terms[rest] = rest_tags
         except StopIteration:
             return terms

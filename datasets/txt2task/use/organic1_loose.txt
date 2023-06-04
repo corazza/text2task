@@ -248,7 +248,7 @@ Find $A
 1 @ {'$A'}, {'$A'}
 0 @ {}, {}, {}
 =
-$A % COLLECTABLE
+$A % OBJECT
 =
 Find $As
 Get $As
@@ -517,7 +517,7 @@ before exiting through the $A, grab the $B! avoid $Cs
 
 0 @ {}, {'$C'}, {'$B'}, {}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}
 =
-$A % PLACE, $B % OBJECT, $C % OBJECT_A
+$A % PLACE, $B % OBJECT, $C % OBJECT
 =
 get the $B then go to the $A all the while avoiding $Cs
 before exiting through the $A, grab the $B! don't approach $Cs
@@ -614,7 +614,7 @@ before exiting through the $A, grab the $B! avoid $Cs
 1 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
 1 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$A'}, {'$B', '$A'}
 =
-$A % AREA, $B % COLLECTABLE
+$A % AREA, $B % OBJECT
 =
 Go to the $A and gather $Bs
 We need $Bs from the $A
@@ -645,7 +645,7 @@ Go to the $A and gather $Bs
 1 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
 1 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$A'}, {'$B', '$A'}
 =
-$A % AREA, $B % COLLECTABLE
+$A % AREA, $B % OBJECT
 =
 Go to the $A and gather ##N $Bs
 We need ##N $Bs from the $A
@@ -679,7 +679,7 @@ Go to the $A and gather $Bs
 1 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
 1 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$A'}, {'$B', '$A'}
 =
-$A % AREA, $B % COLLECTABLE
+$A % AREA, $B % OBJECT
 =
 Go to the $A and gather $Bs, but don't leave the $A once you get there
 Once you get to the $A don't leave it and gather $Bs
@@ -711,7 +711,7 @@ Go to the $A and gather $Bs, but don't leave the $A once you get there
 1 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
 1 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$A'}, {'$B', '$A'}
 =
-$A % AREA, $B % COLLECTABLE
+$A % AREA, $B % OBJECT
 =
 Go to the $A and gather ##N $Bs, but don't leave the $A once you get there
 Once you get to the $A don't leave it and gather ##N $Bs
@@ -738,7 +738,7 @@ Go to the $A and gather $Bs, but don't leave the $A once you get there
 0 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
 0 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$A'}, {'$B', '$A'}
 =
-$A % AREA, $B % COLLECTABLE
+$A % AREA, $B % OBJECT
 =
 Go to the $A and find $Bs, but avoid $Bs before getting to the $A
 Go to the $A and avoid any $Bs on the way there. In the $A, find $Bs
@@ -766,7 +766,7 @@ Go to the $A and find $Bs, but avoid $Bs before getting to the $A
 0 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
 0 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$A'}, {'$B', '$A'}
 =
-$A % AREA, $B % COLLECTABLE
+$A % AREA, $B % OBJECT
 =
 Go to the $A and find ##N $Bs, but avoid $Bs before getting to the $A
 Go to the $A and avoid any $Bs on the way there. In the $A, find ##N $Bs
@@ -796,7 +796,7 @@ Go to the $A and find $Bs, but avoid $Bs before getting to the $A
 0 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
 0 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$A'}, {'$B', '$A'}
 =
-$A % AREA, $B % COLLECTABLE
+$A % AREA, $B % OBJECT
 =
 Go to the $A and find $Bs, but avoid $Bs before getting to the $A, and never leave the $A once you get there
 Go to the $A and avoid any $Bs on the way there. In the $A, find $Bs without leaving the $A
@@ -826,7 +826,7 @@ Go to the $A and find $Bs, but avoid $Bs before getting to the $A, and never lea
 0 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$B', '$A'}
 0 @ {}, {'$B'}, {}, {'$A'}, {'$A'}, {'$B', '$A'}, {'$A'}, {'$B', '$A'}
 =
-$A % AREA, $B % COLLECTABLE
+$A % AREA, $B % OBJECT
 =
 Go to the $A and find ##N $Bs, but avoid $Bs before getting to the $A, and never leave the $A once you get there
 Go to the $A and avoid any $Bs on the way there. In the $A, find ##N $Bs without leaving the $A
@@ -1133,7 +1133,7 @@ never fall in a $A and avoid the $B. visit the $C then $D then $E. return to $D
 1 @ {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
 1 @ {}, {'$C'}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$C'}, {}, {'$D'}, {}, {'$E'}, {}, {'$D'}, {}, {}, {}, {}, {}, {}, {}, {}
 =
-$A % OBJECT_A, $B % OBJECT_A, $C % PLACE, $D % PLACE, $E %PLACE
+$A % OBJECT, $B % OBJECT, $C % PLACE, $D % PLACE, $E %PLACE
 =
 go to the $C, the $D, then the $E. finally, return to the $D. avoid $As and $Bs
 Start from $C and find the $D. Then, find the $E. Finally, return to $D. Avoid $As and $Bs
@@ -1555,7 +1555,7 @@ Get to the $C or the $D by going only $A.
 3 @ {'$A'}, {}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}
 2 @ {'$A'}, {'$A'}, {'$A'}
 =
-$A % COLLECTABLE
+$A % OBJECT
 =
 Pick up all the $As on the path
 Collect all the $As
@@ -1575,7 +1575,7 @@ Pick up all the $As on the path
 3 @ {'$A'}, {}, {'$A'}, {}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}
 2 @ {'$A'}, {'$A'}, {'$A'}
 =
-$A % COLLECTABLE
+$A % OBJECT
 =
 Pick up ##N $As on the path
 Collect ##N $As
@@ -1601,7 +1601,7 @@ Pick up all the $As on the path
 1 @ {'$A'}, {}, {'$A'}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}
 2 @ {'$A'}, {'$A'}, {'$A'}, {'$B'}
 =
-$A % COLLECTABLE, $B % AVOID
+$A % OBJECT, $B % AVOID
 =
 Pick up all the $As on the path while avoiding the $B
 Collect the $As and avoid the $B
@@ -1615,9 +1615,10 @@ Get as many $As as possible (avoid the $B)
 =
 Pick up all the $As on the path while avoiding $Bs
 
+
 2 @ {'$A'}, {'$A'}, {'$A'}, {'$B'}
 =
-$A % COLLECTABLE, $B % OBJECT_A
+$A % OBJECT, $B % OBJECT
 =
 Pick up all the $As on the path while avoiding $Bs
 Collect the $As and avoid all $Bs
@@ -1645,7 +1646,7 @@ Pick up all the $As on the path while avoiding $Bs
 2 @ {'$A'}, {}, {'$A'}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}
 3 @ {'$A'}, {'$A'}, {'$A'}, {'$B'}
 =
-$A % COLLECTABLE, $B % STEP_ON_A
+$A % OBJECT, $B % STEP_ON_A
 =
 Pick up the $As on the path while not stepping on $Bs
 Collect $As and never step on any $Bs
@@ -1673,7 +1674,7 @@ Pick up all the $As on the path while avoiding $Bs
 2 @ {'$A'}, {}, {'$A'}, {'$B'}, {'$A'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A'}
 3 @ {'$A'}, {'$A'}, {'$A'}, {'$B'}
 =
-$A % COLLECTABLE, $B % HIT_A
+$A % OBJECT, $B % HIT_A
 =
 Pick up the $As on the path while not hitting $Bs
 Collect all the $As and never hit any $Bs
@@ -1705,7 +1706,7 @@ Pick up all the $As on the path while avoiding $Bs
 0 @ {'$A', '$C'}, {}, {'$A', '$C'}, {}, {'$A', '$C'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {'$A', '$C'}
 0 @ {'$A', '$C'}, {'$A', '$C'}, {'$A', '$C'}
 =
-$A % COLLECTABLE, $B % COLOR, $C % COLOR
+$A % OBJECT, $B % COLOR, $C % COLOR
 =
 Pick up all the $B $As
 Collect all the $B $As

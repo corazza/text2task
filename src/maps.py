@@ -68,19 +68,22 @@ class Map():
 
 
 def action_map(terms: dict[str, list[str]]) -> tuple[dict[str, int], dict[int, str]]:
-    all_actions: list[str] = get_all_terms_from_tag(terms, 'ACTION')
+    all_actions: list[str] = get_all_terms_from_tag(terms, 'EXECUTABLE')
     first: dict[str, int] = {action: i for i, action in enumerate(all_actions)}
     second: dict[int, str] = {i: action for action, i in first.items()}
     return first, second
 
 
 class MapEnv(gym.Env):
-    def __init__(self, map: Map, src: str):
+    def __init__(self, map: Map, src: str, desc: str):
         super().__init__()
         self.map: Map = map
+        self.step_counter: int = 0
         self.src: str = src
+        self.desc: str = desc
+        self.redraw: bool = True
         self.num_actions: int = len(
-            get_all_terms_from_tag(self.map.terms, 'ACTION'))
+            get_all_terms_from_tag(self.map.terms, 'EXECUTABLE'))
         self.action_to_id: dict[str, int]
         self.id_to_action: dict[int, str]
         self.action_to_id, self.id_to_action = action_map(map.terms)
@@ -123,7 +126,9 @@ class MapEnv(gym.Env):
 
         reward: int = 0
         terminated: bool = False
-        truncated: bool = False
+        truncated: bool = self.step_counter >= PER_EPISODE_STEPS
+
+        self.step_counter += 1
 
         return self.state, reward, terminated, truncated, {}
 
@@ -134,54 +139,118 @@ class MapEnv(gym.Env):
         self.state: list[int] = list(self.map.get_new_spawn())
         assert 'wall' not in self.map.content[self.state[0]][self.state[1]]
         self.label_history: list[frozenset[str]] = []
+        self.step_counter: int = 0
         return self.state
 
-    def single_symbol(self, vars: frozenset[str]) -> str:
-        if 'wall' in vars:
-            return 'x'
-        for var in vars:
-            if var in self.src:
-                return var[0].upper()
-        return ' '
-
     def pretty_row(self, row: list[frozenset[str]]) -> list[str]:
-        return ['.'] + [self.single_symbol(vars) for vars in row] + ['.']
+        return ['.'] + [self.cell_text(vars) for vars in row] + ['.']
 
-    def initialize_color_map(self) -> list[list[str]]:
-        raise NotImplementedError()
+    def cell_text(self, vars: frozenset[str]) -> str:
+        filtered: set[str] = set()
+        for var in vars:
+            if 'AREA' in self.map.terms[var]:
+                continue
+            if var == 'wall':
+                continue
+            filtered.add(var)
+        return '\n'.join(filtered)
+
+    def cell_color(self, vars: frozenset[str]) -> tuple[float, float, float]:
+        if 'wall' in vars:
+            return (221/255, 94/255, 94/255)
+        elif 'forest' in vars:
+            return (90/255, 189/255, 36/255)
+        elif 'town' in vars:
+            return (157/255, 161/255, 184/255)
+        elif 'factory' in vars:
+            return (95/255, 77/255, 71/255)
+        elif 'field' in vars:
+            return (254/255, 243/255, 92/255)
+        else:
+            return (255/255, 255/255, 255/255)
+
+    def edge_color(self, vars: frozenset[str]) -> tuple[float, float, float]:
+        all_areas: list[str] = get_all_terms_from_tag(self.map.terms, 'AREA')
+        for var in vars:
+            if var in self.src and var not in all_areas:
+                return (1.0, 0.2, 0.2)
+        return NETURAL_COLOR
+
+    def initialize_color_map(self) -> list[list[tuple[float, float, float]]]:
+        self.color_map: list[list[tuple[float, float, float]]] = [[self.cell_color(
+            self.map.content[i][j]) for j in range(self.map.size)] for i in range(self.map.size)]
+        self.color_map[self.state[0]][self.state[1]] = (
+            29/255, 249/255, 146/255)
+        return self.color_map
+
+    def initialize_edge_map(self) -> list[list[tuple[float, float, float]]]:
+        self.edge_map: list[list[tuple[float, float, float]]] = [[self.edge_color(
+            self.map.content[i][j]) for j in range(self.map.size)] for i in range(self.map.size)]
+        return self.edge_map
 
     def initialize_text_map(self) -> list[list[str]]:
-        raise NotImplementedError()
+        self.text_map: list[list[str]] = [[self.cell_text(
+            self.map.content[i][j]) for j in range(self.map.size)] for i in range(self.map.size)]
+        self.text_map[self.state[0]][self.state[1]] = '@'
+        return self.text_map
 
     def start_render(self):
         """Initializes human-mode rendering"""
-        self.fig, self.ax = plt.subplots()
-        self.color_map: list[list[str]] = self.initialize_color_map()
+        self.fig, self.ax = plt.subplots(figsize=(10, 10))
+        self.color_map: list[list[tuple[float, float, float]]
+                             ] = self.initialize_color_map()
+        self.edge_map: list[list[tuple[float, float, float]]
+                            ] = self.initialize_edge_map()
         self.text_map: list[list[str]] = self.initialize_text_map()
-        self.rects = [[patches.Rectangle([j, i], 1, 1, facecolor=self.color_map[i][j],
-                                         edgecolor='none', zorder=0) for j in range(self.map.size)] for i in range(self.map.size)]
-        self.texts = [[self.ax.text(j, i, self.text_map[i][j], ha='center', va='center', zorder=1)
-                       for j in range(self.map.size)] for i in range(self.map.size)]
-
-        for i in range(self.map.size):
-            for j in range(self.map.size):
-                self.ax.add_patch(self.rects[i][j])
 
         self.ax.set_xlim(0, self.map.size)
         self.ax.set_ylim(0, self.map.size)
         self.ax.set_aspect('equal')
+        plt.subplots_adjust(left=0, bottom=0, right=1,
+                            top=1, wspace=0, hspace=0)
 
-        self.fig.canvas.mpl_connect('key_press_event', lambda event: plt.close(
-            self.fig) if event.key == 'escape' else None)
+        self.fig.canvas.draw()
+        plt.get_current_fig_manager().window.wm_title(
+            self.desc if len(self.desc) > 0 else "Task input")
+        plt.pause(0.01)
+
+        # self.fig.canvas.mpl_connect('key_press_event', lambda event: plt.close(
+        #     self.fig) if event.key == 'escape' else None)
 
     def render_human(self):
+        self.text_map = self.initialize_text_map()
+        self.color_map = self.initialize_color_map()
+        self.edge_map = self.initialize_edge_map()
+
+        if self.redraw:
+            self.rects = [[patches.Rectangle([j, i], 1, 1, facecolor=self.color_map[i][j],
+                                             edgecolor=self.edge_map[i][j], zorder=0) for j in range(self.map.size)] for i in range(self.map.size)]
+            self.texts = [[self.ax.text(j + 0.5, i + 0.5, self.text_map[i][j], ha='center', va='center', zorder=1)
+                           for j in range(self.map.size)] for i in range(self.map.size)]
+            for i in range(self.map.size):
+                for j in range(self.map.size):
+                    self.ax.add_patch(self.rects[i][j])
+            self.redraw = False
+
         for i in range(self.map.size):
             for j in range(self.map.size):
                 self.rects[i][j].set_facecolor(self.color_map[i][j])
+                self.rects[i][j].set_edgecolor(self.edge_map[i][j])
+                if self.edge_map[i][j] != NETURAL_COLOR:
+                    self.rects[i][j].set_linewidth(3)
                 self.texts[i][j].set_text(self.text_map[i][j])
+
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
         plt.pause(0.1)
+
+    def display_message(self, msg: str):
+        self.ax.clear()
+        self.ax.text(0.5, 0.5, msg, horizontalalignment='center', fontsize=20, color='darkgrey',
+                     verticalalignment='center', transform=self.ax.transAxes)
+        self.fig.canvas.draw()
+        plt.pause(0.1)
+        self.redraw = True
 
     def render_text(self):
         pretty_rows: list[list[str]] = [
@@ -197,3 +266,13 @@ class MapEnv(gym.Env):
             self.render_human()
         elif mode == 'text':
             self.render_text()
+
+    def display_once(self):
+        self.start_render()
+        self.render(mode='human')
+
+    def close_display(self):
+        plt.close()
+
+    def stop_render(self):
+        self.close_display()

@@ -1,11 +1,41 @@
 0 @ {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$B'}
+1 @ {}, {'$A'}, {}, {'$C'}, {}, {'$B'}
+1 @ {}, {'$A'}, {}, {'$C'}, {}, {'$C'}, {}, {'$B'}
+0 @ {}, {'$A'}, {}, {'$A'}, {}, {'$A'}, {}, {'$B'}
+0 @ {}, {'$A'}, {}, {'$B'}, {}, {'$B'}, {}, {'$B'}
+=
+$C % OBJECT_PLURAL, $A % PLACE, $B % PLACE
+=
+Find $Cs on the path from the $A to the $B
+While going from the $A to the $B, find $Cs
+Find all $Cs on the path from the $A to the $B
+Start from $A and look for $Cs, end at the $B
+=
+(.)* > $A > ((.)* > $C > (.)*)+ > $B
+
+0 @ {}, {}, {}
+0 @ {}, {'$A'}, {}, {'$B'}
+1 @ {}, {'$A'}, {}, {'$C'}, {}, {'$B'}
+1 @ {}, {'$A'}, {}, {'$C'}, {}, {'$C'}, {}, {'$B'}
+0 @ {}, {'$A'}, {}, {'$A'}, {}, {'$A'}, {}, {'$B'}
+0 @ {}, {'$A'}, {}, {'$B'}, {}, {'$B'}, {}, {'$B'}
+=
+$C % OBJECT_SINGULAR, $A % PLACE, $B % PLACE
+=
+Find a $C on the path from the $A to the $B
+While going from the $A to the $B, find a $C
+Start from $A and look for a $C, end at the $B
+=
+(.)* > $A > (.)* > $C > (.)* > $B
+
+0 @ {}, {}, {}
 1 @ {}, {'$B'}, {}, {'$A'}
 1 @ {}, {'$C'}, {}, {'$A'}
 1 @ {}, {'$B', '$C'}, {}, {'$A'}
 0 @ {'$A'}, {'$B', '$C'}, {}
 =
 $A % PLACE, $B % OBJECT_A, $C % OBJECT_A
-$A % AREA, $B % OBJECT_A, $C % OBJECT_A
 =
 Bring either a $B or a $C to the $A
 Bring a $B or a $C to the $A
@@ -25,7 +55,6 @@ Bring either a $B or a $C to the $A
 0 @ {'$A'}, {'$B', '$C'}, {}
 =
 $A % PLACE, $B % OBJECT, $C % OBJECT
-$A % AREA, $B % OBJECT, $C % OBJECT
 =
 Bring the $B or the $C to the $A
 Go to the $A, but find the $B or the $C before that
@@ -36,3 +65,47 @@ Take the $B and the $C to the $A
 (.)* > ($B | $C) > (.)* > $A
 =
 Bring either a $B or a $C to the $A
+
+0 @ {}, {}, {}
+0 @ {}, {}, {'$C'}
+0 @ {}, {'$A'}, {'$C'}
+0 @ {}, {'$B'}, {'$C'}
+0 @ {}, {'$A', '$B'}, {'$C'}
+1 @ {}, {}, {'$C', '$A'}
+1 @ {}, {}, {'$C', '$B'}
+1 @ {}, {}, {'$C', '$A', '$B'}
+=
+$A % COLOR, $B % COLOR, $C % OBJECT_PLURAL
+=
+Find $A or $B $Cs
+Get $A or $B $Cs
+Find $Cs (but they need to be $A or $B)
+Find $Cs (they should be either $A or $B)
+Get $Cs (but they need to be $A or $B)
+Get $Cs (they should be either $A or $B)
+=
+(.)* > (($A | $B)&$C)
+=
+Find $A or $B $Cs
+
+0 @ {}, {}, {}
+0 @ {}, {}, {'$C'}
+0 @ {}, {'$A'}, {'$C'}
+0 @ {}, {'$B'}, {'$C'}
+0 @ {}, {'$A', '$B'}, {'$C'}
+1 @ {}, {}, {'$C', '$A'}
+1 @ {}, {}, {'$C', '$B'}
+1 @ {}, {}, {'$C', '$A', '$B'}
+=
+$A % COLOR, $B % COLOR, $C % OBJECT_SINGULAR
+=
+Find $A or $B $C
+Get $A or $B $C
+Find a $C (but it needs to be $A or $B)
+Find $Cs (it should be either $A or $B)
+Get a $C (but it needs to be $A or $B)
+Get a $C (it should be either $A or $B)
+=
+(.)* > (($A | $B)&$C)
+=
+Find $A or $B $Cs

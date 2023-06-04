@@ -31,7 +31,7 @@ def report_ab_statistics(statistics: dict[str, int]):
         print(f'{v}: {k}')
 
 
-def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool):
+def produce_datasets(output_name: str, load_from: list[str], load_from_single_line: list[str], validate_raw: bool):
     model_args, data_args, training_args = get_args()
     tokenizer = get_tokenizer(model_args)
 
@@ -45,9 +45,11 @@ def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool)
         'preprocessed_datasets/txt2task', 'synthetic', '.txt')
 
     terms = load_terms(DEFAULT_TERMS_PATH)
-    examples = load_examples(load_from[0])
-    for load_path in load_from[1:]:
+    examples: list[Example] = []
+    for load_path in load_from:
         examples.extend(load_examples(load_path))
+    for load_path in load_from_single_line:
+        examples.extend(load_examples_single_line(load_path))
 
     print(f'original examples: {len(examples)}')
 
@@ -98,6 +100,10 @@ def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool)
     diff = len_before - len_after
     print(f'removed {diff} examples based on uniqueness')
 
+    print('applying manual fixes...')
+    ab = manual_fixes(ab)
+    # ab = text_tool_correction(ab)
+    # ab = correct_ab(ab)
     print('running sanity checks...')
     sanity_checks(ab)
 
@@ -115,7 +121,10 @@ def produce_datasets(output_name: str, load_from: list[str], validate_raw: bool)
 def main():
     set_all_seeds(SEED)
     load_from = [f'datasets/txt2task/use/{x}.txt' for x in SOURCES]
-    produce_datasets('train', load_from, validate_raw=False)
+    load_from_single_line = [
+        f'datasets/txt2task/use_synth/{x}.txt' for x in SOURCES_SINGLE_LINE]
+    produce_datasets('train', load_from,
+                     load_from_single_line, validate_raw=False)
 
 
 if __name__ == '__main__':
