@@ -79,13 +79,12 @@ EVAL_STEPS_OVERWRITE = 10
 # DEFAULT_USE_MODEL_PATH: str = '/mnt/e/work_dirs/text2task_distilgpt2/'
 DEFAULT_USE_MODEL_PATH: str = '/mnt/e/work_dirs/text2task_gpt2/'
 MODEL_TEST_TEMPERATURE: float = 1.2
-
+# go to the store. avoid traps. then, go to the town
 MODEL_NUM_RETURN_SEQUENCES: int = 50
 SEMANTIC_SIMILARITY_NUM_CLUSTERS: int = 3
 SEMANTIC_SIMILARITY_MAX_LENGTH: int = 50
 SEMANTIC_SIMILARITY_NUM_SAMPLES: int = 500
 SEMANTIC_SIMILARITY_SAMPLES_REDUNDANCY: int = 10
-SEMANTIC_SIMILARITY_EMPTY_PROB: float = 0.7
 
 # ========== REINFORCEMENT LEARNING ==============
 DEFAULT_MAP_PATH = 'preprocessed_datasets/txt2task/map_test.txt'

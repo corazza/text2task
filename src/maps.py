@@ -212,6 +212,7 @@ class MapEnv(gym.Env):
         self.fig.canvas.draw()
         plt.get_current_fig_manager().window.wm_title(
             self.desc if len(self.desc) > 0 else "Task input")
+
         plt.pause(0.01)
 
         # self.fig.canvas.mpl_connect('key_press_event', lambda event: plt.close(
@@ -239,6 +240,49 @@ class MapEnv(gym.Env):
                 if self.edge_map[i][j] != NETURAL_COLOR:
                     self.rects[i][j].set_linewidth(3)
                 self.texts[i][j].set_text(self.text_map[i][j])
+
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+        plt.pause(0.1)
+
+    def flash_agent(self, flash_color=(1, 0.5, 1)):
+        original_color = self.rects[self.state[0]
+                                    ][self.state[1]].get_facecolor()
+
+        for _ in range(3):
+            self.rects[self.state[0]
+                       ][self.state[1]].set_facecolor(flash_color)
+
+            self.fig.canvas.draw()
+            self.fig.canvas.flush_events()
+            plt.pause(0.2)
+
+            self.rects[self.state[0]][self.state[1]
+                                      ].set_facecolor(original_color)
+
+            self.fig.canvas.draw()
+            self.fig.canvas.flush_events()
+            plt.pause(0.2)
+
+    def flash_screen(self, flash_color=(1, 1, 1)):
+        original_colors = [[self.rects[i][j].get_facecolor() for j in range(
+            self.map.size)] for i in range(self.map.size)]
+        original_text_colors = [[self.texts[i][j].get_color() for j in range(
+            self.map.size)] for i in range(self.map.size)]
+
+        for i in range(self.map.size):
+            for j in range(self.map.size):
+                self.rects[i][j].set_facecolor(flash_color)
+                self.texts[i][j].set_color(flash_color)
+
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+        plt.pause(0.2)
+
+        for i in range(self.map.size):
+            for j in range(self.map.size):
+                self.rects[i][j].set_facecolor(original_colors[i][j])
+                self.texts[i][j].set_color(original_text_colors[i][j])
 
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()

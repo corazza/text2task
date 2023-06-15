@@ -1,16 +1,19 @@
 from typing import Tuple
-import networkx as nx
-import pydot
-from networkx.drawing.nx_pydot import graphviz_layout
+
+import IPython
 import matplotlib
 import matplotlib.pyplot as plt
-import IPython
+import networkx as nx
+import pydot
+import tikzplotlib
+from networkx.drawing.nx_pydot import graphviz_layout
+from pyparsing import Optional
 
-from reward_machine import RewardMachine
 import regex_ast
-from regex_ast import RENode
-from regex_compiler import CompileStateNFA, CompileStateDFA, NFANode, DFANode
 from hierarchy_pos import hierarchy_pos
+from regex_ast import RENode
+from regex_compiler import CompileStateDFA, CompileStateNFA, DFANode, NFANode
+from reward_machine import RewardMachine
 
 
 def input_symbol_to_str(input_symbol: frozenset[str]) -> str:
@@ -147,10 +150,10 @@ def node_colors_ast(ast: RENode, nodes: list[int]) -> list[str]:
     return ['green' if node == 0 else 'gray' for node in nodes]
 
 
-def visualize_ast(ast: RENode, title: str):
+def visualize_ast(ast: RENode, title: str, save: str = None):
     nodes, edges, node_labels = nodes_and_edges_and_labels_ast(ast)
     colors = node_colors_ast(ast, nodes)
-    draw_graph(title, nodes, node_labels, edges, colors)
+    draw_graph(title, nodes, node_labels, edges, colors, save)
 
 
 def default_node_labels(nodes: list[int]) -> dict[int, str]:
@@ -171,7 +174,12 @@ def visualize_rm(rm: RewardMachine, title: str):
     draw_graph(title, nodes, node_labels, edges, colors)
 
 
-def draw_graph(title: str, nodes: list[int], node_labels: dict[int, str], edges: dict[Tuple[int, int], str], colors: list[str]):
+def draw_graph(title: str,
+               nodes: list[int],
+               node_labels: dict[int, str],
+               edges: dict[Tuple[int, int], str],
+               colors: list[str],
+               save: str = None):
     G = nx.DiGraph()
     G.add_nodes_from(nodes)
     G.add_edges_from(edges.keys())
@@ -181,4 +189,9 @@ def draw_graph(title: str, nodes: list[int], node_labels: dict[int, str], edges:
             with_labels=True, node_size=1000, width=2)
     nx.draw_networkx_edge_labels(
         G, pos, edge_labels=edges, bbox=dict(facecolor='none', edgecolor='none'), font_color='blue', font_size=16)
-    plt.show()
+    if save == None:
+        plt.show()
+    else:
+        return nx.to_latex(G,
+                           pos,
+                           caption=title)

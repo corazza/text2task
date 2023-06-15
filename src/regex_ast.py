@@ -1,14 +1,16 @@
-from util import *
 import copy
-from typing_extensions import override
-import IPython
-from typing import Tuple
-import numpy as np
 import itertools
 import math
+from typing import Tuple
 
-from regex_compiler import NodeCreator, CompileStateNFA, generate_inputs, nfa_union, nfa_complement
+import IPython
+import numpy as np
+from typing_extensions import override
+
 from consts import *
+from regex_compiler import (CompileStateNFA, NodeCreator, generate_inputs,
+                            nfa_complement, nfa_union)
+from util import *
 
 
 def shuffle(xs: list):
@@ -292,7 +294,7 @@ class Or(RENodeMul):
 
     def _rewrite_distributive_then_inverse(self, children: list[RENode]) -> list[RENode]:
         """
-        B > A | C > A | D -> (B | C) > A | D
+        B > A | C > A | D    ->     (B | C) > A | D
         """
         result: list[RENode] = []
         for subset_size in range(2, len(children)+1):

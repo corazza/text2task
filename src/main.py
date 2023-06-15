@@ -95,14 +95,18 @@ def test_compiler():
     # In [5]: rm({}, {'equipment'}, {}, {'wall'}, {}, {'mail'}, {}, {'door'})
     # Out[5]: [0, 0, 0, 0, 0, 0, 0, 1]
 
-    src = '($A&(!$B)){##N}'
+    src = '(.)* > (($A | $B)&$C)'
 
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)
     # visualize_compilestate(nfa, src)
     dfa, _ = compiler_interface.get_dfa(src)
     rm = compiler_interface.compile(src)
-    IPython.embed()  # type: ignore
+
+    visualize_ast(ast, src)
+    rewrites = ast.rewrites()
+
+    IPython.embed()
 
 
 def main():

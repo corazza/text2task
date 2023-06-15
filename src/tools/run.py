@@ -51,6 +51,7 @@ def demo(Q, env: RMEnvWrapper):
 
     s = tuple(env.reset())
     env.render(mode='human')
+    env.flash_agent()
 
     while num_episodes < N_DEMO_EPISODES and step < N_DEMO_MAX_STEPS:
         a = rl_agents.qrm.get_best_action(Q, s, actions, DEFAULT_Q_INIT)
@@ -59,11 +60,14 @@ def demo(Q, env: RMEnvWrapper):
         sn, r, done, info = env.step(a)
         sn = tuple(sn)
         env.render(mode='human')
+
         reward_total += r
         step += 1
         if done:
             num_episodes += 1
             s = tuple(env.reset())
+            env.render(mode='human')
+            env.flash_agent()
         else:
             s = sn
 
@@ -94,7 +98,7 @@ def main():
     reward_machine: RewardMachine
     src: str
     reward_machine, src = model_interface.get_rm(
-        generator, desc, do_cluster=True, displayer=env_initial.display_message)
+        generator, desc, do_cluster=False, displayer=env_initial.display_message)
 
     # easygui.msgbox(f'training for: {src}', title="Done")
 
@@ -106,7 +110,8 @@ def main():
     builder: MapBuilder = MapBuilder.from_map(map)
     appears_rm: frozenset[str] = reward_machine.appears
     map = builder.fill_with_vars_that_dont_appear(appears_rm).build()
-    env = RMEnvWrapper(MapEnv(map, src, desc), reward_machine)
+    env = RMEnvWrapper(
+        MapEnv(map, src, desc), reward_machine)
 
     Q = run(config, env, env_initial)
 

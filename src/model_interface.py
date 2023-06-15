@@ -1,11 +1,15 @@
+import random
 import re
 from collections import Counter
-from typing import Tuple
+from typing import Any, Tuple
 
 import IPython
+import matplotlib.pyplot as plt
 import numpy as np
+import scipy.cluster.hierarchy as sch
 from nltk.metrics.distance import edit_distance
-from sklearn.cluster import AgglomerativeClustering
+from scipy.spatial.distance import squareform
+from sklearn.cluster import AgglomerativeClustering, SpectralClustering
 from transformers import pipeline
 
 import compiler_interface
@@ -63,19 +67,18 @@ def levenshtein_distance(out1: tuple[RewardMachine, str], out2: tuple[RewardMach
     return edit_distance(out1[1], out2[1])
 
 
-def generate_trace(appears: frozenset[str]) -> list[frozenset[str]]:
-    result: list[frozenset[str]] = []
+def generate_trace(appears: frozenset[str], length: int) -> list[frozenset[str]]:
+    result: list[frozenset[str]] = [frozenset()]
     appears_list: list[str] = list(appears)
-    chosen_length = max(2, SEMANTIC_SIMILARITY_MAX_LENGTH)
+    chosen_length = max(2, length)
     for i in range(chosen_length):
         to_add: set[str] = set()
-        if np.random.random() < SEMANTIC_SIMILARITY_EMPTY_PROB:
-            num_repeat: int = 0
-        else:
-            num_repeat: int = 1 + np.random.choice(range(len(appears)))
+        repeats: int = list(range(len(appears)))
+        num_repeat: int = 1 + np.random.choice([0] * len(repeats) + repeats)
         for j in range(num_repeat):
             to_add.add(np.random.choice(appears_list))
         result.append(frozenset(to_add))
+        result.append(frozenset())
     return result
 
 
@@ -91,8 +94,13 @@ def get_traces(rms: list[RewardMachine], displayer) -> list[list[frozenset[str]]
     displayer('[SEMANTIC CLUSTERING]\ngetting traces...')
     appears: frozenset[str] = get_appears(rms)
     traces: list[list[frozenset[str]]] = []
+    num_states: list[int] = [len(x.get_nonterminal_states()) for x in rms]
     for i in range(SEMANTIC_SIMILARITY_SAMPLES_REDUNDANCY*SEMANTIC_SIMILARITY_NUM_SAMPLES):
-        trace: list[frozenset[str]] = generate_trace(appears)
+        # num_local_appears: int = 1 + np.random.choice(range(len(appears)))
+        # local_appears: frozenset[str] = frozenset(
+        #     random.sample(appears, num_local_appears))
+        trace: list[frozenset[str]] = generate_trace(
+            appears, 1 + np.random.choice(range(np.random.choice(num_states))))
         traces.append(trace)
     displayer('[SEMANTIC CLUSTERING]\nscoring traces...')
     scored_traces: list[tuple[list[frozenset[str]], float]] = [
@@ -125,7 +133,24 @@ def get_appears(outputs: list[RewardMachine]) -> frozenset[str]:
     return frozenset(result)
 
 
-def cluster(outputs: list[tuple[RewardMachine, str]], distance_f, displayer) -> tuple[RewardMachine, str]:
+def display_cluter(dist_matrix):
+    dist_array = squareform(dist_matrix)
+    linkage_matrix = sch.linkage(dist_array, method='average')
+
+    plt.figure()
+
+    dendrogram = sch.dendrogram(linkage_matrix)
+
+    plt.title('Hierarchical Clustering Dendrogram')
+    plt.xlabel('Data point')
+    plt.ylabel('Distance')
+
+    plt.show()
+
+
+def cluster(outputs: list[tuple[RewardMachine, str]],
+            distance_f,
+            displayer) -> tuple[tuple[RewardMachine, str], Any, Any]:
     if len(outputs) == 1:
         return outputs[0]
     rms: list[RewardMachine] = [o[0] for o in outputs]
@@ -145,10 +170,9 @@ def cluster(outputs: list[tuple[RewardMachine, str]], distance_f, displayer) -> 
     counter = Counter(clusters)
     most_frequent = max(clusters, key=lambda x: (
         counter[x], -np.where(clusters == x)[0][0]))
-    # IPython.embed()
     for output, cluster in zip(outputs, clusters):
         if cluster == most_frequent:
-            return output
+            return output, dist_matrix, traces
     assert False, "typing, this shouldn't ever happen"
 
 
@@ -161,13 +185,15 @@ def synthesize(generator, desc: str, do_cluster: bool, displayer) -> str:
                               eos_token_id=generator.tokenizer.eos_token_id,
                               pad_token_id=generator.tokenizer.pad_token_id,
                               num_return_sequences=MODEL_NUM_RETURN_SEQUENCES,
-                              do_sample=True,
-                              num_beams=5,
+                              do_sample=False,
+                              num_beams=MODEL_NUM_RETURN_SEQUENCES,
                               temperature=MODEL_TEST_TEMPERATURE,
                               #   num_beam_groups=2,
                               return_full_text=False,
                               )
     outputs: list[str] = [output['generated_text'] for output in model_outputs]
+    for o in outputs:
+        print(o)
     outputs_rm: list[tuple[RewardMachine, str]] = compile_filter(outputs)
     scored_outputs: list[tuple[RewardMachine, str, float]] = [
         (output[0], output[1], similarity_score_output(desc, output[1])) for output in outputs_rm]
@@ -186,7 +212,11 @@ def synthesize(generator, desc: str, do_cluster: bool, displayer) -> str:
         (x[0], x[1]) for x in top_brass_with_score]
     # IPython.embed()
     if do_cluster:
-        return cluster(top_brass, semantic_distance, displayer)[1]
+        result, dist_matrix, traces = cluster(
+            top_brass, semantic_distance, displayer)
+        IPython.embed()
+        # display_cluter(dist_matrix)
+        return result[1]
     else:
         return top_brass[0][1]
 
