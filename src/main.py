@@ -95,7 +95,8 @@ def test_compiler():
     # In [5]: rm({}, {'equipment'}, {}, {'wall'}, {}, {'mail'}, {}, {'door'})
     # Out[5]: [0, 0, 0, 0, 0, 0, 0, 1]
 
-    src = '(.)* > (($A | $B)&$C)'
+    # src = '((.)* > field > (.)* > town > (.)* > field){#some}'
+    src = '(.)* > key'
 
     ast = compiler_interface.parse(src)
     nfa, _ = compiler_interface.get_nfa(src)
@@ -103,7 +104,7 @@ def test_compiler():
     dfa, _ = compiler_interface.get_dfa(src)
     rm = compiler_interface.compile(src)
 
-    visualize_ast(ast, src)
+    visualize_rm(rm, src, smaller=False)
     rewrites = ast.rewrites()
 
     IPython.embed()

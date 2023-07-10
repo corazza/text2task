@@ -66,7 +66,7 @@ NUM_MAP = {
 }
 
 DEFAULT_TERMS_PATH = 'datasets/txt2task/terms2.txt'
-PAD_SIZE = 256
+PAD_SIZE = 100
 
 
 # ========== TRANSFORMER ==============
@@ -89,7 +89,8 @@ SEMANTIC_SIMILARITY_SAMPLES_REDUNDANCY: int = 10
 # ========== REINFORCEMENT LEARNING ==============
 DEFAULT_MAP_PATH = 'preprocessed_datasets/txt2task/map_test.txt'
 DEFAULT_AGENT: str = 'qrm'
-DEFAULT_STEPS: int = int(1e+05)
+# DEFAULT_STEPS: int = int(0.5e+05)
+DEFAULT_STEPS: int = 16000
 PER_EPISODE_STEPS: int = int(1e+03)
 DEFAULT_Q_INIT: float = 0.2
 
@@ -105,12 +106,32 @@ NETURAL_COLOR = (0.5, 0.5, 0.5)
 # go to the town. then, find green cans in the forest. but avoid mines -> CAN, but no green
 
 # find zero cans -> CAN
+# ((.)* > can > (.)*)~
+
 # find no cans -> CAN
+# ((.)* > can > (.)*)~&((.)* > can > (.)*)~
+
 # don't find cans -> CAN
+# ((.)* > can > (.)*)~&((.)* > can > (.)*)~
+
 # find a positive number of cans -> CAN
-# find several cans -> CAN
+# ((.)* > can){#some}
+
+# find several cans
+# ((.)* > can){#some}
 
 # find a garden in the town, but avoid traps 5
+# ((.)* > garden&town)&((.)* > trap > (.)*)~
+
 # patrol the hospital and the building three times 6
 
 # go to the store, but avoid mines and traps. then, find a coin in the town
+
+
+###
+
+# patrol the field and the town
+# ((.)* > field > (.)* > town > (.)* > field){#some}
+
+# find a key
+# (.)* > key
