@@ -58,13 +58,25 @@ def nodes_and_edges_dfa(x: CompileStateDFA) -> Tuple[list[int], dict[Tuple[int, 
     return [x.id for x in visited], transitions
 
 
-def transitions_to_label(transitions_and_rewards: list[Tuple[frozenset[str], int]]) -> str:
-    labels = [
-        f'{input_symbol_to_str(a[0])}: {a[1]}' for a in transitions_and_rewards]
+def transitions_to_label(transitions_and_rewards: list[Tuple[frozenset[str], int]],
+                         smaller: bool = False) -> str:
+    if smaller:
+        labels = [
+            f'{input_symbol_to_str(a[0])}: {a[1]}' for a in transitions_and_rewards if a[1] > 0]
+    else:
+        labels = [
+            f'{input_symbol_to_str(a[0])}: {a[1]}' for a in transitions_and_rewards]
     return ' | '.join(labels)
 
 
-def nodes_and_edges_rm(rm: RewardMachine) -> Tuple[list[int], dict[Tuple[int, int], str]]:
+def has_positive(transitions_and_rewards: list[Tuple[frozenset[str], int]]) -> bool:
+    for i, r in transitions_and_rewards:
+        if r > 0:
+            return True
+    return False
+
+
+def nodes_and_edges_rm(rm: RewardMachine, smaller: bool = False) -> Tuple[list[int], dict[Tuple[int, int], str]]:
     nodes: set[int] = set()
     edges: dict[Tuple[int, int], list[Tuple[frozenset[str], int]]] = dict()
     for from_state, transitions in rm.transitions.items():
@@ -75,8 +87,12 @@ def nodes_and_edges_rm(rm: RewardMachine) -> Tuple[list[int], dict[Tuple[int, in
                 edges[(from_state, to_state)] = [(transition, reward)]
             else:
                 edges[(from_state, to_state)].append((transition, reward))
-    edges_transformed = {key: transitions_to_label(
-        val) for key, val in edges.items()}
+    if smaller:
+        edges_transformed = {key: transitions_to_label(
+            val, smaller) for key, val in edges.items()}
+    else:
+        edges_transformed = {key: transitions_to_label(
+            val) for key, val in edges.items()}
     return list(nodes), edges_transformed
 
 
@@ -167,8 +183,8 @@ def visualize_compilestate(x: CompileStateNFA | CompileStateDFA, title: str):
     draw_graph(title, nodes, node_labels, edges, colors)
 
 
-def visualize_rm(rm: RewardMachine, title: str):
-    nodes, edges = nodes_and_edges_rm(rm)
+def visualize_rm(rm: RewardMachine, title: str, smaller: bool = False):
+    nodes, edges = nodes_and_edges_rm(rm, smaller)
     node_labels = default_node_labels(nodes)
     colors = node_colors_rm(rm, nodes)
     draw_graph(title, nodes, node_labels, edges, colors)

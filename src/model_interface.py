@@ -47,7 +47,8 @@ def query_loop(model_path: str, do_cluster: bool, displayer) -> tuple[RewardMach
 
 def similarity_score_output(desc: str, output: str) -> float:
     desc_words: set[str] = set(re.findall(r'\b\w+\b', desc))
-    output_words: set[str] = set(re.findall(r'\b\w+\b', output))
+    output_words: set[str] = set(re.findall(
+        r'\b\w+\b', output)) - set(['some'])
     diff: set[str] = desc_words ^ output_words
     return -len(diff)
 
@@ -192,8 +193,8 @@ def synthesize(generator, desc: str, do_cluster: bool, displayer) -> str:
                               return_full_text=False,
                               )
     outputs: list[str] = [output['generated_text'] for output in model_outputs]
-    for o in outputs:
-        print(o)
+    # for o in outputs:
+    #     print(o)
     outputs_rm: list[tuple[RewardMachine, str]] = compile_filter(outputs)
     scored_outputs: list[tuple[RewardMachine, str, float]] = [
         (output[0], output[1], similarity_score_output(desc, output[1])) for output in outputs_rm]
@@ -224,6 +225,8 @@ def synthesize(generator, desc: str, do_cluster: bool, displayer) -> str:
 def get_rm(generator, desc: str, do_cluster: bool, displayer) -> Tuple[RewardMachine, str]:
     for i in range(10):
         src = synthesize(generator, desc, do_cluster, displayer)
+        print(desc)
+        print(src)
         displayer(f'[MODEL]\n{src}')
         ast = compiler_interface.parse(src)
         nfa, _ = compiler_interface.get_nfa(src)

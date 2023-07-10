@@ -2,6 +2,7 @@
 https://github.com/RodrigoToroIcarte/reward_machines/blob/master/reward_machines/rl_agents/qlearning/qlearning.py
 """
 
+import csv
 import random
 import time
 
@@ -32,7 +33,7 @@ def learn(env,
           lr=0.1,
           total_timesteps=DEFAULT_STEPS,
           epsilon=0.1,
-          print_freq=10000,
+          print_freq=1000,
           gamma=0.9,
           q_init=DEFAULT_Q_INIT):
     """Train a tabular q-learning model.
@@ -64,6 +65,8 @@ def learn(env,
     num_episodes = 0
     Q = {}
     actions = list(range(env.action_space.n))
+
+    to_save: list[tuple[float, int, float]] = []
 
     while step < total_timesteps:
         s = tuple(env.reset())
@@ -102,6 +105,7 @@ def learn(env,
                 logs.append(("Episodes", f'{num_episodes}'))
                 logs.append(
                     ("Reward per step", f'{reward_total / print_freq:.5f}'))
+                to_save.append((time.time(), step, reward_total / print_freq))
                 for log in logs:
                     # logger.record_tabular(log[0], log[1])
                     message = message + f'\n{log[0]}: {log[1]}'
@@ -112,4 +116,9 @@ def learn(env,
                 num_episodes += 1
                 break
             s = sn
+    with open('qrm_results.csv', 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Wall time', 'Step', 'Value'])  # write the header
+        for item in to_save:
+            writer.writerow(item)  # write the data
     return Q
