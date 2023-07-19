@@ -48,6 +48,7 @@ class Map():
             while 'wall' in self.content[new_loc[0]][new_loc[1]]:
                 new_loc = (np.random.randint(self.size),
                            np.random.randint(self.size))
+            # return (6, 1)
             return new_loc
 
         elif self.spawn_type == 'location':
@@ -196,7 +197,7 @@ class MapEnv(gym.Env):
 
     def start_render(self):
         """Initializes human-mode rendering"""
-        self.fig, self.ax = plt.subplots(figsize=(10, 10))
+        self.fig, self.ax = plt.subplots(figsize=(7, 7))
         self.color_map: list[list[tuple[float, float, float]]
                              ] = self.initialize_color_map()
         self.edge_map: list[list[tuple[float, float, float]]
@@ -290,7 +291,7 @@ class MapEnv(gym.Env):
 
     def display_message(self, msg: str):
         self.ax.clear()
-        self.ax.text(0.5, 0.5, msg, horizontalalignment='center', fontsize=20, color='darkgrey',
+        self.ax.text(0.5, 0.5, msg, horizontalalignment='center', fontsize=20, color='black',
                      verticalalignment='center', transform=self.ax.transAxes)
         self.fig.canvas.draw()
         plt.pause(0.1)

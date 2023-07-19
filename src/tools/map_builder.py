@@ -157,7 +157,7 @@ class VarPicker():
 
 def example_map_1() -> Map:
     config: MapConfig = MapConfig(
-        size=10,
+        size=6,
         p_object=0.3,
         p_color_object=0.2,
         p_place=0.3,

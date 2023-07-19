@@ -89,8 +89,8 @@ SEMANTIC_SIMILARITY_SAMPLES_REDUNDANCY: int = 10
 # ========== REINFORCEMENT LEARNING ==============
 DEFAULT_MAP_PATH = 'preprocessed_datasets/txt2task/map_test.txt'
 DEFAULT_AGENT: str = 'qrm'
-# DEFAULT_STEPS: int = int(0.5e+05)
-DEFAULT_STEPS: int = 16000
+DEFAULT_STEPS: int = int(0.5e+05)
+# DEFAULT_STEPS: int = 16000
 PER_EPISODE_STEPS: int = int(1e+03)
 DEFAULT_Q_INIT: float = 0.2
 
