@@ -3,7 +3,7 @@
 This repo contains code for my master's thesis,
 *Synthesis of reward functions from natural language descriptions*.
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/xhaLgkVK9lI/0.jpg)](https://www.youtube.com/watch?v=xhaLgkVK9lI)
+[![YouTube video](https://img.youtube.com/vi/xhaLgkVK9lI/0.jpg)](https://www.youtube.com/watch?v=xhaLgkVK9lI)
 
 The core task it accomplishes is captured by this workflow:
 
