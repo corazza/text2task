@@ -4,8 +4,6 @@ from typing import Iterator, Optional, Tuple
 import IPython
 import more_itertools
 
-from compiler_interface import compile
-
 
 def parse_terms(lines: more_itertools.peekable) -> dict[str, list[str]]:
     first, tags = parse_term(lines)
